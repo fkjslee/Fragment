@@ -17,15 +17,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     desktop.cpp \
+    fragment.cpp \
+    fragmentarea.cpp \
+    hintwindow.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     desktop.h \
+    fragment.h \
+    fragmentarea.h \
+    hintwindow.h \
     mainwindow.h
 
 FORMS += \
     desktop.ui \
+    fragmentarea.ui \
+    hintwindow.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -13,17 +13,43 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">border: 2px solid blue</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>220</y>
-      <width>120</width>
-      <height>80</height>
-     </rect>
-    </property>
-   </widget>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="FragmentArea" name="fragmentArea" native="true"/>
+      </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Desktop" name="desktop" native="true">
+        <property name="styleSheet">
+         <string notr="true">border: 2px solid red</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="HintWindow" name="widget" native="true"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -31,12 +57,32 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Desktop</class>
+   <extends>QWidget</extends>
+   <header>desktop.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HintWindow</class>
+   <extends>QWidget</extends>
+   <header>hintwindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FragmentArea</class>
+   <extends>QWidget</extends>
+   <header>fragmentarea.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
