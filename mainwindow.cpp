@@ -10,10 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     std::cout << "main window constructed" << std::endl;
     ui->setupUi(this);
     ui->desktop->show();
-    std::vector<Fragment>* fragments_unsorted = Fragment::fragments_unsorted;
-    for(int i = 0; i < 9; ++i) {
-        fragments_unsorted->push_back(Fragment(QString(i)));
-    }
+    Fragment::createFragments();
 }
 
 MainWindow::~MainWindow()

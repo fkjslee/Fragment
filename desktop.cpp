@@ -8,6 +8,7 @@ Desktop::Desktop(QWidget *parent) :
 {
     ui->setupUi(this);
     std::cout << "desktop constructed" << std::endl;
+
 }
 
 Desktop::~Desktop()
