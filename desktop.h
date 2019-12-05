@@ -13,7 +13,8 @@ class Desktop : public QWidget
 
 public:
     explicit Desktop(QWidget *parent = nullptr);
-    ~Desktop();
+    void dropEvent(QDropEvent *event) override;
+    ~Desktop() override;
 
 private:
     Ui::Desktop *ui;

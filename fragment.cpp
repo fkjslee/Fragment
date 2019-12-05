@@ -1,46 +1,76 @@
 #include "fragment.h"
 #include <iostream>
 
-Fragment::Fragment(QString fragmentName, int xpos, int ypos)
+std::set<Fragment*> Fragment::unsortedFragments = std::set<Fragment*>();
+std::set<Fragment*> Fragment::sortedFragments = std::set<Fragment*>();
+Fragment* Fragment::draggingItem = nullptr;
+Fragment::Fragment(QString fragmentName, int xpos, int ypos) : QObject()
 {
     this->shape = new QLabel(fragmentName);
     this->position = QPoint(xpos, ypos);
+    this->itemShape = new ColorItem();
+    connect(itemShape, &ColorItem::sendColorItemDragging, this, &Fragment::receiveColorItemDragging);
 }
 
 Fragment::Fragment(const Fragment &rhs)
 {
     this->shape = new QLabel(rhs.shape->text());
+    this->itemShape = new ColorItem();
 }
 
 Fragment::~Fragment()
 {
     delete shape;
+    delete itemShape;
 }
 
-std::set<Fragment*> Fragment::fragments_unsorted = std::set<Fragment*>();
-std::set<Fragment*> Fragment::fragments_sorted = std::set<Fragment*>();
 void Fragment::createFragments()
 {
-    for(int i = 0; i < 9; ++i) {
-        fragments_unsorted.insert(new Fragment(QString("2")));
+    qDebug() << "here lihai";
+    for(int i = 0; i < 10; ++i) {
+        sortedFragments.insert(new Fragment(QString("2")));
+    }
+    for(int i = 0; i < 10; ++i) {
+        unsortedFragments.insert(new Fragment(QString("2")));
     }
 }
 
 bool Fragment::sortFragment(Fragment *frag)
 {
-    if(fragments_unsorted.find(frag) == fragments_unsorted.end())
+    if(unsortedFragments.find(frag) == unsortedFragments.end())
         return false;
-    fragments_unsorted.erase(frag);
-    fragments_sorted.insert(frag);
+    unsortedFragments.erase(frag);
+    sortedFragments.insert(frag);
     return true;
 }
 
 bool Fragment::unsortFragment(Fragment *frag)
 {
-    if(fragments_sorted.find(frag) == fragments_sorted.end())
+    if(sortedFragments.find(frag) == sortedFragments.end())
         return false;
-    fragments_sorted.erase(frag);
-    fragments_unsorted.insert(frag);
+    sortedFragments.erase(frag);
+    unsortedFragments.insert(frag);
     return true;
+}
+
+ColorItem *Fragment::getItemShape()
+{
+    return itemShape;
+}
+
+std::set<Fragment *> Fragment::getSortedFragments()
+{
+    return sortedFragments;
+}
+
+std::set<Fragment *> Fragment::getUnsortedFragments()
+{
+    return unsortedFragments;
+}
+
+void Fragment::receiveColorItemDragging(QGraphicsSceneMouseEvent *event)
+{
+    qDebug() << "receiveColorItemDragging";
+    draggingItem = this;
 }
 

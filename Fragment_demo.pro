@@ -16,19 +16,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    coloritem.cpp \
     desktop.cpp \
+    eventgraphicsscene.cpp \
+    eventgraphicsview.cpp \
     fragment.cpp \
     fragmentarea.cpp \
     hintwindow.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    robothead.cpp \
+    robotpart.cpp
 
 HEADERS += \
+    coloritem.h \
     desktop.h \
+    eventgraphicsscene.h \
+    eventgraphicsview.h \
     fragment.h \
     fragmentarea.h \
     hintwindow.h \
-    mainwindow.h
+    mainwindow.h \
+    robothead.h \
+    robotpart.h
 
 FORMS += \
     desktop.ui \
