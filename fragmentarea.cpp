@@ -26,7 +26,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     }
     RobotHead *robothead = new RobotHead;
     robothead->setPos(0, -20);
-    scene->addItem(robothead);
+//    scene->addItem(robothead);
     ui->view->setScene(scene);
     ui->view->setWindowTitle("fragment area");
     ui->view->show();

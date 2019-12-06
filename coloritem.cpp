@@ -24,10 +24,12 @@ void ColorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     Q_UNUSED(widget)
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::darkGray);
-    painter->drawEllipse(-12, -12, 30, 30);
+//    painter->drawEllipse(-12, -12, 30, 30);
+    painter->drawRect(-12, -12, 30, 30);
     painter->setPen(QPen(Qt::black, 1));
     painter->setBrush(QBrush(color));
-    painter->drawEllipse(-15, -15, 30, 30);
+    painter->drawRect(-15, -15, 30, 30);
+//    painter->drawEllipse(-15, -15, 30, 30);
 }
 
 void ColorItem::mousePressEvent(QGraphicsSceneMouseEvent *)
