@@ -53,6 +53,7 @@ void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEve
     this->removeItem(draggingItem);
     this->addItem(draggingItem);
     emit removeFragment(draggingItem->getFragment());
+    qDebug() << Fragment::getUnsortedFragments().size();
 }
 
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent* event)

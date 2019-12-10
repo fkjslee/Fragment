@@ -6,7 +6,6 @@
 #include <QGraphicsItem>
 #include <coloritem.h>
 #include <QVBoxLayout>
-#include <eventgraphicsscene.h>
 #include "fragment.h"
 
 Desktop::Desktop(QWidget *parent) :
@@ -14,7 +13,7 @@ Desktop::Desktop(QWidget *parent) :
     ui(new Ui::Desktop)
 {
     ui->setupUi(this);
-    EventGraphicsScene *scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
+    scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
 
     Fragment::createFragments();
     int i = 0;
@@ -38,4 +37,5 @@ void Desktop::dropEvent(QDropEvent *event)
 Desktop::~Desktop()
 {
     delete ui;
+    delete scene;
 }
