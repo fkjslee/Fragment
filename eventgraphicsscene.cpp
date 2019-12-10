@@ -13,26 +13,53 @@ void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)  {
 }
 
 void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event) {
-    std::cout << "scene dragLeaveEvent" << std::endl;
-    Fragment* draggingFragment = Fragment::getDraggingItem();
-    draggingFragment->getItemShape()->setPos(event->scenePos());
-    if(sceneType == SceneType::desktop) {
-        Fragment::sortFragment(draggingFragment);
-    } else if (sceneType == SceneType::fragmentArea) {
-        Fragment::unsortFragment(draggingFragment);
+    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    if (draggingItem == nullptr)
+        return;
+    EventGraphicsScene* beforeScene = reinterpret_cast<EventGraphicsScene*>(draggingItem->scene());
+    if (beforeScene->sceneType == SceneType::hintArea && (sceneType == SceneType::desktop)) {
+        moveFragmentFromHintToDesktop(event);
+    } else if ((beforeScene->sceneType == SceneType::fragmentArea) && (sceneType == SceneType::hintArea)) {
+        invalidOperation(event);
+    } else if ((beforeScene->sceneType == SceneType::hintArea) && (sceneType == SceneType::fragmentArea)) {
+        invalidOperation(event);
+    } else if ((beforeScene->sceneType == SceneType::desktop) && (sceneType == SceneType::hintArea)) {
+        invalidOperation(event);
+    } else {
+        moveBetweenTwoNormalSceen(event);
     }
-    qDebug() << "sorted fragments size = " << Fragment::getSortedFragments().size();
-    qDebug() << "unsorted fragments size = " << Fragment::getUnsortedFragments().size();
-    this->removeItem(draggingFragment->getItemShape());
-    this->addItem(draggingFragment->getItemShape());
-//    ColorItem * item = new ColorItem();
-//    item->setPos(event->scenePos());
-//    addItem(item);
     update();
 }
 
 void EventGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     Q_UNUSED(event)
-    std::cout << "desktop scene dropEventffffffffffffffffffff" << std::endl;
+    std::cout << "EventGraphicsScene scene dropEventffffffffffffffffffff" << std::endl;
+}
+
+void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent* event)
+{
+    Q_UNUSED(event)
+    qDebug() << "drag invalidOperation";
+    return;
+}
+
+void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEvent* event)
+{
+    qDebug() << "drag moveFragmentFromHintToDesktop";
+    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    Fragment::sortFragment(draggingItem->getFragment());
+    draggingItem->setPos(event->scenePos());
+    this->removeItem(draggingItem);
+    this->addItem(draggingItem);
+    emit removeFragment(draggingItem->getFragment());
+}
+
+void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent* event)
+{
+    qDebug() << "drag moveBetweenTwoNormalSceen";
+    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    draggingItem->setPos(event->scenePos());
+    this->removeItem(draggingItem);
+    this->addItem(draggingItem);
 }

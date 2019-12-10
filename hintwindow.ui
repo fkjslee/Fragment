@@ -16,11 +16,14 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QGraphicsView" name="view"/>
+   </item>
+   <item>
+    <widget class="QPushButton" name="refreshBtn">
      <property name="text">
-      <string>hintwindow</string>
+      <string>Refresh hint</string>
      </property>
     </widget>
    </item>

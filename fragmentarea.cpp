@@ -3,7 +3,6 @@
 #include <iostream>
 #include <QLabel>
 #include <QGraphicsItem>
-#include <robothead.h>
 #include <coloritem.h>
 #include <QVBoxLayout>
 #include <QGraphicsScene>
@@ -18,15 +17,12 @@ FragmentArea::FragmentArea(QWidget *parent) :
     EventGraphicsScene *scene = new EventGraphicsScene(EventGraphicsScene::SceneType::fragmentArea);
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
-        ColorItem* item = fragment->getItemShape();
+        ColorItem* item = new ColorItem(fragment);
         item->setPos(::sin((i * 6.28) / 10.0) * 150,
                      ::cos((i * 6.28) / 10.0) * 150);
         scene->addItem(item);
         i++;
     }
-    RobotHead *robothead = new RobotHead;
-    robothead->setPos(0, -20);
-//    scene->addItem(robothead);
     ui->view->setScene(scene);
     ui->view->setWindowTitle("fragment area");
     ui->view->show();

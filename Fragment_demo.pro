@@ -19,26 +19,20 @@ SOURCES += \
     coloritem.cpp \
     desktop.cpp \
     eventgraphicsscene.cpp \
-    eventgraphicsview.cpp \
     fragment.cpp \
     fragmentarea.cpp \
     hintwindow.cpp \
     main.cpp \
-    mainwindow.cpp \
-    robothead.cpp \
-    robotpart.cpp
+    mainwindow.cpp
 
 HEADERS += \
     coloritem.h \
     desktop.h \
     eventgraphicsscene.h \
-    eventgraphicsview.h \
     fragment.h \
     fragmentarea.h \
     hintwindow.h \
-    mainwindow.h \
-    robothead.h \
-    robotpart.h
+    mainwindow.h
 
 FORMS += \
     desktop.ui \

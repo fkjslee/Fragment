@@ -4,7 +4,7 @@
 #include "QtWidgets"
 #include <set>
 #include <QGraphicsSceneMouseEvent>
-#include "coloritem.h"
+
 
 class Fragment : public QObject
 {
@@ -13,12 +13,13 @@ public:
     Fragment(QString fragmentName = "", int xpos = 0, int ypos = 0);
     Fragment(const Fragment& rhs);
     ~Fragment();
-    ColorItem* getItemShape();
+    QColor getProperty() const { return property; }
     static void createFragments();
     static bool sortFragment(Fragment* frag);
     static bool unsortFragment(Fragment* frag);
     static std::set<Fragment*> getSortedFragments();
     static std::set<Fragment*> getUnsortedFragments();
+    static std::vector<Fragment*> getMostPossibleFragments(Fragment* f = nullptr);
     static Fragment* getDraggingItem() { return draggingItem; }
 
 public slots:
@@ -30,7 +31,7 @@ private:
     static Fragment* draggingItem;
     QLabel* shape;
     QPoint position;
-    ColorItem* itemShape;
+    QColor property;
 };
 
 #endif // FRAGMENT_H

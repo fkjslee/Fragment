@@ -3,9 +3,11 @@
 #include <QTextStream>
 #include <QtDebug>
 
-ColorItem::ColorItem()
-    : color(QRandomGenerator::global()->bounded(256), QRandomGenerator::global()->bounded(256), QRandomGenerator::global()->bounded(256))
+ColorItem* ColorItem::draggingItem = nullptr;
+ColorItem::ColorItem(Fragment* fragment)
 {
+    this->color = fragment->getProperty();
+    this->fragment = fragment;
     setToolTip(QString("QColor(%1, %2, %3)\n%4")
               .arg(color.red()).arg(color.green()).arg(color.blue())
               .arg("Click and drag this color onto the robot!"));
@@ -24,23 +26,23 @@ void ColorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     Q_UNUSED(widget)
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::darkGray);
-//    painter->drawEllipse(-12, -12, 30, 30);
     painter->drawRect(-12, -12, 30, 30);
     painter->setPen(QPen(Qt::black, 1));
     painter->setBrush(QBrush(color));
     painter->drawRect(-15, -15, 30, 30);
-//    painter->drawEllipse(-15, -15, 30, 30);
 }
 
 void ColorItem::mousePressEvent(QGraphicsSceneMouseEvent *)
 {
-    std::cout << "color item mouse press event" << std::endl;
+    qDebug() << "color item mouse press event";
+    draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
 }
 
 void ColorItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 {
     std::cout << "color item mouse release event" << std::endl;
+    draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
 }
 
@@ -61,14 +63,10 @@ void ColorItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         .length() < QApplication::startDragDistance()) {
         return;
     }
-    emit sendColorItemDragging(event);
     QDrag *drag = new QDrag(event->widget());
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
     mime->setColorData(color);
-//    QString transData;
-//    QTextStream(&transData) << int(this);
-//    mime->setText(transData);
     QPixmap pixmap(34, 34);
     pixmap.fill(Qt::white);
 

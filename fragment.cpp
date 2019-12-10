@@ -6,22 +6,20 @@ std::set<Fragment*> Fragment::sortedFragments = std::set<Fragment*>();
 Fragment* Fragment::draggingItem = nullptr;
 Fragment::Fragment(QString fragmentName, int xpos, int ypos) : QObject()
 {
+    property = QColor(QRandomGenerator::global()->bounded(256), QRandomGenerator::global()->bounded(256), QRandomGenerator::global()->bounded(256));
     this->shape = new QLabel(fragmentName);
     this->position = QPoint(xpos, ypos);
-    this->itemShape = new ColorItem();
-    connect(itemShape, &ColorItem::sendColorItemDragging, this, &Fragment::receiveColorItemDragging);
+    //connect(itemShape, &ColorItem::sendColorItemDragging, this, &Fragment::receiveColorItemDragging);
 }
 
 Fragment::Fragment(const Fragment &rhs)
 {
     this->shape = new QLabel(rhs.shape->text());
-    this->itemShape = new ColorItem();
 }
 
 Fragment::~Fragment()
 {
     delete shape;
-    delete itemShape;
 }
 
 void Fragment::createFragments()
@@ -53,11 +51,6 @@ bool Fragment::unsortFragment(Fragment *frag)
     return true;
 }
 
-ColorItem *Fragment::getItemShape()
-{
-    return itemShape;
-}
-
 std::set<Fragment *> Fragment::getSortedFragments()
 {
     return sortedFragments;
@@ -66,6 +59,18 @@ std::set<Fragment *> Fragment::getSortedFragments()
 std::set<Fragment *> Fragment::getUnsortedFragments()
 {
     return unsortedFragments;
+}
+
+std::vector<Fragment *> Fragment::getMostPossibleFragments(Fragment *f)
+{
+    std::vector<Fragment*> res;
+    std::set<Fragment*> unsorted_fragments = getUnsortedFragments();
+    for (Fragment* unsorted_fragment : unsorted_fragments) {
+        res.emplace_back(unsorted_fragment);
+        if (res.size() >= 5)
+            break;
+    }
+    return res;
 }
 
 void Fragment::receiveColorItemDragging(QGraphicsSceneMouseEvent *event)

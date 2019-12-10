@@ -6,7 +6,6 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QMimeData>
 #include <QPainter>
-#include <robotpart.h>
 #include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
 #include <QRandomGenerator>
@@ -16,20 +15,20 @@
 #include <QBitmap>
 #include <QGraphicsObject>
 #include <QDropEvent>
+#include "fragment.h"
 
 class ColorItem :  public QGraphicsObject
 {
     Q_OBJECT
 public:
-    ColorItem();
+    ColorItem(Fragment* fragment);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+    static ColorItem* getDraggingItem() { return draggingItem; }
     QColor getColor() { return color; }
-
-signals:
-    void sendColorItemDragging(QGraphicsSceneMouseEvent* event);
+    Fragment* getFragment() const { return fragment; }
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -40,6 +39,8 @@ protected:
 
 private:
     QColor color;
+    Fragment* fragment;
+    static ColorItem* draggingItem;
 };
 
 #endif // COLORITEM_H
