@@ -4,32 +4,24 @@
 #include <QtDebug>
 
 ColorItem* ColorItem::draggingItem = nullptr;
-ColorItem::ColorItem(Fragment* fragment)
+ColorItem::ColorItem(Fragment* fragment, const QString& picPath) :
+    color(fragment->getProperty()), fragment(fragment), picPath(picPath)
 {
-    this->color = fragment->getProperty();
-    this->fragment = fragment;
-    setToolTip(QString("QColor(%1, %2, %3)\n%4")
-              .arg(color.red()).arg(color.green()).arg(color.blue())
-              .arg("Click and drag this color onto the robot!"));
+    setToolTip(fragment->getFragmentName());
     setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 QRectF ColorItem::boundingRect() const
 {
-    return QRectF(-15.5, -15.5, 34, 34);
+    return fragment->getImage().rect();
 }
 
 void ColorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::darkGray);
-    painter->drawRect(-12, -12, 30, 30);
-    painter->setPen(QPen(Qt::black, 1));
-    painter->setBrush(QBrush(color));
-    painter->drawRect(-15, -15, 30, 30);
+    painter->drawImage(QPoint(0, 0), fragment->getImage());
 }
 
 void ColorItem::mousePressEvent(QGraphicsSceneMouseEvent *)
@@ -44,6 +36,12 @@ void ColorItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
     std::cout << "color item mouse release event" << std::endl;
     draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
+}
+
+void ColorItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    emit doubleClickItem(this);
+    Q_UNUSED(event)
 }
 
 void ColorItem::dropEvent(QDropEvent *e)
@@ -67,11 +65,11 @@ void ColorItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
     mime->setColorData(color);
-    QPixmap pixmap(34, 34);
+    QPixmap pixmap(fragment->getImage().width(), fragment->getImage().height());
     pixmap.fill(Qt::white);
 
     QPainter painter(&pixmap);
-    painter.translate(15, 15);
+//    painter.translate(15, 15);
     painter.setRenderHint(QPainter::Antialiasing);
     paint(&painter, nullptr, nullptr);
     painter.end();

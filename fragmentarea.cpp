@@ -30,6 +30,7 @@ void FragmentArea::update()
 {
     for (ColorItem* colorItem : colorItems) {
         scene->removeItem(colorItem);
+        disconnect(colorItem, &ColorItem::doubleClickItem, this, &FragmentArea::sortItem);
         delete colorItem;
     }
     colorItems.clear();
@@ -42,5 +43,18 @@ void FragmentArea::update()
                      ::cos((i * 6.28) / 10.0) * 150);
         scene->addItem(item);
         i++;
+        connect(item, &ColorItem::doubleClickItem, this, &FragmentArea::sortItem);
     }
+}
+
+void FragmentArea::on_autoStitch_clicked()
+{
+
+}
+
+void FragmentArea::sortItem(ColorItem *item)
+{
+    qDebug() << "uuuuu = " << Fragment::getMostPossibleFragments(item->getFragment())[0].fragment->getFragmentName();
+    qDebug() << "uuuuu = " << Fragment::getMostPossibleFragments(item->getFragment())[0].method;
+
 }

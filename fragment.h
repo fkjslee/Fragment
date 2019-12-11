@@ -5,22 +5,36 @@
 #include <set>
 #include <QGraphicsSceneMouseEvent>
 
+class Fragment;
+
+enum JointMethod {upDown, downUp, leftRight, rightLeft};
+
+struct JointFragment {
+    Fragment* fragment;
+    JointMethod method;
+    int absGrayscale;
+    JointFragment(Fragment* fragment, JointMethod method, int absGrayscale)
+        : fragment(fragment), method(method), absGrayscale(absGrayscale) {}
+};
+
 
 class Fragment : public QObject
 {
     Q_OBJECT
 public:
-    Fragment(QString fragmentName = "", int xpos = 0, int ypos = 0);
+    Fragment( const QImage& image, const QString& fragmentName = "unname");
     Fragment(const Fragment& rhs);
     ~Fragment();
     QColor getProperty() const { return property; }
+    const QImage& getImage() const { return image; }
+    const QString& getFragmentName() const { return fragmentName; }
+
     static void createFragments();
     static bool sortFragment(Fragment* frag);
     static bool unsortFragment(Fragment* frag);
     static std::set<Fragment*> getSortedFragments();
     static std::set<Fragment*> getUnsortedFragments();
-    static std::vector<Fragment*> getMostPossibleFragments(Fragment* f = nullptr);
-    static Fragment* getDraggingItem() { return draggingItem; }
+    static std::vector<JointFragment> getMostPossibleFragments(Fragment* f = nullptr);
 
 public slots:
     void receiveColorItemDragging(QGraphicsSceneMouseEvent* event);
@@ -28,10 +42,9 @@ public slots:
 private:
     static std::set<Fragment*> sortedFragments;
     static std::set<Fragment*> unsortedFragments;
-    static Fragment* draggingItem;
-    QLabel* shape;
-    QPoint position;
     QColor property;
+    QImage image;
+    QString fragmentName;
 };
 
 #endif // FRAGMENT_H

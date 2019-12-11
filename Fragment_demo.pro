@@ -40,7 +40,15 @@ FORMS += \
     hintwindow.ui \
     mainwindow.ui
 
+
+INCLUDEPATH += C:\Users\fkjslee\Downloads\opencv\build\include\opencv2 \
+        C:\Users\fkjslee\Downloads\opencv\build\include
+
+LIBS += C:\Users\fkjslee\Downloads\opencv\build\x64\vc14\lib\opencv_world411.lib
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES +=

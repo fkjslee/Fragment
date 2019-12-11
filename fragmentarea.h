@@ -18,6 +18,10 @@ public:
     ~FragmentArea();
     void update();
 
+private slots:
+    void on_autoStitch_clicked();
+    void sortItem(ColorItem* item);
+
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene* scene;

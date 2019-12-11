@@ -27,8 +27,9 @@ void HintWindow::on_refreshBtn_clicked()
     }
     colorItems.clear();
 
-    std::vector<Fragment*> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
-    for (Fragment* f : possilbleFragments) {
+    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
+    for (JointFragment jointFragment : possilbleFragments) {
+        Fragment* f = jointFragment.fragment;
         colorItems.emplace_back(new ColorItem(f));
     }
     QRect windowRect = this->rect();

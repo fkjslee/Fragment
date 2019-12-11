@@ -12,10 +12,10 @@ Desktop::Desktop(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Desktop)
 {
+    Fragment::createFragments();
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
 
-    Fragment::createFragments();
     int i = 0;
     for (Fragment* fragment : Fragment::getSortedFragments()) {
         ColorItem* item = new ColorItem(fragment);
