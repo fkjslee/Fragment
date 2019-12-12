@@ -12,7 +12,6 @@ public:
     static cv::Mat QImage2Mat(QImage image)
     {
         cv::Mat mat;
-        //qDebug() << image.format();
         switch(image.format())
         {
         case QImage::Format_ARGB32:
@@ -65,8 +64,6 @@ public:
         }
         else if(mat.type() == CV_8UC4)
         {
-            qDebug() << "CV_8UC4";
-            // Copy input Mat
             const uchar *pSrc = (const uchar*)mat.data;
             // Create QImage with same dimensions as input Mat
             QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_ARGB32);
@@ -74,33 +71,33 @@ public:
         }
         else
         {
-            qDebug() << "ERROR: Mat could not be converted to QImage.";
+            qCritical() << "ERROR: Mat could not be converted to QImage.";
             return QImage();
         }
     }
 
-    static int calcLeftRightAbsGrayscale(const cv::Mat& left, const cv::Mat& rhs) {
-        int res = 0;
-        if (left.type() != rhs.type() || left.size() != rhs.size() || left.type() != CV_8UC4)
+    static double calcLeftRightAbsGrayscale(const cv::Mat& left, const cv::Mat& rhs) {
+        double res = 0;
+        if (left.type() != rhs.type() || left.rows != rhs.rows || left.type() != CV_8UC4)
             return 0x3f3f3f3f;
         int c = left.cols - 1;
         for (int r = 0; r < left.rows; ++r) {
             for (int channel = 0; channel < 4; ++channel)
                 res += abs(left.at<Vec4b>(r, c)[channel] - rhs.at<Vec4b>(r, 0)[channel]);
         }
-        return res;
+        return res / left.rows;
     }
 
-    static int calcUpDownAbsGrayscale(const cv::Mat& up, const cv::Mat& down) {
-        int res = 0;
-        if (up.type() != down.type() || up.size() != down.size() || up.type() != CV_8UC4)
+    static double calcUpDownAbsGrayscale(const cv::Mat& up, const cv::Mat& down) {
+        double res = 0;
+        if (up.type() != down.type() || up.cols != down.cols || up.type() != CV_8UC4)
             return 0x3f3f3f3f;
         int r = up.rows - 1;
         for (int c = 0; c < up.cols; ++c) {
             for (int channel = 0; channel < 4; ++channel)
                 res += abs(up.at<Vec4b>(r, c)[channel] - down.at<Vec4b>(0, c)[channel]);
         }
-        return res;
+        return res / up.cols;
     }
 
 };

@@ -25,8 +25,8 @@ enum JointMethod {leftRight, rightLeft, upDown, downUp};
 struct JointFragment {
     Fragment* item;
     JointMethod method;
-    int absGrayscale;
-    JointFragment(Fragment* item, JointMethod method, int absGrayscale)
+    double absGrayscale;
+    JointFragment(Fragment* item, JointMethod method, double absGrayscale)
         : item(item), method(method), absGrayscale(absGrayscale) {}
 };
 

@@ -18,7 +18,16 @@ FragmentArea::FragmentArea(QWidget *parent) :
     ui->view->setScene(scene);
     ui->view->setWindowTitle("fragment area");
     ui->view->show();
-    update();
+
+    int i = 0;
+    for (Fragment* fragment : Fragment::getUnsortedFragments()) {
+        fragmentItems.emplace_back(fragment);
+        fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
+                     ::cos((i * 6.28) / 10.0) * 150);
+        scene->addItem(fragment);
+        i++;
+        connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
+    }
 }
 
 FragmentArea::~FragmentArea()
@@ -38,8 +47,6 @@ void FragmentArea::update()
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
         fragmentItems.emplace_back(fragment);
-        fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
-                     ::cos((i * 6.28) / 10.0) * 150);
         scene->addItem(fragment);
         i++;
         connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
@@ -53,22 +60,15 @@ void FragmentArea::on_autoStitch_clicked()
 
 void FragmentArea::sortItem(Fragment *item)
 {
-    JointFragment possibleFragment = Fragment::getMostPossibleColorItems(item)[0];
+    std::vector<JointFragment> possibleFragments = Fragment::getMostPossibleColorItems(item);
+    if (possibleFragments.size() == 0) {
+        qWarning() << "no suitable fragment";
+        return;
+    }
+    JointFragment possibleFragment = possibleFragments[0];
 
     Fragment::jointFragment(item, possibleFragment);
-//    switch (possibleFragment.method) {
-//    case leftRight:
-//        update();
-//        break;
-//    case rightLeft:
-//        break;
-//    case upDown:
-//        break;
-//    case downUp:
-//        break;
-//    }
+
     update();
 
-    qDebug() << possibleFragment.item->getFragmentName();
-    qDebug() << possibleFragment.method;
 }

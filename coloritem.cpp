@@ -26,13 +26,14 @@ Fragment::Fragment(const QImage& image, const QString &fragmentName)
 
 void Fragment::createFragments()
 {
-    qDebug() << "createFragments";
+    qInfo() << "createFragments";
     QDir dir("./fragment/");
     QStringList filter;
     filter << "*.jpg" << "*.png";
     QStringList nameList = dir.entryList(filter);
+    int i = 0;
     for (const QString& fileName : nameList) {
-        unsortedFragments.insert(new Fragment(QImage(dir.absolutePath() + "/" + fileName), fileName));
+        unsortedFragments.insert(new Fragment(QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
     }
 }
 
@@ -58,21 +59,29 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
 {
     const cv::Mat& m1 = Tool::QImage2Mat(f1->image);
     const cv::Mat& m2 = Tool::QImage2Mat(jointFragment.item->image);
-    cv::Mat resMat;
+    cv::Mat jointMat;
     switch(jointFragment.method) {
     case leftRight:
-//        cv::hconcat(m1, m2, resMat);
-//        unsortedFragments.erase(unsortedFragments.find(f1));
-//        unsortedFragments.erase(unsortedFragments.find(jointFragment.item));
-//        unsortedFragments.insert(new Fragment(Tool::MatToQImage(resMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
+        if (m1.rows == m2.rows)
+            cv::hconcat(m1, m2, jointMat);
         break;
     case rightLeft:
+        if (m1.rows == m2.rows)
+            cv::hconcat(m2, m1, jointMat);
         break;
     case upDown:
+        if (m1.cols == m2.cols)
+            cv::vconcat(m1, m2, jointMat);
         break;
     case downUp:
+        if (m1.cols == m2.cols)
+            cv::vconcat(m2, m1, jointMat);
         break;
     }
+    if (jointMat.empty()) return false;
+    unsortedFragments.erase(unsortedFragments.find(f1));
+    unsortedFragments.erase(unsortedFragments.find(jointFragment.item));
+    unsortedFragments.insert(new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
     return true;
 }
 
@@ -100,26 +109,28 @@ std::vector<JointFragment> Fragment::getMostPossibleColorItems(Fragment *item)
         JointFragment minFragment(nullptr, JointMethod::leftRight, 0x3f3f3f3f);
         for (Fragment* otherFragment : Fragment::getUnsortedFragments()) {
             if (item == otherFragment) continue;
-            int absGrayscale;
             const cv::Mat& m1 = Tool::QImage2Mat(item->getImage());
             const cv::Mat& m2 = Tool::QImage2Mat(otherFragment->getImage());
+            double absGrayscale;
             absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
             if (absGrayscale < minFragment.absGrayscale)
                 minFragment = JointFragment(otherFragment, JointMethod::leftRight, absGrayscale);
 
-//            absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
-//            if (absGrayscale < minFragment.absGrayscale)
-//                minFragment = JointFragment(otherFragment, JointMethod::rightLeft, absGrayscale);
+            absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
+            if (absGrayscale < minFragment.absGrayscale)
+                minFragment = JointFragment(otherFragment, JointMethod::rightLeft, absGrayscale);
 
-//            absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
-//            if (absGrayscale < minFragment.absGrayscale)
-//                minFragment = JointFragment(otherFragment, JointMethod::upDown, absGrayscale);
+            absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
+            if (absGrayscale < minFragment.absGrayscale)
+                minFragment = JointFragment(otherFragment, JointMethod::upDown, absGrayscale);
 
-//            absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
-//            if (absGrayscale < minFragment.absGrayscale)
-//                minFragment = JointFragment(otherFragment, JointMethod::downUp, absGrayscale);
+            absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
+            if (absGrayscale < minFragment.absGrayscale)
+                minFragment = JointFragment(otherFragment, JointMethod::downUp, absGrayscale);
         }
-        res.emplace_back(minFragment);
+
+        if (minFragment.item != nullptr)
+            res.emplace_back(minFragment);
     }
     return res;
 }
@@ -138,14 +149,12 @@ void Fragment::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void Fragment::mousePressEvent(QGraphicsSceneMouseEvent *)
 {
-    qDebug() << "color item mouse press event";
     draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
 }
 
 void Fragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 {
-    std::cout << "color item mouse release event" << std::endl;
     draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
 }
@@ -159,7 +168,6 @@ void Fragment::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 void Fragment::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     Q_UNUSED(event)
-    std::cout << "xxx drop event" << std::endl;
 }
 
 void Fragment::dragEnterEvent(QDragEnterEvent *e)

@@ -39,25 +39,24 @@ void EventGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent* event)
 {
     Q_UNUSED(event)
-    qDebug() << "drag invalidOperation";
+    qWarning() << "drag invalidOperation";
     return;
 }
 
 void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEvent* event)
 {
-    qDebug() << "drag moveFragmentFromHintToDesktop";
+    qInfo() << "drag moveFragmentFromHintToDesktop";
     Fragment* draggingItem = Fragment::getDraggingItem();
     Fragment::sortFragment(draggingItem->getFragment());
     draggingItem->setPos(event->scenePos());
     this->removeItem(draggingItem);
     this->addItem(draggingItem);
     emit removeFragment(draggingItem->getFragment());
-    qDebug() << Fragment::getUnsortedFragments().size();
 }
 
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent* event)
 {
-    qDebug() << "drag moveBetweenTwoNormalSceen";
+    qInfo() << "drag moveBetweenTwoNormalSceen";
     Fragment* draggingItem = Fragment::getDraggingItem();
     draggingItem->setPos(event->scenePos());
     this->removeItem(draggingItem);
