@@ -40,10 +40,10 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     static Fragment* getDraggingItem() { return draggingItem; }
-    QColor getColor() { return color; }
     Fragment* getFragment() const { return fragment; }
     const QImage& getImage() const { return image; }
     const QString& getFragmentName() const { return fragmentName; }
+    const QPointF& getBiasPos() const { return biasPos; }
 
     static std::vector<JointFragment> getMostPossibleColorItems(Fragment* item = nullptr);
     static void createFragments();
@@ -67,12 +67,11 @@ protected:
 private:
     static std::set<Fragment*> sortedFragments;
     static std::set<Fragment*> unsortedFragments;
-    QColor color;
     Fragment* fragment;
     static Fragment* draggingItem;
     QImage image;
-    QString picPath;
     QString fragmentName;
+    QPointF biasPos;
 };
 
 #endif // COLORITEM_H

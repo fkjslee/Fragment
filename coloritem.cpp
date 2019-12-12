@@ -172,6 +172,7 @@ void Fragment::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void Fragment::dragEnterEvent(QDragEnterEvent *e)
 {
+    qDebug() << "color item dragEnterEvent";
     e->accept();
 }
 
@@ -184,7 +185,6 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QDrag *drag = new QDrag(event->widget());
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
-    mime->setColorData(color);
     QPixmap pixmap(image.width(), image.height());
     pixmap.fill(Qt::white);
 
@@ -197,7 +197,10 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     pixmap.setMask(pixmap.createHeuristicMask());
 
     drag->setPixmap(pixmap);
-    drag->setHotSpot(QPoint(15, 20));
+    qDebug() << " drag event pos" << event->scenePos();
+    qDebug() << " drag pos = " << drag->hotSpot();
+    biasPos = event->scenePos() - this->scenePos();
+    drag->setHotSpot(biasPos.toPoint());
 
 
     drag->exec();
