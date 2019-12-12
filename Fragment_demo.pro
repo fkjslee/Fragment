@@ -19,17 +19,16 @@ SOURCES += \
     coloritem.cpp \
     desktop.cpp \
     eventgraphicsscene.cpp \
-    fragment.cpp \
     fragmentarea.cpp \
     hintwindow.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    Tool.h \
     coloritem.h \
     desktop.h \
     eventgraphicsscene.h \
-    fragment.h \
     fragmentarea.h \
     hintwindow.h \
     mainwindow.h

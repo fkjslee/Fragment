@@ -5,7 +5,6 @@
 #include <QtDebug>
 #include <coloritem.h>
 #include <QRect>
-#include <fragment.h>
 
 void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)  {
     event->acceptProposedAction();
@@ -13,7 +12,7 @@ void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)  {
 }
 
 void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event) {
-    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    Fragment* draggingItem = Fragment::getDraggingItem();
     if (draggingItem == nullptr)
         return;
     EventGraphicsScene* beforeScene = reinterpret_cast<EventGraphicsScene*>(draggingItem->scene());
@@ -47,7 +46,7 @@ void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent* event)
 void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEvent* event)
 {
     qDebug() << "drag moveFragmentFromHintToDesktop";
-    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    Fragment* draggingItem = Fragment::getDraggingItem();
     Fragment::sortFragment(draggingItem->getFragment());
     draggingItem->setPos(event->scenePos());
     this->removeItem(draggingItem);
@@ -59,7 +58,7 @@ void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEve
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent* event)
 {
     qDebug() << "drag moveBetweenTwoNormalSceen";
-    ColorItem* draggingItem = ColorItem::getDraggingItem();
+    Fragment* draggingItem = Fragment::getDraggingItem();
     draggingItem->setPos(event->scenePos());
     this->removeItem(draggingItem);
     this->addItem(draggingItem);

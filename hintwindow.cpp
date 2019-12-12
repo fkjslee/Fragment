@@ -22,21 +22,21 @@ HintWindow::~HintWindow()
 
 void HintWindow::on_refreshBtn_clicked()
 {
-    for (ColorItem* colorItem : colorItems) {
-        scene->removeItem(colorItem);
-    }
-    colorItems.clear();
+//    for (Fragment* colorItem : colorItems) {
+//        scene->removeItem(colorItem);
+//    }
+//    colorItems.clear();
 
-    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
-    for (JointFragment jointFragment : possilbleFragments) {
-        Fragment* f = jointFragment.fragment;
-        colorItems.emplace_back(new ColorItem(f));
-    }
-    QRect windowRect = this->rect();
-    int N = int(colorItems.size());
-    for (int i = 0; i < N; ++i) {
-        ColorItem* colorItem = colorItems[i];
-        colorItem->setPos(0, windowRect.top() + windowRect.height() * i / N);
-        scene->addItem(colorItem);
-    }
+//    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
+//    for (JointFragment jointFragment : possilbleFragments) {
+//        Fragment* f = jointFragment.fragment;
+//        colorItems.emplace_back(new Fragment(f));
+//    }
+//    QRect windowRect = this->rect();
+//    int N = int(colorItems.size());
+//    for (int i = 0; i < N; ++i) {
+//        Fragment* colorItem = colorItems[i];
+//        colorItem->setPos(0, windowRect.top() + windowRect.height() * i / N);
+//        scene->addItem(colorItem);
+//    }
 }

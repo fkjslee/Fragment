@@ -15,38 +15,64 @@
 #include <QBitmap>
 #include <QGraphicsObject>
 #include <QDropEvent>
-#include "fragment.h"
 #include "QImage"
+#include <set>
 
-class ColorItem :  public QGraphicsObject
+class Fragment;
+
+enum JointMethod {leftRight, rightLeft, upDown, downUp};
+
+struct JointFragment {
+    Fragment* item;
+    JointMethod method;
+    int absGrayscale;
+    JointFragment(Fragment* item, JointMethod method, int absGrayscale)
+        : item(item), method(method), absGrayscale(absGrayscale) {}
+};
+
+class Fragment :  public QGraphicsObject
 {
     Q_OBJECT
 public:
-    ColorItem(Fragment* fragment, const QString& picPath = "");
+    Fragment(const QImage& image, const QString& fragmentName = "unname");
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-    static ColorItem* getDraggingItem() { return draggingItem; }
+    static Fragment* getDraggingItem() { return draggingItem; }
     QColor getColor() { return color; }
     Fragment* getFragment() const { return fragment; }
+    const QImage& getImage() const { return image; }
+    const QString& getFragmentName() const { return fragmentName; }
+
+    static std::vector<JointFragment> getMostPossibleColorItems(Fragment* item = nullptr);
+    static void createFragments();
+    static std::set<Fragment*> getSortedFragments();
+    static std::set<Fragment*> getUnsortedFragments();
+    static bool sortFragment(Fragment* frag);
+    static bool unsortFragment(Fragment* frag);
+    static bool jointFragment(Fragment* f1, JointFragment jointFragment);
 
 signals:
-    void doubleClickItem(ColorItem* item);
+    void doubleClickItem(Fragment* item);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
-    void dropEvent(QDropEvent  * e);
+    void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent  * e);
 
 private:
+    static std::set<Fragment*> sortedFragments;
+    static std::set<Fragment*> unsortedFragments;
     QColor color;
     Fragment* fragment;
-    static ColorItem* draggingItem;
+    static Fragment* draggingItem;
+    QImage image;
     QString picPath;
+    QString fragmentName;
 };
 
 #endif // COLORITEM_H

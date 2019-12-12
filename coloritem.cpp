@@ -2,60 +2,172 @@
 #include <iostream>
 #include <QTextStream>
 #include <QtDebug>
+#include <opencv2/opencv.hpp>
+#include <QDir>
+#include <Tool.h>
 
-ColorItem* ColorItem::draggingItem = nullptr;
-ColorItem::ColorItem(Fragment* fragment, const QString& picPath) :
-    color(fragment->getProperty()), fragment(fragment), picPath(picPath)
+using namespace cv;
+
+Fragment* Fragment::draggingItem = nullptr;
+std::set<Fragment*> Fragment::unsortedFragments = std::set<Fragment*>();
+std::set<Fragment*> Fragment::sortedFragments = std::set<Fragment*>();
+
+namespace  {
+}
+
+Fragment::Fragment(const QImage& image, const QString &fragmentName)
 {
-    setToolTip(fragment->getFragmentName());
+    this->fragmentName = fragmentName;
+    this->image = image;
+    setToolTip(fragmentName);
     setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-QRectF ColorItem::boundingRect() const
+void Fragment::createFragments()
 {
-    return fragment->getImage().rect();
+    qDebug() << "createFragments";
+    QDir dir("./fragment/");
+    QStringList filter;
+    filter << "*.jpg" << "*.png";
+    QStringList nameList = dir.entryList(filter);
+    for (const QString& fileName : nameList) {
+        unsortedFragments.insert(new Fragment(QImage(dir.absolutePath() + "/" + fileName), fileName));
+    }
 }
 
-void ColorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+bool Fragment::sortFragment(Fragment *frag)
+{
+    if(unsortedFragments.find(frag) == unsortedFragments.end())
+        return false;
+    unsortedFragments.erase(frag);
+    sortedFragments.insert(frag);
+    return true;
+}
+
+bool Fragment::unsortFragment(Fragment *frag)
+{
+    if(sortedFragments.find(frag) == sortedFragments.end())
+        return false;
+    sortedFragments.erase(frag);
+    unsortedFragments.insert(frag);
+    return true;
+}
+
+bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
+{
+    const cv::Mat& m1 = Tool::QImage2Mat(f1->image);
+    const cv::Mat& m2 = Tool::QImage2Mat(jointFragment.item->image);
+    cv::Mat resMat;
+    switch(jointFragment.method) {
+    case leftRight:
+//        cv::hconcat(m1, m2, resMat);
+//        unsortedFragments.erase(unsortedFragments.find(f1));
+//        unsortedFragments.erase(unsortedFragments.find(jointFragment.item));
+//        unsortedFragments.insert(new Fragment(Tool::MatToQImage(resMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
+        break;
+    case rightLeft:
+        break;
+    case upDown:
+        break;
+    case downUp:
+        break;
+    }
+    return true;
+}
+
+std::set<Fragment *> Fragment::getSortedFragments()
+{
+    return sortedFragments;
+}
+
+std::set<Fragment *> Fragment::getUnsortedFragments()
+{
+    return unsortedFragments;
+}
+
+std::vector<JointFragment> Fragment::getMostPossibleColorItems(Fragment *item)
+{
+    std::vector<JointFragment> res;
+    if (item == nullptr) {
+        std::set<Fragment*> unsorted_fragments = Fragment::getUnsortedFragments();
+        for (Fragment* unsorted_fragment : unsorted_fragments) {
+            res.emplace_back(JointFragment(unsorted_fragment, JointMethod::leftRight, 0));
+            if (res.size() >= 5)
+                break;
+        }
+    } else {
+        JointFragment minFragment(nullptr, JointMethod::leftRight, 0x3f3f3f3f);
+        for (Fragment* otherFragment : Fragment::getUnsortedFragments()) {
+            if (item == otherFragment) continue;
+            int absGrayscale;
+            const cv::Mat& m1 = Tool::QImage2Mat(item->getImage());
+            const cv::Mat& m2 = Tool::QImage2Mat(otherFragment->getImage());
+            absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
+            if (absGrayscale < minFragment.absGrayscale)
+                minFragment = JointFragment(otherFragment, JointMethod::leftRight, absGrayscale);
+
+//            absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
+//            if (absGrayscale < minFragment.absGrayscale)
+//                minFragment = JointFragment(otherFragment, JointMethod::rightLeft, absGrayscale);
+
+//            absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
+//            if (absGrayscale < minFragment.absGrayscale)
+//                minFragment = JointFragment(otherFragment, JointMethod::upDown, absGrayscale);
+
+//            absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
+//            if (absGrayscale < minFragment.absGrayscale)
+//                minFragment = JointFragment(otherFragment, JointMethod::downUp, absGrayscale);
+        }
+        res.emplace_back(minFragment);
+    }
+    return res;
+}
+
+QRectF Fragment::boundingRect() const
+{
+    return image.rect();
+}
+
+void Fragment::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
-    painter->drawImage(QPoint(0, 0), fragment->getImage());
+    painter->drawImage(QPoint(0, 0), image);
 }
 
-void ColorItem::mousePressEvent(QGraphicsSceneMouseEvent *)
+void Fragment::mousePressEvent(QGraphicsSceneMouseEvent *)
 {
     qDebug() << "color item mouse press event";
     draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
 }
 
-void ColorItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
+void Fragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 {
     std::cout << "color item mouse release event" << std::endl;
     draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
 }
 
-void ColorItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void Fragment::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     emit doubleClickItem(this);
     Q_UNUSED(event)
 }
 
-void ColorItem::dropEvent(QDropEvent *e)
+void Fragment::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    Q_UNUSED(e)
+    Q_UNUSED(event)
     std::cout << "xxx drop event" << std::endl;
 }
 
-void ColorItem::dragEnterEvent(QDragEnterEvent *e)
+void Fragment::dragEnterEvent(QDragEnterEvent *e)
 {
     e->accept();
 }
 
-void ColorItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (QLineF(event->screenPos(), event->buttonDownScreenPos(Qt::LeftButton))
         .length() < QApplication::startDragDistance()) {
@@ -65,7 +177,7 @@ void ColorItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
     mime->setColorData(color);
-    QPixmap pixmap(fragment->getImage().width(), fragment->getImage().height());
+    QPixmap pixmap(image.width(), image.height());
     pixmap.fill(Qt::white);
 
     QPainter painter(&pixmap);

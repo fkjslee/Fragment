@@ -6,7 +6,6 @@
 #include <QGraphicsItem>
 #include <coloritem.h>
 #include <QVBoxLayout>
-#include "fragment.h"
 
 Desktop::Desktop(QWidget *parent) :
     QWidget(parent),
@@ -18,10 +17,9 @@ Desktop::Desktop(QWidget *parent) :
 
     int i = 0;
     for (Fragment* fragment : Fragment::getSortedFragments()) {
-        ColorItem* item = new ColorItem(fragment);
-        item->setPos(::sin((i * 6.28) / 10.0) * 150,
+        fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
                      ::cos((i * 6.28) / 10.0) * 150);
-        scene->addItem(item);
+        scene->addItem(fragment);
         i++;
     }
     ui->view->setScene(scene);
@@ -32,6 +30,7 @@ Desktop::Desktop(QWidget *parent) :
 
 void Desktop::dropEvent(QDropEvent *event)
 {
+    Q_UNUSED(event)
 }
 
 Desktop::~Desktop()

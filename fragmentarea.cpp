@@ -1,3 +1,4 @@
+#include <Tool.h>
 #include "fragmentarea.h"
 #include "ui_fragmentarea.h"
 #include <iostream>
@@ -5,8 +6,8 @@
 #include <QGraphicsItem>
 #include <coloritem.h>
 #include <QVBoxLayout>
+#include <QtDebug>
 #include <QGraphicsScene>
-#include <fragment.h>
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -28,33 +29,46 @@ FragmentArea::~FragmentArea()
 
 void FragmentArea::update()
 {
-    for (ColorItem* colorItem : colorItems) {
-        scene->removeItem(colorItem);
-        disconnect(colorItem, &ColorItem::doubleClickItem, this, &FragmentArea::sortItem);
-        delete colorItem;
+    for (Fragment* fragment : fragmentItems) {
+        scene->removeItem(fragment);
+        disconnect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
-    colorItems.clear();
+    fragmentItems.clear();
 
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
-        ColorItem* item = new ColorItem(fragment);
-        colorItems.emplace_back(item);
-        item->setPos(::sin((i * 6.28) / 10.0) * 150,
+        fragmentItems.emplace_back(fragment);
+        fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
                      ::cos((i * 6.28) / 10.0) * 150);
-        scene->addItem(item);
+        scene->addItem(fragment);
         i++;
-        connect(item, &ColorItem::doubleClickItem, this, &FragmentArea::sortItem);
+        connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
 }
 
 void FragmentArea::on_autoStitch_clicked()
 {
-
+    update();
 }
 
-void FragmentArea::sortItem(ColorItem *item)
+void FragmentArea::sortItem(Fragment *item)
 {
-    qDebug() << "uuuuu = " << Fragment::getMostPossibleFragments(item->getFragment())[0].fragment->getFragmentName();
-    qDebug() << "uuuuu = " << Fragment::getMostPossibleFragments(item->getFragment())[0].method;
+    JointFragment possibleFragment = Fragment::getMostPossibleColorItems(item)[0];
 
+    Fragment::jointFragment(item, possibleFragment);
+//    switch (possibleFragment.method) {
+//    case leftRight:
+//        update();
+//        break;
+//    case rightLeft:
+//        break;
+//    case upDown:
+//        break;
+//    case downUp:
+//        break;
+//    }
+    update();
+
+    qDebug() << possibleFragment.item->getFragmentName();
+    qDebug() << possibleFragment.method;
 }

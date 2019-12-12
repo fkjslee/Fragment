@@ -20,12 +20,12 @@ public:
 
 private slots:
     void on_autoStitch_clicked();
-    void sortItem(ColorItem* item);
+    void sortItem(Fragment* item);
 
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene* scene;
-    std::vector<ColorItem*> colorItems;
+    std::vector<Fragment*> fragmentItems;
 };
 
 #endif // FRAGMENTAREA_H

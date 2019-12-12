@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "eventgraphicsscene.h"
-#include "fragment.h"
 
 namespace Ui {
 class HintWindow;
@@ -23,7 +22,7 @@ private slots:
 private:
     Ui::HintWindow *ui;
     EventGraphicsScene* scene;
-    std::vector<ColorItem*> colorItems;
+    std::vector<Fragment*> colorItems;
 };
 
 #endif // HINTWINDOW_H
