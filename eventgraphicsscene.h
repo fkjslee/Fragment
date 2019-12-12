@@ -2,7 +2,7 @@
 #define EVENTGRAPHICSSCENE_H
 
 #include <QGraphicsScene>
-#include "coloritem.h"
+#include "fragment.h"
 
 class EventGraphicsScene: public QGraphicsScene {
     Q_OBJECT

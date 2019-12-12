@@ -1,11 +1,7 @@
 #include <Tool.h>
 #include "fragmentarea.h"
 #include "ui_fragmentarea.h"
-#include <iostream>
-#include <QLabel>
-#include <QGraphicsItem>
-#include <coloritem.h>
-#include <QVBoxLayout>
+#include <fragment.h>
 #include <QtDebug>
 #include <QGraphicsScene>
 
@@ -17,7 +13,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::fragmentArea);
     ui->view->setScene(scene);
     ui->view->setWindowTitle("fragment area");
-    ui->view->show();
+    ui->autoStitch->hide();
 
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
@@ -44,11 +40,9 @@ void FragmentArea::update()
     }
     fragmentItems.clear();
 
-    int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
-        i++;
         connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
 }
@@ -60,15 +54,12 @@ void FragmentArea::on_autoStitch_clicked()
 
 void FragmentArea::sortItem(Fragment *item)
 {
-    std::vector<JointFragment> possibleFragments = Fragment::getMostPossibleColorItems(item);
+    std::vector<JointFragment> possibleFragments = Fragment::getMostPossibleFragments(item);
     if (possibleFragments.size() == 0) {
         qWarning() << "no suitable fragment";
         return;
     }
     JointFragment possibleFragment = possibleFragments[0];
-
     Fragment::jointFragment(item, possibleFragment);
-
     update();
-
 }

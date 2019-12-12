@@ -1,13 +1,11 @@
 #include "hintwindow.h"
 #include "ui_hintwindow.h"
-#include <iostream>
 #include <set>
 
 HintWindow::HintWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HintWindow)
 {
-    std::cout << "hint window construted" << std::endl;
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::hintArea);
     ui->view->setScene(scene);
@@ -17,26 +15,28 @@ HintWindow::HintWindow(QWidget *parent) :
 
 HintWindow::~HintWindow()
 {
+    delete scene;
     delete ui;
 }
 
 void HintWindow::on_refreshBtn_clicked()
 {
-//    for (Fragment* colorItem : colorItems) {
-//        scene->removeItem(colorItem);
-//    }
-//    colorItems.clear();
+    for (Fragment* fragment : fragments) {
+        scene->removeItem(fragment);
+        delete fragment;
+    }
+    fragments.clear();
 
-//    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
-//    for (JointFragment jointFragment : possilbleFragments) {
-//        Fragment* f = jointFragment.fragment;
-//        colorItems.emplace_back(new Fragment(f));
-//    }
-//    QRect windowRect = this->rect();
-//    int N = int(colorItems.size());
-//    for (int i = 0; i < N; ++i) {
-//        Fragment* colorItem = colorItems[i];
-//        colorItem->setPos(0, windowRect.top() + windowRect.height() * i / N);
-//        scene->addItem(colorItem);
-//    }
+    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
+    for (JointFragment jointFragment : possilbleFragments) {
+        Fragment* f = jointFragment.item;
+        fragments.emplace_back(new Fragment(f->getImage(), "copy of " + f->getFragmentName()));
+    }
+    QRect windowRect = this->rect();
+    int N = int(fragments.size());
+    for (int i = 0; i < N; ++i) {
+        Fragment* fragment = fragments[unsigned(i)];
+        fragment->setPos(0, windowRect.top() + windowRect.height() * i / N);
+        scene->addItem(fragment);
+    }
 }

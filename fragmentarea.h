@@ -2,7 +2,7 @@
 #define FRAGMENTAREA_H
 
 #include <QWidget>
-#include "coloritem.h"
+#include "fragment.h"
 #include "eventgraphicsscene.h"
 
 namespace Ui {

@@ -1,5 +1,4 @@
-#include "coloritem.h"
-#include <iostream>
+#include "fragment.h"
 #include <QTextStream>
 #include <QtDebug>
 #include <opencv2/opencv.hpp>
@@ -12,9 +11,6 @@ Fragment* Fragment::draggingItem = nullptr;
 std::set<Fragment*> Fragment::unsortedFragments = std::set<Fragment*>();
 std::set<Fragment*> Fragment::sortedFragments = std::set<Fragment*>();
 
-namespace  {
-}
-
 Fragment::Fragment(const QImage& image, const QString &fragmentName)
 {
     this->fragmentName = fragmentName;
@@ -24,10 +20,10 @@ Fragment::Fragment(const QImage& image, const QString &fragmentName)
     setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void Fragment::createFragments()
+void Fragment::createFragments(const QString& fragmentsPath)
 {
     qInfo() << "createFragments";
-    QDir dir("./fragment/");
+    QDir dir(fragmentsPath);
     QStringList filter;
     filter << "*.jpg" << "*.png";
     QStringList nameList = dir.entryList(filter);
@@ -95,7 +91,7 @@ std::set<Fragment *> Fragment::getUnsortedFragments()
     return unsortedFragments;
 }
 
-std::vector<JointFragment> Fragment::getMostPossibleColorItems(Fragment *item)
+std::vector<JointFragment> Fragment::getMostPossibleFragments(Fragment *item)
 {
     std::vector<JointFragment> res;
     if (item == nullptr) {
@@ -170,10 +166,10 @@ void Fragment::dropEvent(QGraphicsSceneDragDropEvent *event)
     Q_UNUSED(event)
 }
 
-void Fragment::dragEnterEvent(QDragEnterEvent *e)
+void Fragment::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "color item dragEnterEvent";
-    e->accept();
+    qDebug() << "fragment dragEnterEvent";
+    event->accept();
 }
 
 void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -189,7 +185,6 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     pixmap.fill(Qt::white);
 
     QPainter painter(&pixmap);
-//    painter.translate(15, 15);
     painter.setRenderHint(QPainter::Antialiasing);
     paint(&painter, nullptr, nullptr);
     painter.end();
@@ -197,8 +192,6 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     pixmap.setMask(pixmap.createHeuristicMask());
 
     drag->setPixmap(pixmap);
-    qDebug() << " drag event pos" << event->scenePos();
-    qDebug() << " drag pos = " << drag->hotSpot();
     biasPos = event->scenePos() - this->scenePos();
     drag->setHotSpot(biasPos.toPoint());
 

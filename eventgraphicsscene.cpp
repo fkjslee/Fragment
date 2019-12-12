@@ -3,7 +3,7 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QtDebug>
-#include <coloritem.h>
+#include <fragment.h>
 #include <QRect>
 
 void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)  {
@@ -56,7 +56,6 @@ void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEve
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent* event)
 {
     qInfo() << "drag moveBetweenTwoNormalSceen";
-    qDebug() << " scene pos = " << event->scenePos();
     Fragment* draggingItem = Fragment::getDraggingItem();
     draggingItem->setPos(event->scenePos() - draggingItem->getBiasPos());
     this->removeItem(draggingItem);

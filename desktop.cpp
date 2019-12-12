@@ -1,17 +1,16 @@
 #include <QtDebug>
 #include "desktop.h"
 #include "ui_desktop.h"
-#include <iostream>
 #include <QLabel>
 #include <QGraphicsItem>
-#include <coloritem.h>
+#include <fragment.h>
 #include <QVBoxLayout>
 
 Desktop::Desktop(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Desktop)
 {
-    Fragment::createFragments();
+    Fragment::createFragments("./fragment/");
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
 

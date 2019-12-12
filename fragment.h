@@ -1,5 +1,5 @@
-#ifndef COLORITEM_H
-#define COLORITEM_H
+#ifndef FRAGMENT_H
+#define FRAGMENT_H
 
 #include <QMainWindow>
 #include <QGraphicsObject>
@@ -8,14 +8,13 @@
 #include <QPainter>
 #include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
-#include <QRandomGenerator>
 #include <QApplication>
 #include <QDrag>
 #include <QPixmap>
 #include <QBitmap>
 #include <QGraphicsObject>
 #include <QDropEvent>
-#include "QImage"
+#include <QImage>
 #include <set>
 
 class Fragment;
@@ -39,14 +38,14 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-    static Fragment* getDraggingItem() { return draggingItem; }
     Fragment* getFragment() const { return fragment; }
     const QImage& getImage() const { return image; }
     const QString& getFragmentName() const { return fragmentName; }
     const QPointF& getBiasPos() const { return biasPos; }
 
-    static std::vector<JointFragment> getMostPossibleColorItems(Fragment* item = nullptr);
-    static void createFragments();
+    static Fragment* getDraggingItem() { return draggingItem; }
+    static std::vector<JointFragment> getMostPossibleFragments(Fragment* item = nullptr);
+    static void createFragments(const QString& fragmentsPath);
     static std::set<Fragment*> getSortedFragments();
     static std::set<Fragment*> getUnsortedFragments();
     static bool sortFragment(Fragment* frag);
@@ -62,7 +61,7 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
     void dropEvent(QGraphicsSceneDragDropEvent *event) override;
-    void dragEnterEvent(QDragEnterEvent  * e);
+    void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
 private:
     static std::set<Fragment*> sortedFragments;
@@ -74,4 +73,4 @@ private:
     QPointF biasPos;
 };
 
-#endif // COLORITEM_H
+#endif // FRAGMENT_H
