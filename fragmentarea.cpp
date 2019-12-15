@@ -13,7 +13,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::fragmentArea);
     ui->view->setScene(scene);
     ui->view->setWindowTitle("fragment area");
-    ui->autoStitch->hide();
+//    ui->autoStitch->hide();
 
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
@@ -34,6 +34,7 @@ FragmentArea::~FragmentArea()
 
 void FragmentArea::update()
 {
+    qDebug() << "update fragment area";
     for (Fragment* fragment : fragmentItems) {
         scene->removeItem(fragment);
         disconnect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
@@ -45,6 +46,8 @@ void FragmentArea::update()
         scene->addItem(fragment);
         connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
+    QWidget::update();
+    QApplication::processEvents();
 }
 
 void FragmentArea::on_autoStitch_clicked()

@@ -100,6 +100,21 @@ public:
         return res / up.cols;
     }
 
+    static double calcSimilarity(const cv::Mat& m1, const cv::Mat& m2) {
+        if (m1.type() != CV_8UC4 || m2.type() != CV_8UC4 || m1.size != m2.size)
+            return 0x3f3f3f3f;
+        double res = 0;
+
+        for (int r = 0; r < m1.rows; ++r) {
+            for (int c = 0; c < m1.cols; ++c) {
+                for (int channel = 0; channel < 4; ++channel) {
+                    res += abs(m1.at<Vec4b>(r, c)[channel] - m2.at<Vec4b>(r, c)[channel]);
+                }
+            }
+        }
+        return res / (m1.rows * m1.cols * m1.channels());
+    }
+
 };
 
 #endif // TOOL_H

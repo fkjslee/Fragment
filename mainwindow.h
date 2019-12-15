@@ -15,6 +15,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+signals:
+
+private slots:
+    void on_imageSizeController_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
 };

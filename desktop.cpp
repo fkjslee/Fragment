@@ -10,7 +10,6 @@ Desktop::Desktop(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Desktop)
 {
-    Fragment::createFragments("./fragment/");
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
 

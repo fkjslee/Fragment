@@ -4,57 +4,58 @@
 #include <opencv2/opencv.hpp>
 #include <QDir>
 #include <Tool.h>
+#include <algorithm>
 
 using namespace cv;
 
 Fragment* Fragment::draggingItem = nullptr;
-std::set<Fragment*> Fragment::unsortedFragments = std::set<Fragment*>();
-std::set<Fragment*> Fragment::sortedFragments = std::set<Fragment*>();
+std::vector<Fragment*> Fragment::unsortedFragments = std::vector<Fragment*>();
+std::vector<Fragment*> Fragment::sortedFragments = std::vector<Fragment*>();
 
 Fragment::Fragment(const QImage& image, const QString &fragmentName)
+    : originalImage(image), fragmentName(fragmentName)
 {
-    this->fragmentName = fragmentName;
-    this->image = image;
+    this->showImage = image;
     setToolTip(fragmentName);
     setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void Fragment::createFragments(const QString& fragmentsPath)
+void Fragment::createAllFragments(const QString& fragmentsPath)
 {
-    qInfo() << "createFragments";
+    qInfo() << "createAllFragments";
     QDir dir(fragmentsPath);
     QStringList filter;
     filter << "*.jpg" << "*.png";
     QStringList nameList = dir.entryList(filter);
     int i = 0;
     for (const QString& fileName : nameList) {
-        unsortedFragments.insert(new Fragment(QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
+        unsortedFragments.emplace_back(new Fragment(QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
     }
 }
 
 bool Fragment::sortFragment(Fragment *frag)
 {
-    if(unsortedFragments.find(frag) == unsortedFragments.end())
-        return false;
-    unsortedFragments.erase(frag);
-    sortedFragments.insert(frag);
+//    if(unsortedFragments.find(frag) == unsortedFragments.end())
+//        return false;
+//    unsortedFragments.erase(frag);
+//    sortedFragments.insert(frag);
     return true;
 }
 
 bool Fragment::unsortFragment(Fragment *frag)
 {
-    if(sortedFragments.find(frag) == sortedFragments.end())
-        return false;
-    sortedFragments.erase(frag);
-    unsortedFragments.insert(frag);
+//    if(sortedFragments.find(frag) == sortedFragments.end())
+//        return false;
+//    sortedFragments.erase(frag);
+//    unsortedFragments.insert(frag);
     return true;
 }
 
 bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
 {
-    const cv::Mat& m1 = Tool::QImage2Mat(f1->image);
-    const cv::Mat& m2 = Tool::QImage2Mat(jointFragment.item->image);
+    const cv::Mat& m1 = Tool::QImage2Mat(f1->getOriginalImage());
+    const cv::Mat& m2 = Tool::QImage2Mat(jointFragment.item->getOriginalImage());
     cv::Mat jointMat;
     switch(jointFragment.method) {
     case leftRight:
@@ -75,18 +76,23 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
         break;
     }
     if (jointMat.empty()) return false;
-    unsortedFragments.erase(unsortedFragments.find(f1));
-    unsortedFragments.erase(unsortedFragments.find(jointFragment.item));
-    unsortedFragments.insert(new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
+    unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), f1));
+    unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), jointFragment.item));
+    unsortedFragments.emplace_back(new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
     return true;
 }
 
-std::set<Fragment *> Fragment::getSortedFragments()
+void Fragment::imageSizeChanged(const int value)
+{
+    qDebug() << "change value = " << value;
+}
+
+std::vector<Fragment *> Fragment::getSortedFragments()
 {
     return sortedFragments;
 }
 
-std::set<Fragment *> Fragment::getUnsortedFragments()
+std::vector<Fragment *> Fragment::getUnsortedFragments()
 {
     return unsortedFragments;
 }
@@ -95,7 +101,7 @@ std::vector<JointFragment> Fragment::getMostPossibleFragments(Fragment *item)
 {
     std::vector<JointFragment> res;
     if (item == nullptr) {
-        std::set<Fragment*> unsorted_fragments = Fragment::getUnsortedFragments();
+        std::vector<Fragment*> unsorted_fragments = Fragment::getUnsortedFragments();
         for (Fragment* unsorted_fragment : unsorted_fragments) {
             res.emplace_back(JointFragment(unsorted_fragment, JointMethod::leftRight, 0));
             if (res.size() >= 5)
@@ -105,8 +111,8 @@ std::vector<JointFragment> Fragment::getMostPossibleFragments(Fragment *item)
         JointFragment minFragment(nullptr, JointMethod::leftRight, 0x3f3f3f3f);
         for (Fragment* otherFragment : Fragment::getUnsortedFragments()) {
             if (item == otherFragment) continue;
-            const cv::Mat& m1 = Tool::QImage2Mat(item->getImage());
-            const cv::Mat& m2 = Tool::QImage2Mat(otherFragment->getImage());
+            const cv::Mat& m1 = Tool::QImage2Mat(item->getOriginalImage());
+            const cv::Mat& m2 = Tool::QImage2Mat(otherFragment->getOriginalImage());
             double absGrayscale;
             absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
             if (absGrayscale < minFragment.absGrayscale)
@@ -133,14 +139,21 @@ std::vector<JointFragment> Fragment::getMostPossibleFragments(Fragment *item)
 
 QRectF Fragment::boundingRect() const
 {
-    return image.rect();
+    return showImage.rect();
 }
 
 void Fragment::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
-    painter->drawImage(QPoint(0, 0), image);
+    painter->drawImage(QPoint(0, 0), showImage);
+}
+
+void Fragment::scaledToWidth(int width)
+{
+    showImage = originalImage.scaledToWidth(width);
+    qDebug() << "show 2 size = " << showImage.size() << "  " << width;
+    update();
 }
 
 void Fragment::mousePressEvent(QGraphicsSceneMouseEvent *)
@@ -181,8 +194,9 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QDrag *drag = new QDrag(event->widget());
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
-    QPixmap pixmap(image.width(), image.height());
+    QPixmap pixmap(showImage.width(), showImage.height());
     pixmap.fill(Qt::white);
+    qDebug() << "showImage.size = " << showImage.size();
 
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -194,7 +208,6 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     drag->setPixmap(pixmap);
     biasPos = event->scenePos() - this->scenePos();
     drag->setHotSpot(biasPos.toPoint());
-
 
     drag->exec();
     setCursor(Qt::OpenHandCursor);
