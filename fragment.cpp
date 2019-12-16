@@ -79,6 +79,7 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), f1));
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), jointFragment.item));
     unsortedFragments.emplace_back(new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
+    qInfo() << "joint fragmens " << f1->fragmentName << " and " << jointFragment.item->fragmentName << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;
 }
 

@@ -68,7 +68,7 @@ protected:
     void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
-private:
+public:
     static std::vector<Fragment*> sortedFragments;
     static std::vector<Fragment*> unsortedFragments;
     Fragment* fragment;

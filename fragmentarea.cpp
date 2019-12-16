@@ -4,6 +4,7 @@
 #include <fragment.h>
 #include <QtDebug>
 #include <QGraphicsScene>
+#include <opencv2/opencv.hpp>
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -52,7 +53,8 @@ void FragmentArea::update()
 
 void FragmentArea::on_autoStitch_clicked()
 {
-    update();
+    cv::Mat res = Tool::QImage2Mat(Fragment::getUnsortedFragments()[0]->getOriginalImage());
+    cv::imwrite("result.png", res);
 }
 
 void FragmentArea::sortItem(Fragment *item)
