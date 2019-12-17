@@ -9,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
     Fragment::createAllFragments("./fragment2/");
     ui->setupUi(this);
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
-
 }
 
 MainWindow::~MainWindow()
@@ -21,7 +20,7 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
 {
     std::vector<Fragment*> unsortedFragments = Fragment::getUnsortedFragments();
     for (Fragment* fragment : unsortedFragments) {
-        fragment->scaledToWidth(int(fragment->getOriginalImage().width() * 0.01 * value));
+        fragment->scaledToWidth(1.0 * value / 100);
     }
 
 }

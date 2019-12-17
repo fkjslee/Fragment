@@ -20,37 +20,32 @@
    <property name="styleSheet">
     <string notr="true">b</string>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="8,0,2,0">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,0,8">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
       <item>
-       <widget class="Desktop" name="desktop" native="true">
-        <property name="styleSheet">
-         <string notr="true"/>
+       <widget class="QDockWidget" name="dockWidget_2">
+        <property name="features">
+         <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
         </property>
+        <property name="windowTitle">
+         <string>desktop</string>
+        </property>
+        <widget class="Desktop" name="desktop"/>
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+       <widget class="QDockWidget" name="dockWidget_3">
+        <property name="features">
+         <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
         </property>
+        <property name="windowTitle">
+         <string>fragmentArea</string>
+        </property>
+        <widget class="FragmentArea" name="fragmentArea"/>
        </widget>
-      </item>
-      <item>
-       <widget class="FragmentArea" name="fragmentArea" native="true"/>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="HintWindow" name="widget" native="true"/>
     </item>
     <item>
      <widget class="QSlider" name="imageSizeController">
@@ -58,7 +53,7 @@
        <number>1</number>
       </property>
       <property name="maximum">
-       <number>200</number>
+       <number>1000</number>
       </property>
       <property name="pageStep">
        <number>1</number>
@@ -84,6 +79,12 @@
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dockWidget_4">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="HintWindow" name="dockWidgetContents_2"/>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

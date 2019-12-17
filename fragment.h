@@ -43,7 +43,7 @@ public:
     const QImage& getShowImage() const { return showImage; }
     const QString& getFragmentName() const { return fragmentName; }
     const QPointF& getBiasPos() const { return biasPos; }
-    void scaledToWidth(int width);
+    void scaledToWidth(const double scale);
 
     static Fragment* getDraggingItem() { return draggingItem; }
     static std::vector<JointFragment> getMostPossibleFragments(Fragment* item = nullptr);
@@ -71,6 +71,7 @@ protected:
 public:
     static std::vector<Fragment*> sortedFragments;
     static std::vector<Fragment*> unsortedFragments;
+    static std::vector<Fragment*> chosenFragments;
     Fragment* fragment;
     static Fragment* draggingItem;
     const QImage originalImage;

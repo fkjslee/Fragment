@@ -78,7 +78,9 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
     if (jointMat.empty()) return false;
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), f1));
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), jointFragment.item));
-    unsortedFragments.emplace_back(new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName()));
+    Fragment* newFragment = new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName());
+    newFragment->setPos(f1->scenePos());
+    unsortedFragments.emplace_back(newFragment);
     qInfo() << "joint fragmens " << f1->fragmentName << " and " << jointFragment.item->fragmentName << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;
 }
@@ -150,10 +152,9 @@ void Fragment::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->drawImage(QPoint(0, 0), showImage);
 }
 
-void Fragment::scaledToWidth(int width)
+void Fragment::scaledToWidth(const double scale)
 {
-    showImage = originalImage.scaledToWidth(width);
-    qDebug() << "show 2 size = " << showImage.size() << "  " << width;
+    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
     update();
 }
 

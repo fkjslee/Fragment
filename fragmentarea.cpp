@@ -13,8 +13,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::fragmentArea);
     ui->view->setScene(scene);
-    ui->view->setWindowTitle("fragment area");
-//    ui->autoStitch->hide();
+    //ui->autoStitch->hide();
 
     int i = 0;
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {

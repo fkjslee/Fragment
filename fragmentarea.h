@@ -4,6 +4,9 @@
 #include <QWidget>
 #include "fragment.h"
 #include "eventgraphicsscene.h"
+#include <QDockWidget>
+#include <QHBoxLayout>
+#include <QGraphicsView>
 
 namespace Ui {
 class FragmentArea;

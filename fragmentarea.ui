@@ -15,7 +15,17 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QGraphicsView" name="view"/>
+    <widget class="QGraphicsView" name="view">
+     <property name="backgroundBrush">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>155</red>
+        <green>155</green>
+        <blue>15</blue>
+       </color>
+      </brush>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="autoStitch">

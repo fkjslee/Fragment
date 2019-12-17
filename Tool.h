@@ -9,7 +9,12 @@ using namespace cv;
 
 class Tool {
 public:
-    static cv::Mat QImage2Mat(QImage image)
+
+    static void* cucharToVoid(const uchar* c) {
+        return reinterpret_cast<void*>(const_cast<uchar*>(c));
+    }
+
+    static cv::Mat QImage2Mat(const QImage& image)
     {
         cv::Mat mat;
         switch(image.format())
@@ -17,14 +22,16 @@ public:
         case QImage::Format_ARGB32:
         case QImage::Format_RGB32:
         case QImage::Format_ARGB32_Premultiplied:
-            mat = cv::Mat(image.height(), image.width(), CV_8UC4, (void*)image.constBits(), image.bytesPerLine());
+            mat = cv::Mat(image.height(), image.width(), CV_8UC4, cucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
+//            reinterpret_cast<void*>(image.constBits())
+            mat = cv::Mat(image.height(), image.width(), CV_8UC4, cucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
             break;
         case QImage::Format_RGB888:
     //        mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
     //        cv::cvtColor(mat, mat, COLOR_BGR2RGB);
             break;
         case QImage::Format_Indexed8:
-            mat = cv::Mat(image.height(), image.width(), CV_8UC1, (void*)image.constBits(), image.bytesPerLine());
+            mat = cv::Mat(image.height(), image.width(), CV_8UC1, cucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
             break;
         default: ;
         }
@@ -48,7 +55,7 @@ public:
             for(int row = 0; row < mat.rows; row ++)
             {
                 uchar *pDest = image.scanLine(row);
-                memcpy(pDest, pSrc, mat.cols);
+                memcpy(pDest, pSrc, size_t(mat.cols));
                 pSrc += mat.step;
             }
             return image;
@@ -57,16 +64,16 @@ public:
         else if(mat.type() == CV_8UC3)
         {
             // Copy input Mat
-            const uchar *pSrc = (const uchar*)mat.data;
+            const uchar *pSrc = static_cast<const uchar*>(mat.data);
             // Create QImage with same dimensions as input Mat
-            QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+            QImage image(pSrc, mat.cols, mat.rows, int(mat.step), QImage::Format_RGB888);
             return image.rgbSwapped();
         }
         else if(mat.type() == CV_8UC4)
         {
-            const uchar *pSrc = (const uchar*)mat.data;
+            const uchar *pSrc = static_cast<const uchar*>(mat.data);
             // Create QImage with same dimensions as input Mat
-            QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_ARGB32);
+            QImage image(pSrc, mat.cols, mat.rows, int(mat.step), QImage::Format_ARGB32);
             return image.copy();
         }
         else
@@ -113,6 +120,41 @@ public:
             }
         }
         return res / (m1.rows * m1.cols * m1.channels());
+    }
+
+    static QString aHash(const Mat& img) {
+        cv::resize(img, img, Size(8, 8));
+        cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+        double absGrayscale = 0;
+        for (int r = 0; r < img.rows; ++r) {
+            for (int c = 0; c < img.cols; ++c) {
+                absGrayscale += img.at<uchar>(r, c);
+            }
+        }
+        QString hashString = "";
+        absGrayscale /= (img.rows * img.cols);
+        for (int r = 0; r < img.rows; ++r) {
+            for (int c = 0; c < img.cols; ++c) {
+                if (img.at<uchar>(r, c) > absGrayscale)
+                    hashString += "1";
+                else
+                    hashString += "0";
+            }
+        }
+        return hashString;
+    }
+
+    // from blog https://blog.csdn.net/enter89/article/details/90293971
+    static int cmpWithOriginalMat(const Mat& m1, const Mat& m2) {
+        const QString& h1 = aHash(m1);
+        const QString& h2 = aHash(m2);
+        int res = 0;
+        if (h1.size() != h2.size())
+            return -1;
+        for (int i = 0; i < h1.size(); ++i)
+            if (h1[i] != h2[i])
+                ++res;
+        return res;
     }
 
 };
