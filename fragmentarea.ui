@@ -19,20 +19,38 @@
      <property name="backgroundBrush">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>155</red>
-        <green>155</green>
-        <blue>15</blue>
+        <red>200</red>
+        <green>200</green>
+        <blue>200</blue>
        </color>
       </brush>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="autoStitch">
-     <property name="text">
-      <string>autoStitch</string>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="btnJoint">
+       <property name="text">
+        <string>joint</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSplit">
+       <property name="text">
+        <string>split</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="autoStitch">
+       <property name="text">
+        <string>autoStitch</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

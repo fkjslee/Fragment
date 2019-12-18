@@ -67,3 +67,20 @@ void FragmentArea::sortItem(Fragment *item)
     Fragment::jointFragment(item, possibleFragment);
     update();
 }
+
+void FragmentArea::on_btnJoint_clicked()
+{
+    std::vector<Fragment*> jointFragments = Fragment::getSelectedFragments();
+    if (jointFragments.size() == 2) {
+        Fragment* f1 = jointFragments[0];
+        Fragment* f2 = jointFragments[1];
+        Fragment::jointFragment(f1, Fragment::mostPossibleJointMethod(f1, f2));
+    }
+    update();
+}
+
+void FragmentArea::on_btnSplit_clicked()
+{
+    Fragment::splitSelectedFragments();
+    update();
+}

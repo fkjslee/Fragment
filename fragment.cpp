@@ -16,15 +16,37 @@ std::vector<Fragment*> Fragment::unsortedFragments = std::vector<Fragment*>();
 std::vector<Fragment*> Fragment::sortedFragments = std::vector<Fragment*>();
 std::vector<Fragment*> Fragment::chosenFragments = std::vector<Fragment*>();
 
-Fragment::Fragment(const QImage& image, const QString &fragmentName)
-    : originalImage(image), fragmentName(fragmentName)
+JointFragment Fragment::mostPossibleJointMethod(Fragment* f1, Fragment* f2) {
+    JointFragment minFragment(nullptr, JointMethod::leftRight, 0x3f3f3f3f);
+    const cv::Mat& m1 = Tool::QImage2Mat(f1->getOriginalImage());
+    const cv::Mat& m2 = Tool::QImage2Mat(f2->getOriginalImage());
+    double absGrayscale;
+    absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
+    if (absGrayscale < minFragment.absGrayscale)
+        minFragment = JointFragment(f2, JointMethod::leftRight, absGrayscale);
+
+    absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
+    if (absGrayscale < minFragment.absGrayscale)
+        minFragment = JointFragment(f2, JointMethod::rightLeft, absGrayscale);
+
+    absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
+    if (absGrayscale < minFragment.absGrayscale)
+        minFragment = JointFragment(f2, JointMethod::upDown, absGrayscale);
+
+    absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
+    if (absGrayscale < minFragment.absGrayscale)
+        minFragment = JointFragment(f2, JointMethod::downUp, absGrayscale);
+    return minFragment;
+}
+
+Fragment::Fragment(const std::vector<Piece>& pieces, const QImage& originalImage, const QString &fragmentName)
+    : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
 {
-    this->showImage = image;
-//    setToolTip(fragmentName);
-//    setCursor(Qt::OpenHandCursor);
-//    setAcceptedMouseButtons(Qt::LeftButton);
-//    QMetaEnum metaEnum = QMetaEnum::fromType<QGraphicsItem::GraphicsItemFlag>();
+    this->showImage = originalImage;
+    setToolTip(fragmentName);
+    setCursor(Qt::OpenHandCursor);
     setFlag(QGraphicsItem::ItemIsMovable, true);
+
 }
 
 void Fragment::createAllFragments(const QString& fragmentsPath)
@@ -36,7 +58,9 @@ void Fragment::createAllFragments(const QString& fragmentsPath)
     QStringList nameList = dir.entryList(filter);
     int i = 0;
     for (const QString& fileName : nameList) {
-        unsortedFragments.emplace_back(new Fragment(QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
+        std::vector<Piece> vec;
+        vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("f%1").arg(++i)));
+        unsortedFragments.emplace_back(new Fragment(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
     }
 }
 
@@ -84,10 +108,28 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
     if (jointMat.empty()) return false;
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), f1));
     unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), jointFragment.item));
-    Fragment* newFragment = new Fragment(Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName());
+    std::vector<Piece> pieces;
+    for (Piece p : f1->getPiece())
+        pieces.emplace_back(p);
+    for (Piece p : jointFragment.item->getPiece())
+        pieces.emplace_back(p);
+    Fragment* newFragment = new Fragment(pieces, Tool::MatToQImage(jointMat), f1->fragmentName + " " + jointFragment.item->getFragmentName());
     newFragment->setPos(f1->scenePos());
     unsortedFragments.emplace_back(newFragment);
     qInfo() << "joint fragmens " << f1->fragmentName << " and " << jointFragment.item->fragmentName << " with absGrayscale = " << jointFragment.absGrayscale;
+    return true;
+}
+
+bool Fragment::splitSelectedFragments()
+{
+    for (Fragment* splitFragment : getSelectedFragments()) {
+        unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), splitFragment));
+        for (Piece piece : splitFragment->getPiece()) {
+            std::vector<Piece> vec;
+            vec.push_back(piece);
+            unsortedFragments.emplace_back(new Fragment(vec, QImage(piece.piecePath), piece.pieceName));
+        }
+    }
     return true;
 }
 
@@ -98,6 +140,16 @@ void Fragment::reverseChosenFragment(Fragment *f)
         chosenFragments.emplace_back(f);
     else
         chosenFragments.erase(iterF);
+}
+
+const std::vector<Fragment *> Fragment::getSelectedFragments()
+{
+    std::vector<Fragment*> selectedFragments;
+    for (Fragment* f : getUnsortedFragments()) {
+        if (f->selected)
+            selectedFragments.emplace_back(f);
+    }
+    return selectedFragments;
 }
 
 void Fragment::imageSizeChanged(const int value)
@@ -129,26 +181,10 @@ std::vector<JointFragment> Fragment::getMostPossibleFragments(Fragment *item)
         JointFragment minFragment(nullptr, JointMethod::leftRight, 0x3f3f3f3f);
         for (Fragment* otherFragment : Fragment::getUnsortedFragments()) {
             if (item == otherFragment) continue;
-            const cv::Mat& m1 = Tool::QImage2Mat(item->getOriginalImage());
-            const cv::Mat& m2 = Tool::QImage2Mat(otherFragment->getOriginalImage());
-            double absGrayscale;
-            absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
-            if (absGrayscale < minFragment.absGrayscale)
-                minFragment = JointFragment(otherFragment, JointMethod::leftRight, absGrayscale);
-
-            absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
-            if (absGrayscale < minFragment.absGrayscale)
-                minFragment = JointFragment(otherFragment, JointMethod::rightLeft, absGrayscale);
-
-            absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
-            if (absGrayscale < minFragment.absGrayscale)
-                minFragment = JointFragment(otherFragment, JointMethod::upDown, absGrayscale);
-
-            absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
-            if (absGrayscale < minFragment.absGrayscale)
-                minFragment = JointFragment(otherFragment, JointMethod::downUp, absGrayscale);
+            JointFragment possilbeFragment = mostPossibleJointMethod(item, otherFragment);
+            if (possilbeFragment.absGrayscale < minFragment.absGrayscale)
+                minFragment = possilbeFragment;
         }
-
         if (minFragment.item != nullptr)
             res.emplace_back(minFragment);
     }

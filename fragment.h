@@ -21,6 +21,16 @@ class Fragment;
 
 enum JointMethod {leftRight, rightLeft, upDown, downUp};
 
+class Piece {
+public:
+    Piece(const QString& piecePath, const QString& pieceName = "noname")
+        : piecePath(piecePath), pieceName(pieceName) {}
+
+public:
+    QString piecePath;
+    QString pieceName;
+};
+
 struct JointFragment {
     Fragment* item;
     JointMethod method;
@@ -29,11 +39,11 @@ struct JointFragment {
         : item(item), method(method), absGrayscale(absGrayscale) {}
 };
 
-class Fragment :  public QObject, public QGraphicsItem
+class Fragment : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:
-    Fragment(const QImage& showImage, const QString& fragmentName = "unname");
+    Fragment(const std::vector<Piece>& pieces, const QImage& originalImage, const QString& fragmentName = "unname");
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -46,6 +56,7 @@ public:
     void scaledToWidth(const double scale);
     void reverseSelectState();
     void update(const QRectF &rect = QRectF());
+    const std::vector<Piece>& getPiece() const { return pieces; }
 
     // static methods
     static Fragment* getDraggingItem() { return draggingItem; }
@@ -56,7 +67,10 @@ public:
     static bool sortFragment(Fragment* frag);
     static bool unsortFragment(Fragment* frag);
     static bool jointFragment(Fragment* f1, JointFragment jointFragment);
+    static bool splitSelectedFragments();
     static void reverseChosenFragment(Fragment* f);
+    static const std::vector<Fragment*> getSelectedFragments();
+    static JointFragment mostPossibleJointMethod(Fragment* f1, Fragment* f2);
 
 signals:
     void doubleClickItem(Fragment* item);
@@ -76,8 +90,10 @@ private:
     static std::vector<Fragment*> sortedFragments;
     static std::vector<Fragment*> unsortedFragments;
     static std::vector<Fragment*> chosenFragments;
-    Fragment* fragment;
     static Fragment* draggingItem;
+
+    std::vector<Piece> pieces;
+    Fragment* fragment;
     const QImage originalImage;
     QImage showImage;
     QString fragmentName;

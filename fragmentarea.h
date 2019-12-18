@@ -25,6 +25,10 @@ private slots:
     void on_autoStitch_clicked();
     void sortItem(Fragment* item);
 
+    void on_btnJoint_clicked();
+
+    void on_btnSplit_clicked();
+
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene* scene;
