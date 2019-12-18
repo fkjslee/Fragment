@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QtDebug>
+#include <QMetaEnum>
 
+bool MainWindow::keyCtlOn = false;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -16,11 +18,27 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key::Key_Control)
+        keyCtlOn = true;
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key::Key_Control)
+        keyCtlOn = false;
+}
+
 void MainWindow::on_imageSizeController_valueChanged(int value)
 {
     std::vector<Fragment*> unsortedFragments = Fragment::getUnsortedFragments();
     for (Fragment* fragment : unsortedFragments) {
         fragment->scaledToWidth(1.0 * value / 100);
     }
+}
 
+void MainWindow::on_checkBtn_clicked()
+{
+    qDebug() << "check : " << keyCtlOn;
 }

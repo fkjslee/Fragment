@@ -13,14 +13,22 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
+    static bool getCtlStatus() { return keyCtlOn; }
 
 signals:
+
+protected:
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
 private slots:
     void on_imageSizeController_valueChanged(int value);
 
+    void on_checkBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
+    static bool keyCtlOn;
 };
 #endif // MAINWINDOW_H

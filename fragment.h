@@ -29,7 +29,7 @@ struct JointFragment {
         : item(item), method(method), absGrayscale(absGrayscale) {}
 };
 
-class Fragment :  public QGraphicsObject
+class Fragment :  public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:
@@ -44,7 +44,10 @@ public:
     const QString& getFragmentName() const { return fragmentName; }
     const QPointF& getBiasPos() const { return biasPos; }
     void scaledToWidth(const double scale);
+    void reverseSelectState();
+    void update(const QRectF &rect = QRectF());
 
+    // static methods
     static Fragment* getDraggingItem() { return draggingItem; }
     static std::vector<JointFragment> getMostPossibleFragments(Fragment* item = nullptr);
     static void createAllFragments(const QString& fragmentsPath);
@@ -53,6 +56,7 @@ public:
     static bool sortFragment(Fragment* frag);
     static bool unsortFragment(Fragment* frag);
     static bool jointFragment(Fragment* f1, JointFragment jointFragment);
+    static void reverseChosenFragment(Fragment* f);
 
 signals:
     void doubleClickItem(Fragment* item);
@@ -68,7 +72,7 @@ protected:
     void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
-public:
+private:
     static std::vector<Fragment*> sortedFragments;
     static std::vector<Fragment*> unsortedFragments;
     static std::vector<Fragment*> chosenFragments;
@@ -78,6 +82,8 @@ public:
     QImage showImage;
     QString fragmentName;
     QPointF biasPos;
+    bool selected = false;
+    double scale = 1.0;
 };
 
 #endif // FRAGMENT_H

@@ -5,20 +5,26 @@
 #include <QDir>
 #include <Tool.h>
 #include <algorithm>
+#include <mainwindow.h>
+#include <QStyleOptionGraphicsItem>
+#include <QMetaEnum>
 
 using namespace cv;
 
 Fragment* Fragment::draggingItem = nullptr;
 std::vector<Fragment*> Fragment::unsortedFragments = std::vector<Fragment*>();
 std::vector<Fragment*> Fragment::sortedFragments = std::vector<Fragment*>();
+std::vector<Fragment*> Fragment::chosenFragments = std::vector<Fragment*>();
 
 Fragment::Fragment(const QImage& image, const QString &fragmentName)
     : originalImage(image), fragmentName(fragmentName)
 {
     this->showImage = image;
-    setToolTip(fragmentName);
-    setCursor(Qt::OpenHandCursor);
-    setAcceptedMouseButtons(Qt::LeftButton);
+//    setToolTip(fragmentName);
+//    setCursor(Qt::OpenHandCursor);
+//    setAcceptedMouseButtons(Qt::LeftButton);
+//    QMetaEnum metaEnum = QMetaEnum::fromType<QGraphicsItem::GraphicsItemFlag>();
+    setFlag(QGraphicsItem::ItemIsMovable, true);
 }
 
 void Fragment::createAllFragments(const QString& fragmentsPath)
@@ -83,6 +89,15 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
     unsortedFragments.emplace_back(newFragment);
     qInfo() << "joint fragmens " << f1->fragmentName << " and " << jointFragment.item->fragmentName << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;
+}
+
+void Fragment::reverseChosenFragment(Fragment *f)
+{
+    std::vector<Fragment*>::iterator iterF = std::find(chosenFragments.begin(), chosenFragments.end(), f);
+    if (iterF == chosenFragments.end())
+        chosenFragments.emplace_back(f);
+    else
+        chosenFragments.erase(iterF);
 }
 
 void Fragment::imageSizeChanged(const int value)
@@ -154,14 +169,42 @@ void Fragment::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void Fragment::scaledToWidth(const double scale)
 {
-    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
+    this->scale = scale;
     update();
+}
+
+void Fragment::reverseSelectState()
+{
+    selected = !selected;
+    update();
+}
+
+void Fragment::update(const QRectF &rect)
+{
+    qDebug() << "selected " << selected;
+    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
+    int alpha;
+    if (selected) alpha = 100;
+    else alpha = 255;
+    QPainter painter(&showImage);
+    painter.setCompositionMode(QPainter::CompositionMode_Source);
+    painter.drawPixmap(0, 0, QPixmap::fromImage(showImage));
+    painter.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+    painter.fillRect(showImage.rect(), QColor(0, 0, 0, alpha));
+    painter.end();
+    QGraphicsItem::update(rect);
 }
 
 void Fragment::mousePressEvent(QGraphicsSceneMouseEvent *)
 {
-    draggingItem = this;
-    setCursor(Qt::ClosedHandCursor);
+    qDebug() << "mousePressEvent";
+    if (MainWindow::getCtlStatus()) {
+        selected = !selected;
+        update();
+    } else {
+        draggingItem = this;
+        setCursor(Qt::ClosedHandCursor);
+    }
 }
 
 void Fragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
