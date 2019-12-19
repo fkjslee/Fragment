@@ -6,6 +6,7 @@
 #include <QtDebug>
 
 using namespace cv;
+using std::vector;
 
 class Tool {
 public:
@@ -122,7 +123,8 @@ public:
         return res / (m1.rows * m1.cols * m1.channels());
     }
 
-    static QString aHash(const Mat& img) {
+    static QString aHash(const Mat& cmpImg) {
+        cv::Mat img = cmpImg.clone();
         cv::resize(img, img, Size(8, 8));
         cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
         double absGrayscale = 0;
@@ -157,6 +159,15 @@ public:
         return res;
     }
 
+    template<typename T>
+    static typename::vector<T>::const_iterator findInVector(const vector<T>& vec, const T& value) {
+        return std::find(vec.begin(), vec.end(), value);
+    }
+
+    template<typename T>
+    static void eraseInVector(vector<T>& vec, const T& value) {
+        vec.erase(findInVector(vec, value));
+    }
 };
 
 #endif // TOOL_H

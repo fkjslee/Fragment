@@ -53,7 +53,14 @@ void FragmentArea::update()
 void FragmentArea::on_autoStitch_clicked()
 {
     cv::Mat res = Tool::QImage2Mat(Fragment::getUnsortedFragments()[0]->getOriginalImage());
-    cv::imwrite("result.png", res);
+    qInfo() << "cmp image = " << Fragment::getUnsortedFragments()[0]->getFragmentName();
+    cv::Mat originalImg = cv::imread("./p1.png");
+    if (res.empty() || originalImg.empty()) {
+        qWarning() << "compare empty image!";
+        return;
+    }
+    double similarity = 1.0 * (64 - Tool::cmpWithOriginalMat(res, originalImg)) / 64 * 100;
+    ui->resLabel->setText(QString("similarity: %1%").arg(similarity));
 }
 
 void FragmentArea::sortItem(Fragment *item)

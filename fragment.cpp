@@ -46,7 +46,6 @@ Fragment::Fragment(const std::vector<Piece>& pieces, const QImage& originalImage
     setToolTip(fragmentName);
     setCursor(Qt::OpenHandCursor);
     setFlag(QGraphicsItem::ItemIsMovable, true);
-
 }
 
 void Fragment::createAllFragments(const QString& fragmentsPath)
@@ -60,7 +59,7 @@ void Fragment::createAllFragments(const QString& fragmentsPath)
     for (const QString& fileName : nameList) {
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("f%1").arg(++i)));
-        unsortedFragments.emplace_back(new Fragment(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(++i)));
+        unsortedFragments.emplace_back(new Fragment(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(i)));
     }
 }
 
@@ -106,8 +105,8 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
         break;
     }
     if (jointMat.empty()) return false;
-    unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), f1));
-    unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), jointFragment.item));
+    Tool::eraseInVector(unsortedFragments, f1);
+    Tool::eraseInVector(unsortedFragments, jointFragment.item);
     std::vector<Piece> pieces;
     for (Piece p : f1->getPiece())
         pieces.emplace_back(p);
@@ -123,7 +122,7 @@ bool Fragment::jointFragment(Fragment *f1, JointFragment jointFragment)
 bool Fragment::splitSelectedFragments()
 {
     for (Fragment* splitFragment : getSelectedFragments()) {
-        unsortedFragments.erase(std::find(unsortedFragments.begin(), unsortedFragments.end(), splitFragment));
+        Tool::eraseInVector(unsortedFragments, splitFragment);
         for (Piece piece : splitFragment->getPiece()) {
             std::vector<Piece> vec;
             vec.push_back(piece);

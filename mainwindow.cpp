@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     Fragment::createAllFragments("./fragment2/");
     ui->setupUi(this);
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
+    ui->checkBtn->hide();
 }
 
 MainWindow::~MainWindow()
