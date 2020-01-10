@@ -31,26 +31,10 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
       <item>
-       <widget class="QDockWidget" name="dockWidget_2">
-        <property name="features">
-         <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-        </property>
-        <property name="windowTitle">
-         <string>desktop</string>
-        </property>
-        <widget class="Desktop" name="desktop"/>
-       </widget>
+       <widget class="FragmentArea" name="fragmentArea" native="true"/>
       </item>
       <item>
-       <widget class="QDockWidget" name="dockWidget_3">
-        <property name="features">
-         <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
-        </property>
-        <property name="windowTitle">
-         <string>fragmentArea</string>
-        </property>
-        <widget class="FragmentArea" name="fragmentArea"/>
-       </widget>
+       <widget class="Desktop" name="desktop" native="true"/>
       </item>
      </layout>
     </item>

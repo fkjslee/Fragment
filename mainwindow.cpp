@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     Fragment::createAllFragments("./fragment2/");
     ui->setupUi(this);
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
+    connect(this, &MainWindow::update, ui->fragmentArea, &FragmentArea::update);
     ui->checkBtn->hide();
 }
 
@@ -37,6 +38,7 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
     for (Fragment* fragment : unsortedFragments) {
         fragment->scaledToWidth(1.0 * value / 100);
     }
+    emit update();
 }
 
 void MainWindow::on_checkBtn_clicked()

@@ -46,6 +46,7 @@ void FragmentArea::update()
         scene->addItem(fragment);
         connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
+    scene->update();
     QWidget::update();
     QApplication::processEvents();
 }

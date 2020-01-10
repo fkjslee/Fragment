@@ -17,6 +17,7 @@ public:
     static bool getCtlStatus() { return keyCtlOn; }
 
 signals:
+    void update();
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;

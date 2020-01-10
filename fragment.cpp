@@ -216,7 +216,6 @@ void Fragment::reverseSelectState()
 
 void Fragment::update(const QRectF &rect)
 {
-    qDebug() << "selected " << selected;
     showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
     int alpha;
     if (selected) alpha = 100;
