@@ -4,12 +4,32 @@
 #include <opencv2/opencv.hpp>
 #include <QImage>
 #include <QtDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 using namespace cv;
 using std::vector;
 
 class Tool {
 public:
+
+    static QString jsonObjToString(const QJsonObject& json) {
+        return QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
+    }
+
+    static QJsonObject stringToJsonObj(const QString& str) {
+        QJsonObject json;
+        QJsonParseError err;
+        QJsonDocument l_doc = QJsonDocument::fromJson(str.toUtf8(), &err);
+        if (err.error == QJsonParseError::NoError)
+        {
+            if (l_doc.isObject())
+            {
+                json = l_doc.object();
+            }
+        }
+        return json;
+    }
 
     static void* cucharToVoid(const uchar* c) {
         return reinterpret_cast<void*>(const_cast<uchar*>(c));

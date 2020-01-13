@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include <QtDebug>
 #include <QMetaEnum>
+#include <QMessageBox>
+#include <Tool.h>
 
 bool MainWindow::keyCtlOn = false;
 MainWindow::MainWindow(QWidget *parent)
@@ -87,9 +89,33 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
 void MainWindow::changeLanguageToCN()
 {
     qDebug() << "trigger " << " change to CN";
+    changeLanguage("CHS");
 }
 
 void MainWindow::changeLanguageToEN()
 {
     qDebug() << "trigger " << " change to EN";
+    changeLanguage("EN");
+}
+
+void MainWindow::changeLanguage(QString language)
+{
+    QFile configFile("config.txt");
+    if (!configFile.exists()) {
+        QMessageBox::warning(nullptr, QObject::tr("file error!"), QObject::tr("config file not exist!"),
+                           QMessageBox::Cancel);
+        return;
+    } else if (!configFile.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(nullptr, QObject::tr("read error!"), QObject::tr("config file can't read!"),
+                           QMessageBox::Cancel);
+        return;
+    }
+
+    QJsonObject config = Tool::stringToJsonObj(configFile.readAll());
+    config["language"] = language;
+
+    configFile.close();
+    configFile.open(QIODevice::Truncate | QIODevice::WriteOnly);
+    configFile.write(Tool::jsonObjToString(config).toUtf8());
+    configFile.close();
 }

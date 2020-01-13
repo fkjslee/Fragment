@@ -31,6 +31,7 @@ private slots:
     void on_imageSizeController_valueChanged(int value);
     void changeLanguageToCN();
     void changeLanguageToEN();
+    void changeLanguage(QString language);
 
 private:
     Ui::MainWindow *ui;
