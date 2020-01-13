@@ -22,8 +22,8 @@ FragmentArea::FragmentArea(QWidget *parent) :
                      ::cos((i * 6.28) / 10.0) * 150);
         scene->addItem(fragment);
         i++;
-        connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
     }
+    update();
 }
 
 FragmentArea::~FragmentArea()
@@ -37,14 +37,14 @@ void FragmentArea::update()
     qDebug() << "update fragment area";
     for (Fragment* fragment : fragmentItems) {
         scene->removeItem(fragment);
-        disconnect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
+        disconnect(fragment, &Fragment::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     fragmentItems.clear();
 
     for (Fragment* fragment : Fragment::getUnsortedFragments()) {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
-        connect(fragment, &Fragment::doubleClickItem, this, &FragmentArea::sortItem);
+        connect(fragment, &Fragment::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     scene->update();
     QWidget::update();
@@ -66,14 +66,32 @@ void FragmentArea::on_autoStitch_clicked()
 
 void FragmentArea::sortItem(Fragment *item)
 {
-    std::vector<JointFragment> possibleFragments = Fragment::getMostPossibleFragments(item);
-    if (possibleFragments.size() == 0) {
-        qWarning() << "no suitable fragment";
-        return;
-    }
-    JointFragment possibleFragment = possibleFragments[0];
-    Fragment::jointFragment(item, possibleFragment);
     update();
+}
+
+void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos)
+{
+    QDrag *drag = new QDrag(event->widget());
+    QMimeData *mime = new QMimeData;
+    drag->setMimeData(mime);
+    QPixmap pixmap(int(this->width()), int(this->height()));
+    pixmap.fill(Qt::white);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    for (Fragment* moveFragment : Fragment::getSelectedFragments()) {
+        QImage showImage = moveFragment->getShowImage();
+        painter.drawImage(moveFragment->pos(), showImage);
+    }
+    painter.end();
+
+//    pixmap.setMask(pixmap.createHeuristicMask());
+
+    drag->setPixmap(pixmap);
+    drag->setHotSpot(biasPos);
+
+    drag->exec();
+    setCursor(Qt::OpenHandCursor);
 }
 
 void FragmentArea::on_btnJoint_clicked()

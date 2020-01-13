@@ -270,24 +270,29 @@ void Fragment::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         .length() < QApplication::startDragDistance()) {
         return;
     }
-    QDrag *drag = new QDrag(event->widget());
-    QMimeData *mime = new QMimeData;
-    drag->setMimeData(mime);
-    QPixmap pixmap(showImage.width(), showImage.height());
-    pixmap.fill(Qt::white);
-    qDebug() << "showImage.size = " << showImage.size();
+    if (getSelectedFragments().size() == 100) {
+        emit fragmentsMoveEvents(event, (event->scenePos() - this->scenePos()).toPoint());
+    } else {
+        QDrag *drag = new QDrag(event->widget());
+        QMimeData *mime = new QMimeData;
+        drag->setMimeData(mime);
+        QPixmap pixmap(showImage.width(), showImage.height());
+        pixmap.fill(Qt::white);
+        qDebug() << "showImage.size = " << showImage.size();
 
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    paint(&painter, nullptr, nullptr);
-    painter.end();
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
 
-    pixmap.setMask(pixmap.createHeuristicMask());
+        paint(&painter, nullptr, nullptr);
+        painter.end();
 
-    drag->setPixmap(pixmap);
-    biasPos = event->scenePos() - this->scenePos();
-    drag->setHotSpot(biasPos.toPoint());
+    //    pixmap.setMask(pixmap.createHeuristicMask());
 
-    drag->exec();
-    setCursor(Qt::OpenHandCursor);
+        drag->setPixmap(pixmap);
+        biasPos = event->scenePos() - this->scenePos();
+        drag->setHotSpot(biasPos.toPoint());
+
+        drag->exec();
+        setCursor(Qt::OpenHandCursor);
+    }
 }

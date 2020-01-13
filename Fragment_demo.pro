@@ -54,3 +54,6 @@ DISTFILES +=
 
 RESOURCES += \
     rscs.qrc
+
+TRANSLATIONS += translator_cn.ts
+CODECFORTR=utf-8

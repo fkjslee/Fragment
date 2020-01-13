@@ -23,6 +23,7 @@ public:
 private slots:
     void on_autoStitch_clicked();
     void sortItem(Fragment* item);
+    void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
 
     void on_btnJoint_clicked();
 

@@ -74,6 +74,7 @@ public:
 
 signals:
     void doubleClickItem(Fragment* item);
+    void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
 
 public slots:
     void imageSizeChanged(const int value);

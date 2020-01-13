@@ -7,14 +7,19 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <desktop.h>
+#include <QTranslator>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
     QApplication::setWindowIcon(QIcon(":/new/pre/resources/fragment.png"));
     QApplication::setStyle("fusion");
-    w.showMaximized();
+    QTranslator* translator = new QTranslator();
+    translator->load("translator_cn.qm");
+    qApp->installTranslator(translator);
+    qDebug() << QObject::tr("hello world");
+    MainWindow w;
+//    w.showMaximized();
 //    w.showFullScreen();
     w.show();
     return a.exec();

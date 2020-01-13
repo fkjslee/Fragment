@@ -12,7 +12,50 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
     connect(this, &MainWindow::update, ui->fragmentArea, &FragmentArea::update);
-    ui->checkBtn->hide();
+
+    menuFile = new QMenu(tr("file"), this);
+    actNew = new QAction(tr("new"), this);
+    actNew->setShortcut(Qt::CTRL | Qt::Key_N);
+    menuFile->addAction(actNew);
+
+    actOpen = new QAction(tr("open"), this);
+    actOpen->setShortcut(Qt::CTRL | Qt::Key_O);
+    menuFile->addAction(actOpen);
+
+    actSave = new QAction(tr("save"), this);
+    actSave->setShortcut(Qt::CTRL | Qt::Key_S);
+    menuFile->addAction(actSave);
+
+    actClose = new QAction(tr("close"), this);
+    actClose->setShortcut(Qt::CTRL | Qt::Key_W);
+    menuFile->addAction(actClose);
+    ui->menubar->addMenu(menuFile);
+
+
+    menuEdit = new QMenu(tr("edit"), this);
+    actCopy = new QAction(tr("copy"), this);
+    actCopy->setShortcut(Qt::CTRL | Qt::Key_C);
+    menuEdit->addAction(actCopy);
+
+    actUndo = new QAction(tr("undo"), this);
+    actUndo->setShortcut(Qt::CTRL | Qt::Key_R);
+    menuEdit->addAction(actUndo);
+
+    actRedo = new QAction(tr("redo"), this);
+    actRedo->setShortcut(Qt::CTRL | Qt::Key_Y);
+    menuEdit->addAction(actRedo);
+    ui->menubar->addMenu(menuEdit);
+
+    menuTool = new QMenu(tr("tool"), this);
+    menuLanguage = new QMenu(tr("language"), this);
+    menuTool->addMenu(menuLanguage);
+    actChinese = new QAction(tr("Chinese"), this);
+    menuLanguage->addAction(actChinese);
+    connect(actChinese, &QAction::triggered, this, &MainWindow::changeLanguageToCN);
+    actEnglish = new QAction(tr("English"), this);
+    menuLanguage->addAction(actEnglish);
+    connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
+    ui->menubar->addMenu(menuTool);
 }
 
 MainWindow::~MainWindow()
@@ -41,7 +84,12 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
     emit update();
 }
 
-void MainWindow::on_checkBtn_clicked()
+void MainWindow::changeLanguageToCN()
 {
-    qDebug() << "check : " << keyCtlOn;
+    qDebug() << "trigger " << " change to CN";
+}
+
+void MainWindow::changeLanguageToEN()
+{
+    qDebug() << "trigger " << " change to EN";
 }

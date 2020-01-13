@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMenu>
+#include <QMenuBar>
+#include <QAction>
+#include <QTranslator>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,11 +29,26 @@ protected:
 
 private slots:
     void on_imageSizeController_valueChanged(int value);
-
-    void on_checkBtn_clicked();
+    void changeLanguageToCN();
+    void changeLanguageToEN();
 
 private:
     Ui::MainWindow *ui;
     static bool keyCtlOn;
+    QMenu* menuFile;
+    QAction* actNew;
+    QAction* actOpen;
+    QAction* actSave;
+    QAction* actClose;
+
+    QMenu* menuEdit;
+    QAction* actCopy;
+    QAction* actUndo;
+    QAction* actRedo;
+
+    QMenu* menuTool;
+    QMenu* menuLanguage;
+    QAction* actChinese;
+    QAction* actEnglish;
 };
 #endif // MAINWINDOW_H
