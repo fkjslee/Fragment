@@ -6,9 +6,11 @@
 #include "eventgraphicsscene.h"
 #include <QHBoxLayout>
 #include <QGraphicsView>
+#include <fragmentscontroller.h>
 
-namespace Ui {
-class FragmentArea;
+namespace Ui
+{
+    class FragmentArea;
 }
 
 class FragmentArea : public QWidget
@@ -22,7 +24,7 @@ public:
 
 private slots:
     void on_autoStitch_clicked();
-    void sortItem(Fragment* item);
+    void sortItem(Fragment *item);
     void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
 
     void on_btnJoint_clicked();
@@ -31,8 +33,9 @@ private slots:
 
 private:
     Ui::FragmentArea *ui;
-    EventGraphicsScene* scene;
-    std::vector<Fragment*> fragmentItems;
+    EventGraphicsScene *scene;
+    std::vector<Fragment *> fragmentItems;
+    FragmentsController *fragCtrl;
 };
 
 #endif // FRAGMENTAREA_H

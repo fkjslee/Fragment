@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "ui//mainwindow.h"
 
 #include <QtDebug>
 #include <QApplication>
@@ -6,34 +6,40 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <desktop.h>
+#include <ui//desktop.h>
 #include <QTranslator>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <Tool.h>
 #include <QMessageBox>
 
-void setStyle() {
+void setStyle()
+{
     QApplication::setWindowIcon(QIcon(":/new/pre/resources/fragment.png"));
     QApplication::setStyle("fusion");
 }
 
-void loadLanguage() {
+void loadLanguage()
+{
     QFile configFile("config.txt");
-    if (!configFile.exists()) {
+    if (!configFile.exists())
+    {
         QMessageBox::warning(nullptr, QObject::tr("file error!"), QObject::tr("config file not exist!"),
-                           QMessageBox::Cancel);
+                             QMessageBox::Cancel);
         return;
-    } else if (!configFile.open(QIODevice::ReadOnly)) {
+    }
+    else if (!configFile.open(QIODevice::ReadOnly))
+    {
         QMessageBox::warning(nullptr, QObject::tr("read error!"), QObject::tr("config file can't read!"),
-                           QMessageBox::Cancel);
+                             QMessageBox::Cancel);
         return;
     }
 
     QJsonObject config = Tool::stringToJsonObj(configFile.readAll());
 
-    if (config["language"] == "CHS") {
-        QTranslator* translator = new QTranslator();
+    if (config["language"] == "CHS")
+    {
+        QTranslator *translator = new QTranslator();
         translator->load("translator_cn.qm");
         qApp->installTranslator(translator);
     }

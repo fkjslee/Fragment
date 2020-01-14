@@ -1,5 +1,6 @@
 #include "hintwindow.h"
 #include "ui_hintwindow.h"
+#include <fragmentscontroller.h>
 #include <set>
 
 HintWindow::HintWindow(QWidget *parent) :
@@ -21,21 +22,24 @@ HintWindow::~HintWindow()
 
 void HintWindow::on_refreshBtn_clicked()
 {
-    for (Fragment* fragment : fragments) {
+    for (Fragment *fragment : fragments)
+    {
         scene->removeItem(fragment);
         delete fragment;
     }
     fragments.clear();
 
-    std::vector<JointFragment> possilbleFragments = Fragment::getMostPossibleFragments(nullptr);
-    for (JointFragment jointFragment : possilbleFragments) {
-        Fragment* f = jointFragment.item;
+    std::vector<JointFragment> possilbleFragments = FragmentsController::getController()->getMostPossibleFragments(nullptr);
+    for (JointFragment jointFragment : possilbleFragments)
+    {
+        Fragment *f = jointFragment.item;
 //        fragments.emplace_back(new Fragment(f->getOriginalImage(), "copy of " + f->getFragmentName()));
     }
     QRect windowRect = this->rect();
     int N = int(fragments.size());
-    for (int i = 0; i < N; ++i) {
-        Fragment* fragment = fragments[unsigned(i)];
+    for (int i = 0; i < N; ++i)
+    {
+        Fragment *fragment = fragments[unsigned(i)];
         fragment->setPos(0, windowRect.top() + windowRect.height() * i / N);
         scene->addItem(fragment);
     }

@@ -4,14 +4,16 @@
 #include <QMetaEnum>
 #include <QMessageBox>
 #include <Tool.h>
+#include <fragmentscontroller.h>
 
 bool MainWindow::keyCtlOn = false;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    Fragment::createAllFragments("./fragment2/");
+    FragmentsController::getController()->createAllFragments("./fragment2/");
     ui->setupUi(this);
+    fragCtrl = FragmentsController::getController();
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
     connect(this, &MainWindow::update, ui->fragmentArea, &FragmentArea::update);
 
@@ -79,8 +81,9 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
 {
-    std::vector<Fragment*> unsortedFragments = Fragment::getUnsortedFragments();
-    for (Fragment* fragment : unsortedFragments) {
+    std::vector<Fragment *> unsortedFragments = fragCtrl->getUnsortedFragments();
+    for (Fragment *fragment : unsortedFragments)
+    {
         fragment->scaledToWidth(1.0 * value / 100);
     }
     emit update();
@@ -88,26 +91,27 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
 
 void MainWindow::changeLanguageToCN()
 {
-    qDebug() << "trigger " << " change to CN";
     changeLanguage("CHS");
 }
 
 void MainWindow::changeLanguageToEN()
 {
-    qDebug() << "trigger " << " change to EN";
     changeLanguage("EN");
 }
 
 void MainWindow::changeLanguage(QString language)
 {
     QFile configFile("config.txt");
-    if (!configFile.exists()) {
+    if (!configFile.exists())
+    {
         QMessageBox::warning(nullptr, QObject::tr("file error!"), QObject::tr("config file not exist!"),
-                           QMessageBox::Cancel);
+                             QMessageBox::Cancel);
         return;
-    } else if (!configFile.open(QIODevice::ReadOnly)) {
+    }
+    else if (!configFile.open(QIODevice::ReadOnly))
+    {
         QMessageBox::warning(nullptr, QObject::tr("read error!"), QObject::tr("config file can't read!"),
-                           QMessageBox::Cancel);
+                             QMessageBox::Cancel);
         return;
     }
 
@@ -118,4 +122,6 @@ void MainWindow::changeLanguage(QString language)
     configFile.open(QIODevice::Truncate | QIODevice::WriteOnly);
     configFile.write(Tool::jsonObjToString(config).toUtf8());
     configFile.close();
+    QMessageBox::information(nullptr, QObject::tr("language"), QObject::tr("set new language, please restart."),
+                             QMessageBox::Ok);
 }

@@ -6,9 +6,13 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QTranslator>
+#include <fragmentscontroller.h>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui
+{
+    class MainWindow;
+}
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -18,14 +22,17 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-    static bool getCtlStatus() { return keyCtlOn; }
+    static bool getCtlStatus()
+    {
+        return keyCtlOn;
+    }
 
 signals:
     void update();
 
 protected:
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
 
 private slots:
     void on_imageSizeController_valueChanged(int value);
@@ -34,22 +41,24 @@ private slots:
     void changeLanguage(QString language);
 
 private:
+    FragmentsController *fragCtrl;
+
     Ui::MainWindow *ui;
     static bool keyCtlOn;
-    QMenu* menuFile;
-    QAction* actNew;
-    QAction* actOpen;
-    QAction* actSave;
-    QAction* actClose;
+    QMenu *menuFile;
+    QAction *actNew;
+    QAction *actOpen;
+    QAction *actSave;
+    QAction *actClose;
 
-    QMenu* menuEdit;
-    QAction* actCopy;
-    QAction* actUndo;
-    QAction* actRedo;
+    QMenu *menuEdit;
+    QAction *actCopy;
+    QAction *actUndo;
+    QAction *actRedo;
 
-    QMenu* menuTool;
-    QMenu* menuLanguage;
-    QAction* actChinese;
-    QAction* actEnglish;
+    QMenu *menuTool;
+    QMenu *menuLanguage;
+    QAction *actChinese;
+    QAction *actEnglish;
 };
 #endif // MAINWINDOW_H

@@ -4,8 +4,9 @@
 #include <QWidget>
 #include "eventgraphicsscene.h"
 
-namespace Ui {
-class HintWindow;
+namespace Ui
+{
+    class HintWindow;
 }
 
 class HintWindow : public QWidget
@@ -21,8 +22,8 @@ private slots:
 
 private:
     Ui::HintWindow *ui;
-    EventGraphicsScene* scene;
-    std::vector<Fragment*> fragments;
+    EventGraphicsScene *scene;
+    std::vector<Fragment *> fragments;
 };
 
 #endif // HINTWINDOW_H

@@ -13,10 +13,12 @@ Desktop::Desktop(QWidget *parent) :
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
 
+    fragCtrl = FragmentsController::getController();
     int i = 0;
-    for (Fragment* fragment : Fragment::getSortedFragments()) {
+    for (Fragment *fragment : fragCtrl->getSortedFragments())
+    {
         fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
-                     ::cos((i * 6.28) / 10.0) * 150);
+                         ::cos((i * 6.28) / 10.0) * 150);
         scene->addItem(fragment);
         i++;
     }

@@ -17,13 +17,10 @@
 #include <QImage>
 #include <set>
 
-class Fragment;
-
-enum JointMethod {leftRight, rightLeft, upDown, downUp};
-
-class Piece {
+class Piece
+{
 public:
-    Piece(const QString& piecePath, const QString& pieceName = "noname")
+    Piece(const QString &piecePath, const QString &pieceName = "noname")
         : piecePath(piecePath), pieceName(pieceName) {}
 
 public:
@@ -31,49 +28,54 @@ public:
     QString pieceName;
 };
 
-struct JointFragment {
-    Fragment* item;
-    JointMethod method;
-    double absGrayscale;
-    JointFragment(Fragment* item, JointMethod method, double absGrayscale)
-        : item(item), method(method), absGrayscale(absGrayscale) {}
-};
-
 class Fragment : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 public:
-    Fragment(const std::vector<Piece>& pieces, const QImage& originalImage, const QString& fragmentName = "unname");
+    Fragment(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
-    Fragment* getFragment() const { return fragment; }
-    const QImage& getOriginalImage() const { return originalImage; }
-    const QImage& getShowImage() const { return showImage; }
-    const QString& getFragmentName() const { return fragmentName; }
-    const QPointF& getBiasPos() const { return biasPos; }
+    Fragment *getFragment() const
+    {
+        return fragment;
+    }
+    const QImage &getOriginalImage() const
+    {
+        return originalImage;
+    }
+    const QImage &getShowImage() const
+    {
+        return showImage;
+    }
+    const QString &getFragmentName() const
+    {
+        return fragmentName;
+    }
+    const QPointF &getBiasPos() const
+    {
+        return biasPos;
+    }
+    bool getSelected() const
+    {
+        return selected;
+    }
     void scaledToWidth(const double scale);
     void reverseSelectState();
     void update(const QRectF &rect = QRectF());
-    const std::vector<Piece>& getPiece() const { return pieces; }
+    const std::vector<Piece> &getPiece() const
+    {
+        return pieces;
+    }
 
-    // static methods
-    static Fragment* getDraggingItem() { return draggingItem; }
-    static std::vector<JointFragment> getMostPossibleFragments(Fragment* item = nullptr);
-    static void createAllFragments(const QString& fragmentsPath);
-    static std::vector<Fragment*> getSortedFragments();
-    static std::vector<Fragment*> getUnsortedFragments();
-    static bool sortFragment(Fragment* frag);
-    static bool unsortFragment(Fragment* frag);
-    static bool jointFragment(Fragment* f1, JointFragment jointFragment);
-    static bool splitSelectedFragments();
-    static void reverseChosenFragment(Fragment* f);
-    static const std::vector<Fragment*> getSelectedFragments();
-    static JointFragment mostPossibleJointMethod(Fragment* f1, Fragment* f2);
+    static Fragment *getDraggingItem()
+    {
+        return draggingItem;
+    }
 
 signals:
-    void doubleClickItem(Fragment* item);
     void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
 
 public slots:
@@ -88,13 +90,10 @@ protected:
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
 private:
-    static std::vector<Fragment*> sortedFragments;
-    static std::vector<Fragment*> unsortedFragments;
-    static std::vector<Fragment*> chosenFragments;
-    static Fragment* draggingItem;
+    static Fragment *draggingItem;
 
     std::vector<Piece> pieces;
-    Fragment* fragment;
+    Fragment *fragment;
     const QImage originalImage;
     QImage showImage;
     QString fragmentName;

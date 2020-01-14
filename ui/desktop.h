@@ -3,9 +3,11 @@
 
 #include <QWidget>
 #include "eventgraphicsscene.h"
+#include <fragmentscontroller.h>
 
-namespace Ui {
-class Desktop;
+namespace Ui
+{
+    class Desktop;
 }
 
 class Desktop : public QWidget
@@ -15,12 +17,16 @@ class Desktop : public QWidget
 public:
     explicit Desktop(QWidget *parent = nullptr);
     void dropEvent(QDropEvent *event) override;
-    EventGraphicsScene* getScene() const { return scene; }
+    EventGraphicsScene *getScene() const
+    {
+        return scene;
+    }
     ~Desktop() override;
 
 private:
     Ui::Desktop *ui;
-    EventGraphicsScene* scene;
+    EventGraphicsScene *scene;
+    FragmentsController *fragCtrl;
 };
 
 #endif // DESKTOP_H

@@ -16,28 +16,30 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    desktop.cpp \
+    ui/desktop.cpp \
     eventgraphicsscene.cpp \
     fragment.cpp \
-    fragmentarea.cpp \
-    hintwindow.cpp \
+    ui/fragmentarea.cpp \
+    fragmentscontroller.cpp \
+    ui/hintwindow.cpp \
     main.cpp \
-    mainwindow.cpp
+    ui/mainwindow.cpp \
 
 HEADERS += \
     Tool.h \
-    desktop.h \
+    ui/desktop.h \
     eventgraphicsscene.h \
     fragment.h \
-    fragmentarea.h \
-    hintwindow.h \
-    mainwindow.h
+    ui/fragmentarea.h \
+    fragmentscontroller.h \
+    ui/hintwindow.h \
+    ui/mainwindow.h \
 
 FORMS += \
-    desktop.ui \
-    fragmentarea.ui \
-    hintwindow.ui \
-    mainwindow.ui
+    ui/desktop.ui \
+    ui/fragmentarea.ui \
+    ui/hintwindow.ui \
+    ui/mainwindow.ui
 
 
 INCLUDEPATH += C:\Users\fkjslee\Downloads\opencv\build\include\opencv2 \
