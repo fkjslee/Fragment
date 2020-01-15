@@ -16,22 +16,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    entity/fragmententity.cpp \
     ui/desktop.cpp \
     eventgraphicsscene.cpp \
     fragment.cpp \
     ui/fragmentarea.cpp \
     fragmentscontroller.cpp \
+    ui/fragmentui.cpp \
     ui/hintwindow.cpp \
     main.cpp \
     ui/mainwindow.cpp \
 
 HEADERS += \
     Tool.h \
+    entity/fragmententity.h \
     ui/desktop.h \
     eventgraphicsscene.h \
     fragment.h \
     ui/fragmentarea.h \
     fragmentscontroller.h \
+    ui/fragmentui.h \
     ui/hintwindow.h \
     ui/mainwindow.h \
 

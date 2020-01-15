@@ -20,7 +20,13 @@ class FragmentsController
 public:
     void createAllFragments(const QString &fragmentsPath);
     static FragmentsController *getController();
+    /* todo
+     * Choose most possible fragment which could be jointed by giving fragment(item)
+     */
     std::vector<JointFragment> getMostPossibleFragments(Fragment *item = nullptr);
+    /* todo
+     * get most possible jointsing method through giving fragment(f1 and f2)
+     */
     JointFragment mostPossibleJointMethod(Fragment *f1, Fragment *f2);
     bool splitSelectedFragments();
     const std::vector<Fragment *> getSelectedFragments();

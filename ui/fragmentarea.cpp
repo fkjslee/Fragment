@@ -70,11 +70,6 @@ void FragmentArea::on_autoStitch_clicked()
     ui->resLabel->setText(QString("similarity: %1%").arg(similarity));
 }
 
-void FragmentArea::sortItem(Fragment *item)
-{
-    update();
-}
-
 void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos)
 {
 //    QDrag *drag = new QDrag(event->widget());
