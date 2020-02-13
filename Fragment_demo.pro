@@ -46,10 +46,9 @@ FORMS += \
     ui/mainwindow.ui
 
 
-INCLUDEPATH += C:\Users\fkjslee\Downloads\opencv\build\include\opencv2 \
-        C:\Users\fkjslee\Downloads\opencv\build\include
+INCLUDEPATH += ..\include
 
-LIBS += C:\Users\fkjslee\Downloads\opencv\build\x64\vc14\lib\opencv_world411.lib
+LIBS += ..\..\lib\opencv_world411.lib
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -13,34 +13,8 @@ FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalI
     this->showImage = originalImage;
     setToolTip(fragmentName);
     setCursor(Qt::OpenHandCursor);
-    setFlag(QGraphicsItem::ItemIsMovable, true);
-}
-
-QRectF FragmentUi::boundingRect() const
-{
-    return showImage.rect();
-}
-
-void FragmentUi::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    Q_UNUSED(option)
-    Q_UNUSED(widget)
-    painter->drawImage(QPoint(0, 0), showImage);
-}
-
-void FragmentUi::update(const QRectF &rect)
-{
-    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
-    int alpha;
-    if (selected) alpha = 100;
-    else alpha = 255;
-    QPainter painter(&showImage);
-    painter.setCompositionMode(QPainter::CompositionMode_Source);
-    painter.drawPixmap(0, 0, QPixmap::fromImage(showImage));
-    painter.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-    painter.fillRect(showImage.rect(), QColor(0, 0, 0, alpha));
-    painter.end();
-    QGraphicsItem::update(rect);
+    setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable);
+    setPixmap(QPixmap::fromImage(showImage));
 }
 
 void FragmentUi::scaledToWidth(const double scale)
@@ -49,29 +23,29 @@ void FragmentUi::scaledToWidth(const double scale)
     update();
 }
 
-void FragmentUi::reverseSelectState()
+void FragmentUi::update(const QRectF &rect)
 {
-    selected = !selected;
-    update();
+    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
+    setPixmap(QPixmap::fromImage(showImage));
+    QGraphicsItem::update(rect);
 }
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *)
 {
+    qDebug() << "mousePressEvent";
     draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
 }
 
-void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
+void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    QGraphicsItem::mouseReleaseEvent(event);
     draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
 }
 
 void FragmentUi::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "mousePressEvent";
-    selected = !selected;
-    update();
     draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
     Q_UNUSED(event)
@@ -90,31 +64,6 @@ void FragmentUi::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 
 void FragmentUi::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (QLineF(event->screenPos(), event->buttonDownScreenPos(Qt::LeftButton))
-            .length() < QApplication::startDragDistance())
-    {
-        return;
-    }
-    QDrag *drag = new QDrag(event->widget());
-    QMimeData *mime = new QMimeData;
-    drag->setMimeData(mime);
-    QPixmap pixmap(showImage.width(), showImage.height());
-    pixmap.fill(Qt::white);
-    qDebug() << "showImage.size = " << showImage.size();
-
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    paint(&painter, nullptr, nullptr);
-    painter.end();
-
-//    pixmap.setMask(pixmap.createHeuristicMask());
-
-    drag->setPixmap(pixmap);
-    biasPos = event->scenePos() - this->scenePos();
-    drag->setHotSpot(biasPos.toPoint());
-
-    drag->exec();
-    setCursor(Qt::OpenHandCursor);
+    QGraphicsItem::mouseMoveEvent(event);
 }
 

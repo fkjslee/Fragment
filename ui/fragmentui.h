@@ -16,7 +16,7 @@ public:
     QString pieceName;
 };
 
-class FragmentUi : public QObject, public QGraphicsItem
+class FragmentUi : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
@@ -26,9 +26,6 @@ public:
     {
         return draggingItem;
     }
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    void update(const QRectF &rect = QRectF());
     const QImage &getOriginalImage() const
     {
         return originalImage;
@@ -47,14 +44,14 @@ public:
     }
     bool getSelected() const
     {
-        return selected;
+        return isSelected();
     }
     void scaledToWidth(const double scale);
-    void reverseSelectState();
     const std::vector<Piece> &getPiece() const
     {
         return pieces;
     }
+    void update(const QRectF &rect = QRectF());
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -72,7 +69,6 @@ public:
     QImage showImage;
     QString fragmentName;
     QPointF biasPos;
-    bool selected = false;
     double scale = 1.0;
 };
 

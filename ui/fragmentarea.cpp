@@ -56,43 +56,8 @@ void FragmentArea::update()
     QApplication::processEvents();
 }
 
-void FragmentArea::on_autoStitch_clicked()
-{
-    cv::Mat res = Tool::QImageToMat(fragCtrl->getUnsortedFragments()[0]->getOriginalImage());
-    qInfo() << "cmp image = " << fragCtrl->getUnsortedFragments()[0]->getFragmentName();
-    cv::Mat originalImg = cv::imread("./p1.png");
-    if (res.empty() || originalImg.empty())
-    {
-        qWarning() << "compare empty image!";
-        return;
-    }
-    double similarity = 1.0 * (64 - Tool::cmpWithOriginalMat(res, originalImg)) / 64 * 100;
-    ui->resLabel->setText(QString("similarity: %1%").arg(similarity));
-}
-
 void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos)
 {
-//    QDrag *drag = new QDrag(event->widget());
-//    QMimeData *mime = new QMimeData;
-//    drag->setMimeData(mime);
-//    QPixmap pixmap(int(this->width()), int(this->height()));
-//    pixmap.fill(Qt::white);
-
-//    QPainter painter(&pixmap);
-//    painter.setRenderHint(QPainter::Antialiasing);
-//    for (Fragment* moveFragment : Fragment::getSelectedFragments()) {
-//        QImage showImage = moveFragment->getShowImage();
-//        painter.drawImage(moveFragment->pos(), showImage);
-//    }
-//    painter.end();
-
-////    pixmap.setMask(pixmap.createHeuristicMask());
-
-//    drag->setPixmap(pixmap);
-//    drag->setHotSpot(biasPos);
-
-//    drag->exec();
-//    setCursor(Qt::OpenHandCursor);
 }
 
 void FragmentArea::on_btnJoint_clicked()

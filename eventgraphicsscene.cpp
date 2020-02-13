@@ -14,6 +14,7 @@ void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 
 void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
+    qDebug() << "dragLeaveEvent";
     FragmentUi *draggingItem = Fragment::getDraggingItem();
     if (draggingItem == nullptr)
         return;
@@ -44,6 +45,12 @@ void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 void EventGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     Q_UNUSED(event)
+}
+
+void EventGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    qDebug() << "scene mouseReleaseEvent";
+    QGraphicsScene::mouseReleaseEvent(event);
 }
 
 void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent *event)
