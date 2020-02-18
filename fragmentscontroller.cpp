@@ -2,12 +2,14 @@
 #include <Tool.h>
 #include <QDir>
 
+using namespace cv;
+
 FragmentsController *FragmentsController::controller = nullptr;
 FragmentsController::FragmentsController()
 {
-    vector<Fragment *> unsortedFragments = vector<Fragment *>();
-    vector<Fragment *> sortedFragments = vector<Fragment *>();
-    vector<Fragment *> chosenFragments = vector<Fragment *>();
+    vector<FragmentUi *> unsortedFragments = vector<FragmentUi *>();
+    vector<FragmentUi *> sortedFragments = vector<FragmentUi *>();
+    vector<FragmentUi *> chosenFragments = vector<FragmentUi *>();
 }
 
 void FragmentsController::createAllFragments(const QString &fragmentsPath)
@@ -22,7 +24,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     {
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("f%1").arg(++i)));
-        unsortedFragments.emplace_back(new Fragment(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(i)));
+        unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(i)));
     }
 }
 
@@ -34,13 +36,13 @@ FragmentsController *FragmentsController::getController()
         return controller;
 }
 
-std::vector<JointFragment> FragmentsController::getMostPossibleFragments(Fragment *item)
+std::vector<JointFragment> FragmentsController::getMostPossibleFragments(FragmentUi *item)
 {
     std::vector<JointFragment> res;
     if (item == nullptr)
     {
-        std::vector<Fragment *> unsorted_fragments = getUnsortedFragments();
-        for (Fragment *unsorted_fragment : unsorted_fragments)
+        std::vector<FragmentUi *> unsorted_fragments = getUnsortedFragments();
+        for (FragmentUi *unsorted_fragment : unsorted_fragments)
         {
             res.emplace_back(JointFragment(unsorted_fragment, JointMethod::leftRight, 0));
             if (res.size() >= 5)
@@ -50,7 +52,7 @@ std::vector<JointFragment> FragmentsController::getMostPossibleFragments(Fragmen
     else
     {
         JointFragment minFragment(nullptr, JointMethod::leftRight, INFINITE);
-        for (Fragment *otherFragment : getUnsortedFragments())
+        for (FragmentUi *otherFragment : getUnsortedFragments())
         {
             if (item == otherFragment) continue;
             JointFragment possilbeFragment = mostPossibleJointMethod(item, otherFragment);
@@ -63,7 +65,7 @@ std::vector<JointFragment> FragmentsController::getMostPossibleFragments(Fragmen
     return res;
 }
 
-JointFragment FragmentsController::mostPossibleJointMethod(Fragment *f1, Fragment *f2)
+JointFragment FragmentsController::mostPossibleJointMethod(FragmentUi *f1, FragmentUi *f2)
 {
     JointFragment minFragment(nullptr, JointMethod::leftRight, INFINITE);
     const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
@@ -89,23 +91,23 @@ JointFragment FragmentsController::mostPossibleJointMethod(Fragment *f1, Fragmen
 
 bool FragmentsController::splitSelectedFragments()
 {
-    for (Fragment *splitFragment : getSelectedFragments())
+    for (FragmentUi *splitFragment : getSelectedFragments())
     {
         Tool::eraseInVector(unsortedFragments, splitFragment);
         for (Piece piece : splitFragment->getPiece())
         {
             std::vector<Piece> vec;
             vec.push_back(piece);
-            unsortedFragments.emplace_back(new Fragment(vec, QImage(piece.piecePath), piece.pieceName));
+            unsortedFragments.emplace_back(new FragmentUi(vec, QImage(piece.piecePath), piece.pieceName));
         }
     }
     return true;
 }
 
-const std::vector<Fragment *> FragmentsController::getSelectedFragments()
+const std::vector<FragmentUi *> FragmentsController::getSelectedFragments()
 {
-    std::vector<Fragment *> selectedFragments;
-    for (Fragment *f : unsortedFragments)
+    std::vector<FragmentUi *> selectedFragments;
+    for (FragmentUi *f : unsortedFragments)
     {
         if (f->getSelected())
             selectedFragments.emplace_back(f);
@@ -113,20 +115,21 @@ const std::vector<Fragment *> FragmentsController::getSelectedFragments()
     return selectedFragments;
 }
 
-std::vector<Fragment *> FragmentsController::getUnsortedFragments()
+std::vector<FragmentUi *> FragmentsController::getUnsortedFragments()
 {
     return unsortedFragments;
 }
 
-std::vector<Fragment *> FragmentsController::getSortedFragments()
+std::vector<FragmentUi *> FragmentsController::getSortedFragments()
 {
     return sortedFragments;
 }
 
-bool FragmentsController::jointFragment(Fragment *f1, JointFragment jointFragment)
+bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment)
 {
+    FragmentUi* f2 = jointFragment.item;
     const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
-    const cv::Mat &m2 = Tool::QImageToMat(jointFragment.item->getOriginalImage());
+    const cv::Mat &m2 = Tool::QImageToMat(f2->getOriginalImage());
     cv::Mat jointMat;
     switch(jointFragment.method)
     {
@@ -149,22 +152,22 @@ bool FragmentsController::jointFragment(Fragment *f1, JointFragment jointFragmen
     }
     if (jointMat.empty()) return false;
     Tool::eraseInVector(unsortedFragments, f1);
-    Tool::eraseInVector(unsortedFragments, jointFragment.item);
+    Tool::eraseInVector(unsortedFragments, f2);
     std::vector<Piece> pieces;
     for (Piece p : f1->getPiece())
         pieces.emplace_back(p);
-    for (Piece p : jointFragment.item->getPiece())
+    for (Piece p : f2->getPiece())
         pieces.emplace_back(p);
-    Fragment *newFragment = new Fragment(pieces, Tool::MatToQImage(jointMat), f1->getFragmentName() + " " + jointFragment.item->getFragmentName());
-    newFragment->setPos(f1->scenePos());
+    FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(jointMat), f1->getFragmentName() + " " + f2->getFragmentName());
+    newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
     unsortedFragments.emplace_back(newFragment);
-    qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << jointFragment.item->getFragmentName() << " with absGrayscale = " << jointFragment.absGrayscale;
+    qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName() << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;
 }
 
-void FragmentsController::reverseChosenFragment(Fragment *f)
+void FragmentsController::reverseChosenFragment(FragmentUi *f)
 {
-    std::vector<Fragment *>::iterator iterF = std::find(chosenFragments.begin(), chosenFragments.end(), f);
+    std::vector<FragmentUi *>::iterator iterF = std::find(chosenFragments.begin(), chosenFragments.end(), f);
     if (iterF == chosenFragments.end())
         chosenFragments.emplace_back(f);
     else

@@ -16,10 +16,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    entity/fragmententity.cpp \
+    commands.cpp \
     ui/desktop.cpp \
     eventgraphicsscene.cpp \
-    fragment.cpp \
     ui/fragmentarea.cpp \
     fragmentscontroller.cpp \
     ui/fragmentui.cpp \
@@ -29,10 +28,9 @@ SOURCES += \
 
 HEADERS += \
     Tool.h \
-    entity/fragmententity.h \
+    commands.h \
     ui/desktop.h \
     eventgraphicsscene.h \
-    fragment.h \
     ui/fragmentarea.h \
     fragmentscontroller.h \
     ui/fragmentui.h \
@@ -46,9 +44,13 @@ FORMS += \
     ui/mainwindow.ui
 
 
-INCLUDEPATH += ..\include
-
-LIBS += ..\..\lib\opencv_world411.lib
+INCLUDEPATH += /usr/local/include \
+                /usr/local/include/opencv4 \
+                /usr/local/include/opencv4\opencv2
+LIBS += /usr/local/lib/libopencv_highgui.so \
+        /usr/local/lib/libopencv_core.so    \
+        /usr/local/lib/libopencv_imgproc.so \
+        /usr/local/lib/libopencv_imgcodecs.so
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

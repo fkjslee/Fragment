@@ -74,19 +74,19 @@
   <customwidget>
    <class>Desktop</class>
    <extends>QWidget</extends>
-   <header>desktop.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>HintWindow</class>
-   <extends>QWidget</extends>
-   <header>hintwindow.h</header>
+   <header>ui/desktop.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FragmentArea</class>
    <extends>QWidget</extends>
-   <header>fragmentarea.h</header>
+   <header>ui/fragmentarea.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HintWindow</class>
+   <extends>QWidget</extends>
+   <header>ui/hintwindow.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

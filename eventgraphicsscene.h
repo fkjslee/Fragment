@@ -2,7 +2,7 @@
 #define EVENTGRAPHICSSCENE_H
 
 #include <QGraphicsScene>
-#include "fragment.h"
+#include <ui/fragmentui.h>
 
 class EventGraphicsScene: public QGraphicsScene
 {
@@ -12,13 +12,14 @@ public:
     EventGraphicsScene(SceneType sceneType, QObject *parent = nullptr): QGraphicsScene(parent), sceneType(sceneType) {}
 
 signals:
-    void removeFragment(Fragment *fragment);
+    void removeFragment(FragmentUi *fragment);
 
 protected:
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
     void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
     void invalidOperation(QGraphicsSceneDragDropEvent *event);

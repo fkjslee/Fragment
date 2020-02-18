@@ -7,13 +7,14 @@
 #include <QAction>
 #include <QTranslator>
 #include <fragmentscontroller.h>
+#include <QUndoStack>
+#include <QKeyEvent>
 
-QT_BEGIN_NAMESPACE
+
 namespace Ui
 {
     class MainWindow;
 }
-QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
 {
@@ -40,6 +41,9 @@ private slots:
     void changeLanguageToEN();
     void changeLanguage(QString language);
 
+public:
+    static QUndoStack *undoStack;
+
 private:
     FragmentsController *fragCtrl;
 
@@ -60,5 +64,6 @@ private:
     QMenu *menuLanguage;
     QAction *actChinese;
     QAction *actEnglish;
+
 };
 #endif // MAINWINDOW_H

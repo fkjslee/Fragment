@@ -1,17 +1,17 @@
 #ifndef FRAGMENTSCONTROLLER_H
 #define FRAGMENTSCONTROLLER_H
 
-#include <fragment.h>
 #include <vector>
+#include <ui/fragmentui.h>
 
 enum JointMethod {leftRight, rightLeft, upDown, downUp};
 
 struct JointFragment
 {
-    Fragment *item;
+    FragmentUi *item;
     JointMethod method;
     double absGrayscale;
-    JointFragment(Fragment *item, JointMethod method, double absGrayscale)
+    JointFragment(FragmentUi *item, JointMethod method, double absGrayscale)
         : item(item), method(method), absGrayscale(absGrayscale) {}
 };
 
@@ -23,17 +23,17 @@ public:
     /* todo
      * Choose most possible fragment which could be jointed by giving fragment(item)
      */
-    std::vector<JointFragment> getMostPossibleFragments(Fragment *item = nullptr);
+    std::vector<JointFragment> getMostPossibleFragments(FragmentUi *item = nullptr);
     /* todo
      * get most possible jointsing method through giving fragment(f1 and f2)
      */
-    JointFragment mostPossibleJointMethod(Fragment *f1, Fragment *f2);
+    JointFragment mostPossibleJointMethod(FragmentUi *f1, FragmentUi *f2);
     bool splitSelectedFragments();
-    const std::vector<Fragment *> getSelectedFragments();
-    std::vector<Fragment *> getUnsortedFragments();
-    std::vector<Fragment *> getSortedFragments();
-    bool jointFragment(Fragment *f1, JointFragment jointFragment);
-    void reverseChosenFragment(Fragment *f);
+    const std::vector<FragmentUi *> getSelectedFragments();
+    std::vector<FragmentUi *> getUnsortedFragments();
+    std::vector<FragmentUi *> getSortedFragments();
+    bool jointFragment(FragmentUi *f1, JointFragment jointFragment);
+    void reverseChosenFragment(FragmentUi *f);
 
 private:
     FragmentsController();
@@ -41,9 +41,9 @@ private:
 private:
     static FragmentsController *controller;
 
-    std::vector<Fragment *> sortedFragments;
-    std::vector<Fragment *> unsortedFragments;
-    std::vector<Fragment *> chosenFragments;
+    std::vector<FragmentUi *> sortedFragments;
+    std::vector<FragmentUi *> unsortedFragments;
+    std::vector<FragmentUi *> chosenFragments;
 };
 
 #endif // FRAGMENTSCONTROLLER_H

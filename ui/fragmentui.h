@@ -8,12 +8,13 @@
 class Piece
 {
 public:
-    Piece(const QString &piecePath, const QString &pieceName = "noname")
-        : piecePath(piecePath), pieceName(pieceName) {}
+    Piece(const QString &piecePath, const QString &pieceName = "noname", const QPoint& piecePos = QPoint(0, 0))
+        : piecePath(piecePath), pieceName(pieceName), piecePos(piecePos) {}
 
 public:
     QString piecePath;
     QString pieceName;
+    QPoint piecePos;
 };
 
 class FragmentUi : public QObject, public QGraphicsPixmapItem
@@ -53,6 +54,9 @@ public:
     }
     void update(const QRectF &rect = QRectF());
 
+signals:
+    void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -60,6 +64,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
     void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
+    void dragMoveEvent(QGraphicsSceneDragDropEvent *event) override;
 
 public:
     static FragmentUi *draggingItem;
@@ -69,6 +75,8 @@ public:
     QImage showImage;
     QString fragmentName;
     QPointF biasPos;
+    QPoint undoPos;
+    QPoint redoPos;
     double scale = 1.0;
 };
 

@@ -3,8 +3,11 @@
 #include "ui_desktop.h"
 #include <QLabel>
 #include <QGraphicsItem>
-#include <fragment.h>
+#include <ui/fragmentui.h>
 #include <QVBoxLayout>
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
 
 Desktop::Desktop(QWidget *parent) :
     QWidget(parent),
@@ -15,7 +18,7 @@ Desktop::Desktop(QWidget *parent) :
 
     fragCtrl = FragmentsController::getController();
     int i = 0;
-    for (Fragment *fragment : fragCtrl->getSortedFragments())
+    for (FragmentUi *fragment : fragCtrl->getSortedFragments())
     {
         fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
                          ::cos((i * 6.28) / 10.0) * 150);

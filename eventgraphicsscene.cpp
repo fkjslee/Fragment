@@ -3,19 +3,20 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QtDebug>
-#include <fragment.h>
+#include <ui/fragmentui.h>
 #include <QRect>
 
 void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
     event->acceptProposedAction();
     qDebug() << "scene dragEnterEvent";
+    QGraphicsScene::dragEnterEvent(event);
 }
 
 void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "dragLeaveEvent";
-    FragmentUi *draggingItem = Fragment::getDraggingItem();
+    qDebug() << "scene dragLeaveEvent";
+    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
     if (draggingItem == nullptr)
         return;
     EventGraphicsScene *beforeScene = reinterpret_cast<EventGraphicsScene *>(draggingItem->scene());
@@ -40,11 +41,14 @@ void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
         moveBetweenTwoNormalSceen(event);
     }
     update();
+    QGraphicsScene::dragLeaveEvent(event);
 }
 
 void EventGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
+    qDebug() << "scene dropEvent";
     Q_UNUSED(event)
+    QGraphicsScene::dropEvent(event);
 }
 
 void EventGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -53,17 +57,23 @@ void EventGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsScene::mouseReleaseEvent(event);
 }
 
+void EventGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    qDebug() << "scene mousePressEvent";
+    QGraphicsScene::mousePressEvent(event);
+}
+
 void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent *event)
 {
     Q_UNUSED(event)
-    qWarning() << "drag invalidOperation";
+    qWarning() << "scene drag invalidOperation";
     return;
 }
 
 void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEvent *event)
 {
-    qInfo() << "drag moveFragmentFromHintToDesktop";
-    FragmentUi *draggingItem = Fragment::getDraggingItem();
+    qInfo() << "scene drag moveFragmentFromHintToDesktop";
+    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
     draggingItem->setPos(event->scenePos());
     this->removeItem(draggingItem);
     this->addItem(draggingItem);
@@ -72,8 +82,8 @@ void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEve
 
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent *event)
 {
-    qInfo() << "drag moveBetweenTwoNormalSceen";
-    FragmentUi *draggingItem = Fragment::getDraggingItem();
+    qInfo() << "scene drag moveBetweenTwoNormalSceen";
+    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
     draggingItem->setPos(event->scenePos() - draggingItem->getBiasPos());
     this->removeItem(draggingItem);
     this->addItem(draggingItem);

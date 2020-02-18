@@ -2,11 +2,12 @@
 #define FRAGMENTAREA_H
 
 #include <QWidget>
-#include "fragment.h"
+#include <ui/fragmentui.h>
 #include "eventgraphicsscene.h"
 #include <QHBoxLayout>
 #include <QGraphicsView>
 #include <fragmentscontroller.h>
+#include <QUndoStack>
 
 namespace Ui
 {
@@ -22,6 +23,7 @@ public:
     ~FragmentArea();
     void update();
 
+
 private slots:
     void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
 
@@ -32,8 +34,9 @@ private slots:
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene *scene;
-    std::vector<Fragment *> fragmentItems;
+    std::vector<FragmentUi *> fragmentItems;
     FragmentsController *fragCtrl;
+    QUndoStack* undoStack;
 };
 
 #endif // FRAGMENTAREA_H

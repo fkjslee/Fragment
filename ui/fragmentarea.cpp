@@ -1,7 +1,7 @@
 #include <Tool.h>
 #include "fragmentarea.h"
 #include "ui_fragmentarea.h"
-#include <fragment.h>
+#include <ui/fragmentui.h>
 #include <QtDebug>
 #include <QGraphicsScene>
 #include <opencv2/opencv.hpp>
@@ -18,7 +18,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
 
     fragCtrl = FragmentsController::getController();
     int i = 0;
-    for (Fragment *fragment : fragCtrl->getUnsortedFragments())
+    for (FragmentUi *fragment : fragCtrl->getUnsortedFragments())
     {
         fragmentItems.emplace_back(fragment);
         fragment->setPos(::sin((i * 6.28) / 10.0) * 150,
@@ -38,18 +38,18 @@ FragmentArea::~FragmentArea()
 void FragmentArea::update()
 {
     qDebug() << "update fragment area";
-    for (Fragment *fragment : fragmentItems)
+    for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
-        disconnect(fragment, &Fragment::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
+        disconnect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     fragmentItems.clear();
 
-    for (Fragment *fragment : fragCtrl->getUnsortedFragments())
+    for (FragmentUi *fragment : fragCtrl->getUnsortedFragments())
     {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
-        connect(fragment, &Fragment::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
+        connect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     scene->update();
     QWidget::update();
@@ -62,11 +62,11 @@ void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint b
 
 void FragmentArea::on_btnJoint_clicked()
 {
-    std::vector<Fragment *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
     if (jointFragments.size() == 2)
     {
-        Fragment *f1 = jointFragments[0];
-        Fragment *f2 = jointFragments[1];
+        FragmentUi *f1 = jointFragments[0];
+        FragmentUi *f2 = jointFragments[1];
         fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2));
     }
     update();

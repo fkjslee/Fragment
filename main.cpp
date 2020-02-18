@@ -2,7 +2,7 @@
 
 #include <QtDebug>
 #include <QApplication>
-#include <fragment.h>
+#include <ui/fragmentui.h>
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <Tool.h>
 #include <QMessageBox>
+#include <QFile>
 
 void setStyle()
 {

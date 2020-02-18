@@ -7,9 +7,10 @@
 #include <fragmentscontroller.h>
 
 bool MainWindow::keyCtlOn = false;
+QUndoStack* MainWindow::undoStack = new QUndoStack();
+
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     FragmentsController::getController()->createAllFragments("./fragment2/");
     ui->setupUi(this);
@@ -41,11 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
     actCopy->setShortcut(Qt::CTRL | Qt::Key_C);
     menuEdit->addAction(actCopy);
 
-    actUndo = new QAction(tr("undo"), this);
-    actUndo->setShortcut(Qt::CTRL | Qt::Key_R);
+    actUndo = undoStack->createUndoAction(this, tr("undo"));
+    actUndo->setShortcut(Qt::CTRL | Qt::Key_Z);
     menuEdit->addAction(actUndo);
 
-    actRedo = new QAction(tr("redo"), this);
+    actRedo = undoStack->createRedoAction(this, tr("redo"));
     actRedo->setShortcut(Qt::CTRL | Qt::Key_Y);
     menuEdit->addAction(actRedo);
     ui->menubar->addMenu(menuEdit);
@@ -60,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     menuLanguage->addAction(actEnglish);
     connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
     ui->menubar->addMenu(menuTool);
+
 }
 
 MainWindow::~MainWindow()
@@ -81,8 +83,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
 {
-    std::vector<Fragment *> unsortedFragments = fragCtrl->getUnsortedFragments();
-    for (Fragment *fragment : unsortedFragments)
+    std::vector<FragmentUi *> unsortedFragments = fragCtrl->getUnsortedFragments();
+    for (FragmentUi *fragment : unsortedFragments)
     {
         fragment->scaledToWidth(1.0 * value / 100);
     }

@@ -23,7 +23,7 @@ private slots:
 private:
     Ui::HintWindow *ui;
     EventGraphicsScene *scene;
-    std::vector<Fragment *> fragments;
+    std::vector<FragmentUi *> fragments;
 };
 
 #endif // HINTWINDOW_H
