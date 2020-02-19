@@ -14,6 +14,8 @@ namespace Ui
     class FragmentArea;
 }
 
+class FragmentsController;
+
 class FragmentArea : public QWidget
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ class FragmentArea : public QWidget
 public:
     explicit FragmentArea(QWidget *parent = nullptr);
     ~FragmentArea();
-    void update();
+    virtual void update();
 
 
 private slots:
@@ -30,6 +32,8 @@ private slots:
     void on_btnJoint_clicked();
 
     void on_btnSplit_clicked();
+
+    void on_autoStitch_clicked();
 
 private:
     Ui::FragmentArea *ui;

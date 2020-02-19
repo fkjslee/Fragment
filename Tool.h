@@ -6,6 +6,7 @@
 #include <QtDebug>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QUndoStack>
 
 #define INFINITE 0x3f3f3f3f
 

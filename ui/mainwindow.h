@@ -7,9 +7,7 @@
 #include <QAction>
 #include <QTranslator>
 #include <fragmentscontroller.h>
-#include <QUndoStack>
 #include <QKeyEvent>
-
 
 namespace Ui
 {
@@ -23,17 +21,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-    static bool getCtlStatus()
-    {
-        return keyCtlOn;
-    }
-
-signals:
-    void update();
-
-protected:
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
 
 private slots:
     void on_imageSizeController_valueChanged(int value);
@@ -41,14 +28,10 @@ private slots:
     void changeLanguageToEN();
     void changeLanguage(QString language);
 
-public:
-    static QUndoStack *undoStack;
-
 private:
     FragmentsController *fragCtrl;
 
     Ui::MainWindow *ui;
-    static bool keyCtlOn;
     QMenu *menuFile;
     QAction *actNew;
     QAction *actOpen;

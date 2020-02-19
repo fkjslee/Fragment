@@ -1,15 +1,14 @@
 #include "fragmentscontroller.h"
 #include <Tool.h>
 #include <QDir>
+#include <commands.h>
+#include <CommonHeader.h>
 
 using namespace cv;
 
 FragmentsController *FragmentsController::controller = nullptr;
 FragmentsController::FragmentsController()
 {
-    vector<FragmentUi *> unsortedFragments = vector<FragmentUi *>();
-    vector<FragmentUi *> sortedFragments = vector<FragmentUi *>();
-    vector<FragmentUi *> chosenFragments = vector<FragmentUi *>();
 }
 
 void FragmentsController::createAllFragments(const QString &fragmentsPath)
@@ -89,18 +88,22 @@ JointFragment FragmentsController::mostPossibleJointMethod(FragmentUi *f1, Fragm
     return minFragment;
 }
 
-bool FragmentsController::splitSelectedFragments()
+bool FragmentsController::splitSelectedFragments(FragmentArea* fragmentArea)
 {
+    std::vector<FragmentUi*> redoFragments;
+    std::vector<FragmentUi*> undoFragments;
     for (FragmentUi *splitFragment : getSelectedFragments())
     {
-        Tool::eraseInVector(unsortedFragments, splitFragment);
         for (Piece piece : splitFragment->getPiece())
         {
             std::vector<Piece> vec;
             vec.push_back(piece);
-            unsortedFragments.emplace_back(new FragmentUi(vec, QImage(piece.piecePath), piece.pieceName));
+            FragmentUi* newSplitFragment = new FragmentUi(vec, QImage(piece.piecePath), piece.pieceName);
+            redoFragments.emplace_back(newSplitFragment);
         }
+        undoFragments.emplace_back(splitFragment);
     }
+    CommonHeader::undoStack->push(new SplitUndo(undoFragments, redoFragments, fragmentArea));
     return true;
 }
 
@@ -115,17 +118,17 @@ const std::vector<FragmentUi *> FragmentsController::getSelectedFragments()
     return selectedFragments;
 }
 
-std::vector<FragmentUi *> FragmentsController::getUnsortedFragments()
+std::vector<FragmentUi *>& FragmentsController::getUnsortedFragments()
 {
     return unsortedFragments;
 }
 
-std::vector<FragmentUi *> FragmentsController::getSortedFragments()
+std::vector<FragmentUi *>& FragmentsController::getSortedFragments()
 {
     return sortedFragments;
 }
 
-bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment)
+bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment, FragmentArea* fragmentArea)
 {
     FragmentUi* f2 = jointFragment.item;
     const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
@@ -151,8 +154,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragm
             break;
     }
     if (jointMat.empty()) return false;
-    Tool::eraseInVector(unsortedFragments, f1);
-    Tool::eraseInVector(unsortedFragments, f2);
     std::vector<Piece> pieces;
     for (Piece p : f1->getPiece())
         pieces.emplace_back(p);
@@ -160,16 +161,13 @@ bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragm
         pieces.emplace_back(p);
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(jointMat), f1->getFragmentName() + " " + f2->getFragmentName());
     newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
-    unsortedFragments.emplace_back(newFragment);
+    newFragment->undoFragments.push_back(f1);
+    newFragment->undoFragments.push_back(f2);
+    std::vector<FragmentUi*> undoFragments;
+    undoFragments.push_back(f1);
+    undoFragments.push_back(f2);
+    JointUndo* temp = new JointUndo(undoFragments, newFragment, fragmentArea);
+    CommonHeader::undoStack->push(temp);
     qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName() << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;
-}
-
-void FragmentsController::reverseChosenFragment(FragmentUi *f)
-{
-    std::vector<FragmentUi *>::iterator iterF = std::find(chosenFragments.begin(), chosenFragments.end(), f);
-    if (iterF == chosenFragments.end())
-        chosenFragments.emplace_back(f);
-    else
-        chosenFragments.erase(iterF);
 }

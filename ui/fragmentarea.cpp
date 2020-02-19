@@ -14,7 +14,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     ui->setupUi(this);
     scene = new EventGraphicsScene(EventGraphicsScene::SceneType::fragmentArea);
     ui->view->setScene(scene);
-    //ui->autoStitch->hide();
+//    ui->autoStitch->hide();
 
     fragCtrl = FragmentsController::getController();
     int i = 0;
@@ -67,13 +67,18 @@ void FragmentArea::on_btnJoint_clicked()
     {
         FragmentUi *f1 = jointFragments[0];
         FragmentUi *f2 = jointFragments[1];
-        fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2));
+        fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2), this);
     }
     update();
 }
 
 void FragmentArea::on_btnSplit_clicked()
 {
-    FragmentsController::getController()->splitSelectedFragments();
+    FragmentsController::getController()->splitSelectedFragments(this);
+    update();
+}
+
+void FragmentArea::on_autoStitch_clicked()
+{
     update();
 }

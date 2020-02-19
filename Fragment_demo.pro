@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    CommonHeader.cpp \
     commands.cpp \
     ui/desktop.cpp \
     eventgraphicsscene.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
     ui/mainwindow.cpp \
 
 HEADERS += \
+    CommonHeader.h \
     Tool.h \
     commands.h \
     ui/desktop.h \

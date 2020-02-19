@@ -7,6 +7,8 @@
 #include <QWidget>
 #include <ui/mainwindow.h>
 #include <commands.h>
+#include <Tool.h>
+#include <CommonHeader.h>
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
@@ -35,6 +37,7 @@ void FragmentUi::update(const QRectF &rect)
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
+    pressPos = pos();
     undoPos = pos().toPoint();
     qDebug() << "FragmentUi mousePressEvent";
     draggingItem = this;
@@ -45,7 +48,8 @@ void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent * event)
 void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     qDebug() << "FragmentUi mouseReleaseEvent";
-    MainWindow::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
+    if ((pos() - pressPos).manhattanLength() > 1e-7)
+        CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
     draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
     QGraphicsPixmapItem::mouseReleaseEvent(event);

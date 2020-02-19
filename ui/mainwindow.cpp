@@ -5,9 +5,8 @@
 #include <QMessageBox>
 #include <Tool.h>
 #include <fragmentscontroller.h>
-
-bool MainWindow::keyCtlOn = false;
-QUndoStack* MainWindow::undoStack = new QUndoStack();
+#include <QUndoStack>
+#include <CommonHeader.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -16,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     fragCtrl = FragmentsController::getController();
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
-    connect(this, &MainWindow::update, ui->fragmentArea, &FragmentArea::update);
 
     menuFile = new QMenu(tr("file"), this);
     actNew = new QAction(tr("new"), this);
@@ -42,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     actCopy->setShortcut(Qt::CTRL | Qt::Key_C);
     menuEdit->addAction(actCopy);
 
+    QUndoStack* undoStack = CommonHeader::undoStack;
     actUndo = undoStack->createUndoAction(this, tr("undo"));
     actUndo->setShortcut(Qt::CTRL | Qt::Key_Z);
     menuEdit->addAction(actUndo);
@@ -61,24 +60,11 @@ MainWindow::MainWindow(QWidget *parent)
     menuLanguage->addAction(actEnglish);
     connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
     ui->menubar->addMenu(menuTool);
-
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key::Key_Control)
-        keyCtlOn = true;
-}
-
-void MainWindow::keyReleaseEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key::Key_Control)
-        keyCtlOn = false;
 }
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
@@ -88,7 +74,7 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
     {
         fragment->scaledToWidth(1.0 * value / 100);
     }
-    emit update();
+    update();
 }
 
 void MainWindow::changeLanguageToCN()
@@ -127,3 +113,4 @@ void MainWindow::changeLanguage(QString language)
     QMessageBox::information(nullptr, QObject::tr("language"), QObject::tr("set new language, please restart."),
                              QMessageBox::Ok);
 }
+

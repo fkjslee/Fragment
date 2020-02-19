@@ -68,6 +68,9 @@ protected:
     void dragMoveEvent(QGraphicsSceneDragDropEvent *event) override;
 
 public:
+    std::vector<FragmentUi*> undoFragments;
+
+private:
     static FragmentUi *draggingItem;
 
     std::vector<Piece> pieces;
@@ -76,7 +79,7 @@ public:
     QString fragmentName;
     QPointF biasPos;
     QPoint undoPos;
-    QPoint redoPos;
+    QPointF pressPos;
     double scale = 1.0;
 };
 
