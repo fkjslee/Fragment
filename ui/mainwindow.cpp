@@ -7,6 +7,7 @@
 #include <fragmentscontroller.h>
 #include <QUndoStack>
 #include <CommonHeader.h>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -16,12 +17,23 @@ MainWindow::MainWindow(QWidget *parent)
     fragCtrl = FragmentsController::getController();
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
 
+    createMenu();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::createMenu()
+{
     menuFile = new QMenu(tr("file"), this);
     actNew = new QAction(tr("new"), this);
-    actNew->setShortcut(Qt::CTRL | Qt::Key_N);
+    actNew->setShortcut(Qt::CTRL | Qt::Key_Q);
+    connect(actNew, &QAction::triggered, this, &MainWindow::triggerNew);
     menuFile->addAction(actNew);
 
-    actOpen = new QAction(tr("open"), this);
+    actOpen = new QAction(tr("open file"), this);
     actOpen->setShortcut(Qt::CTRL | Qt::Key_O);
     menuFile->addAction(actOpen);
 
@@ -60,11 +72,6 @@ MainWindow::MainWindow(QWidget *parent)
     menuLanguage->addAction(actEnglish);
     connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
     ui->menubar->addMenu(menuTool);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
@@ -112,5 +119,27 @@ void MainWindow::changeLanguage(QString language)
     configFile.close();
     QMessageBox::information(nullptr, QObject::tr("language"), QObject::tr("set new language, please restart."),
                              QMessageBox::Ok);
+}
+
+void MainWindow::triggerNew()
+{
+    QFileDialog* fileDialog = new QFileDialog(this);
+    fileDialog->setWindowTitle(tr("open file"));
+    fileDialog->setDirectory("./fragment2");
+    fileDialog->setFileMode(QFileDialog::ExistingFiles);
+    fileDialog->setViewMode(QFileDialog::List);
+    QStringList filter;
+    filter << "Image files (*.png *.jpg)";
+    qDebug() << filter;
+    fileDialog->setNameFilters(filter);
+    QStringList fileNames;
+    if (fileDialog->exec())
+    {
+      fileNames = fileDialog->selectedFiles();
+    }
+    for (auto tmp : fileNames)
+    {
+      qDebug() << tmp << endl;
+    }
 }
 

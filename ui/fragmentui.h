@@ -8,13 +8,21 @@
 class Piece
 {
 public:
-    Piece(const QString &piecePath, const QString &pieceName = "noname", const QPoint& piecePos = QPoint(0, 0))
-        : piecePath(piecePath), pieceName(pieceName), piecePos(piecePos) {}
+    Piece(const QString &piecePath, const QPoint& piecePos = QPoint(0, 0))
+        : piecePath(piecePath), piecePos(piecePos)
+    {
+        pieceName = QString("f%1").arg(fragmentCnt++);
+    }
 
+    Piece(const QString &piecePath, const QString &pieceName, const QPoint& piecePos = QPoint(0, 0))
+        : piecePath(piecePath), pieceName(pieceName), piecePos(piecePos) {}
 public:
     QString piecePath;
     QString pieceName;
     QPoint piecePos;
+
+private:
+    static int fragmentCnt;
 };
 
 class FragmentUi : public QObject, public QGraphicsPixmapItem

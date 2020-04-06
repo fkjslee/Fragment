@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <fragmentscontroller.h>
 #include <QKeyEvent>
+#include <QFileDialog>
 
 namespace Ui
 {
@@ -22,11 +23,15 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+private:
+    void createMenu();
+
 private slots:
     void on_imageSizeController_valueChanged(int value);
     void changeLanguageToCN();
     void changeLanguageToEN();
     void changeLanguage(QString language);
+    void triggerNew();
 
 private:
     FragmentsController *fragCtrl;

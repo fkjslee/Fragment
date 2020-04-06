@@ -23,6 +23,7 @@ class FragmentsController
 {
 public:
     void createAllFragments(const QString &fragmentsPath);
+    bool createFragment(const QString& fragmentPath);
     static FragmentsController *getController();
     /* todo
      * Choose most possible fragment which could be jointed by giving fragment(item)

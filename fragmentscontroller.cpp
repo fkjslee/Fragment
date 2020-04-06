@@ -22,9 +22,17 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     for (const QString &fileName : nameList)
     {
         std::vector<Piece> vec;
-        vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("f%1").arg(++i)));
+        vec.push_back(Piece(dir.absolutePath() + "/" + fileName));
         unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(i)));
     }
+}
+
+bool FragmentsController::createFragment(const QString &fragmentPath)
+{
+    std::vector<Piece> vec;
+    vec.push_back(Piece(fragmentPath));
+    unsortedFragments.emplace_back(new FragmentUi(vec, QImage(fragmentPath), vec[0].pieceName));
+    return true;
 }
 
 FragmentsController *FragmentsController::getController()

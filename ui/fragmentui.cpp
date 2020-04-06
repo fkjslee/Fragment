@@ -11,6 +11,7 @@
 #include <CommonHeader.h>
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
+int Piece::fragmentCnt = 0;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
     : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
 {
