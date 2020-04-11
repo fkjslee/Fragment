@@ -10,6 +10,8 @@
 #include <QKeyEvent>
 #include <QFileDialog>
 
+
+class FragmentsController;
 namespace Ui
 {
     class MainWindow;
@@ -22,6 +24,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+    static MainWindow *mainWindow;
+    void update();
 
 private:
     void createMenu();

@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <opencv2/opencv.hpp>
 #include <fragmentscontroller.h>
+#include "scenebackground.h"
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -26,6 +27,9 @@ FragmentArea::FragmentArea(QWidget *parent) :
         scene->addItem(fragment);
         i++;
     }
+    QImage img(100, 200, QImage::Format_RGB32);
+
+//    ui->view->setBackgroundBrush(img);
     update();
 }
 
@@ -38,10 +42,15 @@ FragmentArea::~FragmentArea()
 void FragmentArea::update()
 {
     qDebug() << "update fragment area";
+//    SceneBackground background;
+//    background.setScale(int(scene->width()), int(scene->height()));
+//    qDebug() << background.width();
+//    background.save("C:\\Users\\fkjslee\\Desktop\\ant_1.3.4\\img.jpg");
+//    ui->view->setBackgroundBrush(background);
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
-        disconnect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
+//        disconnect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     fragmentItems.clear();
 
@@ -49,8 +58,9 @@ void FragmentArea::update()
     {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
-        connect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
+//        connect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
+
     scene->update();
     QWidget::update();
     QApplication::processEvents();
@@ -81,4 +91,11 @@ void FragmentArea::on_btnSplit_clicked()
 void FragmentArea::on_autoStitch_clicked()
 {
     update();
+}
+
+void FragmentArea::on_unSelect_clicked()
+{
+    auto fragments = FragmentsController::getController()->getSelectedFragments();
+    if (fragments.size() != 1) return;
+    FragmentsController::getController()->unSelectFragment(fragments[0]);
 }

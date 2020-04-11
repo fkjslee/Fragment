@@ -19,9 +19,9 @@
      <property name="backgroundBrush">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
-        <red>200</red>
+        <red>230</red>
         <green>200</green>
-        <blue>200</blue>
+        <blue>167</blue>
        </color>
       </brush>
      </property>
@@ -62,6 +62,13 @@
          </property>
          <property name="text">
           <string>result:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="unSelect">
+         <property name="text">
+          <string>unSelect</string>
          </property>
         </widget>
        </item>

@@ -26,6 +26,7 @@ SOURCES += \
     ui/hintwindow.cpp \
     main.cpp \
     ui/mainwindow.cpp \
+    ui/scenebackground.cpp
 
 HEADERS += \
     CommonHeader.h \
@@ -38,6 +39,7 @@ HEADERS += \
     ui/fragmentui.h \
     ui/hintwindow.h \
     ui/mainwindow.h \
+    ui/scenebackground.h
 
 FORMS += \
     ui/desktop.ui \
@@ -46,13 +48,10 @@ FORMS += \
     ui/mainwindow.ui
 
 
-INCLUDEPATH += /usr/local/include \
-                /usr/local/include/opencv4 \
-                /usr/local/include/opencv4\opencv2
-LIBS += /usr/local/lib/libopencv_highgui.so \
-        /usr/local/lib/libopencv_core.so    \
-        /usr/local/lib/libopencv_imgproc.so \
-        /usr/local/lib/libopencv_imgcodecs.so
+INCLUDEPATH += C:\Users\fkjslee\Downloads\opencv\build\include\opencv2 \
+        C:\Users\fkjslee\Downloads\opencv\build\include
+
+LIBS += C:\Users\fkjslee\Downloads\opencv\build\x64\vc14\lib\opencv_world411.lib
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

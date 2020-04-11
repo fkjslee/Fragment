@@ -8,13 +8,13 @@
 class Piece
 {
 public:
-    Piece(const QString &piecePath, const QPoint& piecePos = QPoint(0, 0))
+    Piece(const QString &piecePath, const QPoint &piecePos = QPoint(0, 0))
         : piecePath(piecePath), piecePos(piecePos)
     {
         pieceName = QString("f%1").arg(fragmentCnt++);
     }
 
-    Piece(const QString &piecePath, const QString &pieceName, const QPoint& piecePos = QPoint(0, 0))
+    Piece(const QString &piecePath, const QString &pieceName, const QPoint &piecePos = QPoint(0, 0))
         : piecePath(piecePath), pieceName(pieceName), piecePos(piecePos) {}
 public:
     QString piecePath;
@@ -74,9 +74,10 @@ protected:
     void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
     void dragMoveEvent(QGraphicsSceneDragDropEvent *event) override;
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 public:
-    std::vector<FragmentUi*> undoFragments;
+    std::vector<FragmentUi *> undoFragments;
 
 private:
     static FragmentUi *draggingItem;

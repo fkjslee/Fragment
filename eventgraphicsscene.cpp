@@ -20,6 +20,7 @@ void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
     if (draggingItem == nullptr)
         return;
     EventGraphicsScene *beforeScene = reinterpret_cast<EventGraphicsScene *>(draggingItem->scene());
+    qDebug() << "now scene" << sceneType;
     if (beforeScene->sceneType == SceneType::hintArea && (sceneType == SceneType::desktop))
     {
         moveFragmentFromHintToDesktop(event);

@@ -9,6 +9,7 @@
 #include <CommonHeader.h>
 #include <QDir>
 
+MainWindow *MainWindow::mainWindow = nullptr;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -18,11 +19,19 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
 
     createMenu();
+    mainWindow = this;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::update()
+{
+    ui->desktop->update();
+    ui->fragmentArea->update();
+    QMainWindow::update();
 }
 
 void MainWindow::createMenu()
@@ -52,7 +61,7 @@ void MainWindow::createMenu()
     actCopy->setShortcut(Qt::CTRL | Qt::Key_C);
     menuEdit->addAction(actCopy);
 
-    QUndoStack* undoStack = CommonHeader::undoStack;
+    QUndoStack *undoStack = CommonHeader::undoStack;
     actUndo = undoStack->createUndoAction(this, tr("undo"));
     actUndo->setShortcut(Qt::CTRL | Qt::Key_Z);
     menuEdit->addAction(actUndo);
@@ -123,23 +132,22 @@ void MainWindow::changeLanguage(QString language)
 
 void MainWindow::triggerNew()
 {
-    QFileDialog* fileDialog = new QFileDialog(this);
+    QFileDialog *fileDialog = new QFileDialog(this);
     fileDialog->setWindowTitle(tr("open file"));
-    fileDialog->setDirectory("./fragment2");
-    fileDialog->setFileMode(QFileDialog::ExistingFiles);
-    fileDialog->setViewMode(QFileDialog::List);
-    QStringList filter;
-    filter << "Image files (*.png *.jpg)";
-    qDebug() << filter;
-    fileDialog->setNameFilters(filter);
-    QStringList fileNames;
-    if (fileDialog->exec())
-    {
-      fileNames = fileDialog->selectedFiles();
-    }
-    for (auto tmp : fileNames)
-    {
-      qDebug() << tmp << endl;
-    }
+    fileDialog->setDirectory("./");
+    fileDialog->setFileMode(QFileDialog::Directory);
+//    fileDialog->setViewMode(QFileDialog::List);
+//    qDebug() << fileDialog->getExistingDirectory();
+//    FragmentsController::getController()->createAllFragments(fileDialog->getExistingDirectory());
+//    QStringList filter;
+//    filter << "Image files (*.png *.jpg)";
+//    qDebug() << filter;
+//    fileDialog->setNameFilters(filter);
+//    QStringList fileNames;
+//    if (fileDialog->exec())
+//    {
+//        fileNames = fileDialog->selectedFiles();
+//    }
+
 }
 

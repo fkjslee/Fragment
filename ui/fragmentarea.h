@@ -35,12 +35,14 @@ private slots:
 
     void on_autoStitch_clicked();
 
+    void on_unSelect_clicked();
+
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene *scene;
     std::vector<FragmentUi *> fragmentItems;
     FragmentsController *fragCtrl;
-    QUndoStack* undoStack;
+    QUndoStack *undoStack;
 };
 
 #endif // FRAGMENTAREA_H

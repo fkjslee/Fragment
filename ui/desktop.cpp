@@ -31,6 +31,25 @@ Desktop::Desktop(QWidget *parent) :
     ui->view->setAcceptDrops(true);
 }
 
+void Desktop::update()
+{
+    qDebug() << "update desktop area";
+    for (FragmentUi *fragment : fragmentItems)
+    {
+        scene->removeItem(fragment);
+    }
+    fragmentItems.clear();
+
+    for (FragmentUi *fragment : fragCtrl->getSortedFragments())
+    {
+        fragmentItems.emplace_back(fragment);
+        scene->addItem(fragment);
+    }
+    scene->update();
+    QWidget::update();
+    QApplication::processEvents();
+}
+
 void Desktop::dropEvent(QDropEvent *event)
 {
     Q_UNUSED(event)
@@ -40,4 +59,13 @@ Desktop::~Desktop()
 {
     delete ui;
     delete scene;
+}
+
+void Desktop::on_btnSelect_clicked()
+{
+    auto fragments = FragmentsController::getController()->getSelectedFragments();
+    qDebug() << fragments.size();
+    if (fragments.size() != 1) return;
+    qDebug() << fragments[0]->getFragmentName();
+    FragmentsController::getController()->selectFragment(fragments[0]);
 }

@@ -36,7 +36,7 @@ void FragmentUi::update(const QRectF &rect)
     QGraphicsPixmapItem::update(rect);
 }
 
-void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent * event)
+void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     pressPos = pos();
     undoPos = pos().toPoint();
@@ -88,6 +88,24 @@ void FragmentUi::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
     qDebug() << "FragmentUi dragMoveEvent";
     QGraphicsPixmapItem::dragMoveEvent(event);
+}
+
+QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+//    qDebug() << "here";
+//    if (change == ItemPositionChange && scene()) {
+//        // value is the new position.
+
+//        QPointF newPos = value.toPointF();
+//        QRectF rect = scene()->sceneRect();
+//        if (!rect.contains(newPos)) {
+//            // Keep the item inside the scene rect.
+//            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
+//            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
+//            return newPos;
+//        }
+//    }
+    return QGraphicsItem::itemChange(change, value);
 }
 
 void FragmentUi::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
