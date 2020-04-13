@@ -63,9 +63,5 @@ Desktop::~Desktop()
 
 void Desktop::on_btnSelect_clicked()
 {
-    auto fragments = FragmentsController::getController()->getSelectedFragments();
-    qDebug() << fragments.size();
-    if (fragments.size() != 1) return;
-    qDebug() << fragments[0]->getFragmentName();
-    FragmentsController::getController()->selectFragment(fragments[0]);
+    FragmentsController::getController()->selectFragment();
 }

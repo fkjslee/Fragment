@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "eventgraphicsscene.h"
+#include "fragmentui.h"
 
 namespace Ui
 {

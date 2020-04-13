@@ -21,6 +21,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     int i = 0;
     for (const QString &fileName : nameList)
     {
+        ++i;
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName));
         unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("f%1").arg(i)));
@@ -185,20 +186,42 @@ bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragm
     return true;
 }
 
-void FragmentsController::selectFragment(FragmentUi *f)
+void FragmentsController::selectFragment()
 {
-    if (!f) return;
-    unsortedFragments.push_back(f);
-    Tool::eraseInVector(sortedFragments, f);
+    bool changed = true;
+    while (changed)
+    {
+        changed = false;
+        for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
+        {
+            if (f->getSelected())
+            {
+                changed = true;
+                unsortedFragments.push_back(f);
+                Tool::eraseInVector(sortedFragments, f);
+                break;
+            }
+        }
+    }
     MainWindow::mainWindow->update();
-
 }
 
-void FragmentsController::unSelectFragment(FragmentUi *f)
+void FragmentsController::unSelectFragment()
 {
-    qDebug() << "size = " << FragmentsController::getController()->sortedFragments.size();
-    if (!f) return;
-    sortedFragments.push_back(f);
-    Tool::eraseInVector(unsortedFragments, f);
+    bool changed = true;
+    while (changed)
+    {
+        changed = false;
+        for (FragmentUi *f : FragmentsController::getController()->getUnsortedFragments())
+        {
+            if (f->getSelected())
+            {
+                changed = true;
+                sortedFragments.push_back(f);
+                Tool::eraseInVector(unsortedFragments, f);
+                break;
+            }
+        }
+    }
     MainWindow::mainWindow->update();
 }

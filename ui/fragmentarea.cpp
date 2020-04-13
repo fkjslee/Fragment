@@ -6,7 +6,7 @@
 #include <QGraphicsScene>
 #include <opencv2/opencv.hpp>
 #include <fragmentscontroller.h>
-#include "scenebackground.h"
+#include <QMessageBox>
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -73,6 +73,21 @@ void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint b
 void FragmentArea::on_btnJoint_clicked()
 {
     std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    if (jointFragments.size() != 2)
+    {
+        QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("please choose two fragments to joint"),
+                              QMessageBox::Cancel);
+        return;
+    }
+    for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
+    {
+        if (f == jointFragments[0] || f == jointFragments[1])
+        {
+            QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("fragments only can be joint in joint area"),
+                                  QMessageBox::Cancel);
+            return;
+        }
+    }
     if (jointFragments.size() == 2)
     {
         FragmentUi *f1 = jointFragments[0];
@@ -95,7 +110,5 @@ void FragmentArea::on_autoStitch_clicked()
 
 void FragmentArea::on_unSelect_clicked()
 {
-    auto fragments = FragmentsController::getController()->getSelectedFragments();
-    if (fragments.size() != 1) return;
-    FragmentsController::getController()->unSelectFragment(fragments[0]);
+    FragmentsController::getController()->unSelectFragment();
 }

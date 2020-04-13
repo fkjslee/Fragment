@@ -41,7 +41,6 @@ void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
     pressPos = pos();
     undoPos = pos().toPoint();
     qDebug() << "FragmentUi mousePressEvent";
-    draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
     QGraphicsPixmapItem::mousePressEvent(event);
 }
@@ -51,14 +50,12 @@ void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     qDebug() << "FragmentUi mouseReleaseEvent";
     if ((pos() - pressPos).manhattanLength() > 1e-7)
         CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
-    draggingItem = nullptr;
     setCursor(Qt::OpenHandCursor);
     QGraphicsPixmapItem::mouseReleaseEvent(event);
 }
 
 void FragmentUi::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    draggingItem = this;
     setCursor(Qt::ClosedHandCursor);
     Q_UNUSED(event)
     QGraphicsPixmapItem::mouseDoubleClickEvent(event);

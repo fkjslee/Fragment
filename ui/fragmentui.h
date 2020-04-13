@@ -31,10 +31,6 @@ class FragmentUi : public QObject, public QGraphicsPixmapItem
     Q_INTERFACES(QGraphicsItem)
 public:
     FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
-    static FragmentUi *getDraggingItem()
-    {
-        return draggingItem;
-    }
     const QImage &getOriginalImage() const
     {
         return originalImage;

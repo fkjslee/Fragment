@@ -49,6 +49,9 @@ void loadLanguage()
 
 int main(int argc, char *argv[])
 {
+    std::vector<int> vec;
+    vec.push_back(1);
+    vec.push_back(2);
     QApplication a(argc, argv);
     setStyle();
     loadLanguage();

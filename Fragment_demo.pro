@@ -25,8 +25,7 @@ SOURCES += \
     ui/fragmentui.cpp \
     ui/hintwindow.cpp \
     main.cpp \
-    ui/mainwindow.cpp \
-    ui/scenebackground.cpp
+    ui/mainwindow.cpp
 
 HEADERS += \
     CommonHeader.h \
@@ -38,8 +37,7 @@ HEADERS += \
     fragmentscontroller.h \
     ui/fragmentui.h \
     ui/hintwindow.h \
-    ui/mainwindow.h \
-    ui/scenebackground.h
+    ui/mainwindow.h
 
 FORMS += \
     ui/desktop.ui \

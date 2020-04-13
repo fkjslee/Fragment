@@ -15,34 +15,7 @@ void EventGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 
 void EventGraphicsScene::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "scene dragLeaveEvent";
-    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
-    if (draggingItem == nullptr)
-        return;
-    EventGraphicsScene *beforeScene = reinterpret_cast<EventGraphicsScene *>(draggingItem->scene());
-    qDebug() << "now scene" << sceneType;
-    if (beforeScene->sceneType == SceneType::hintArea && (sceneType == SceneType::desktop))
-    {
-        moveFragmentFromHintToDesktop(event);
-    }
-    else if ((beforeScene->sceneType == SceneType::fragmentArea) && (sceneType == SceneType::hintArea))
-    {
-        invalidOperation(event);
-    }
-    else if ((beforeScene->sceneType == SceneType::hintArea) && (sceneType == SceneType::fragmentArea))
-    {
-        invalidOperation(event);
-    }
-    else if ((beforeScene->sceneType == SceneType::desktop) && (sceneType == SceneType::hintArea))
-    {
-        invalidOperation(event);
-    }
-    else
-    {
-        moveBetweenTwoNormalSceen(event);
-    }
-    update();
-    QGraphicsScene::dragLeaveEvent(event);
+
 }
 
 void EventGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent *event)
@@ -74,18 +47,9 @@ void EventGraphicsScene::invalidOperation(QGraphicsSceneDragDropEvent *event)
 void EventGraphicsScene::moveFragmentFromHintToDesktop(QGraphicsSceneDragDropEvent *event)
 {
     qInfo() << "scene drag moveFragmentFromHintToDesktop";
-    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
-    draggingItem->setPos(event->scenePos());
-    this->removeItem(draggingItem);
-    this->addItem(draggingItem);
-//    emit removeFragment(draggingItem->getFragment());
 }
 
 void EventGraphicsScene::moveBetweenTwoNormalSceen(QGraphicsSceneDragDropEvent *event)
 {
     qInfo() << "scene drag moveBetweenTwoNormalSceen";
-    FragmentUi *draggingItem = FragmentUi::getDraggingItem();
-    draggingItem->setPos(event->scenePos() - draggingItem->getBiasPos());
-    this->removeItem(draggingItem);
-    this->addItem(draggingItem);
 }

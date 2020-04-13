@@ -40,8 +40,8 @@ public:
     std::vector<FragmentUi *> &getUnsortedFragments();
     std::vector<FragmentUi *> &getSortedFragments();
     bool jointFragment(FragmentUi *f1, JointFragment jointFragment, FragmentArea *fragmentArea);
-    void selectFragment(FragmentUi *f);
-    void unSelectFragment(FragmentUi *f);
+    void selectFragment();
+    void unSelectFragment();
 
 private:
     FragmentsController();

@@ -33,7 +33,7 @@ void HintWindow::on_refreshBtn_clicked()
     for (JointFragment jointFragment : possilbleFragments)
     {
         FragmentUi *f = jointFragment.item;
-//        fragments.emplace_back(new Fragment(f->getOriginalImage(), "copy of " + f->getFragmentName()));
+        fragments.emplace_back(new FragmentUi({}, f->getOriginalImage(), "copy of " + f->getFragmentName()));
     }
     QRect windowRect = this->rect();
     int N = int(fragments.size());
