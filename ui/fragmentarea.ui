@@ -15,36 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QGraphicsView" name="view">
-     <property name="backgroundBrush">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>230</red>
-        <green>200</green>
-        <blue>167</blue>
-       </color>
-      </brush>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="btnJoint">
-         <property name="text">
-          <string>joint</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnSplit">
-         <property name="text">
-          <string>split</string>
-         </property>
-        </widget>
-       </item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QPushButton" name="autoStitch">
          <property name="text">
@@ -65,10 +38,45 @@
          </property>
         </widget>
        </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnJoint">
+       <property name="text">
+        <string>joint</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSplit">
+       <property name="text">
+        <string>split</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGraphicsView" name="view">
+     <property name="backgroundBrush">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>230</red>
+        <green>200</green>
+        <blue>167</blue>
+       </color>
+      </brush>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QPushButton" name="unSelect">
          <property name="text">
-          <string>unSelect</string>
+          <string>remove from work area</string>
          </property>
         </widget>
        </item>

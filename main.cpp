@@ -13,6 +13,7 @@
 #include <Tool.h>
 #include <QMessageBox>
 #include <QFile>
+#include <WinSock2.h>
 
 void setStyle()
 {
@@ -49,6 +50,7 @@ void loadLanguage()
 
 int main(int argc, char *argv[])
 {
+
     std::vector<int> vec;
     vec.push_back(1);
     vec.push_back(2);

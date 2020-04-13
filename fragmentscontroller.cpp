@@ -4,7 +4,10 @@
 #include <commands.h>
 #include <CommonHeader.h>
 
-using namespace cv;
+namespace
+{
+    using namespace cv;
+}
 
 FragmentsController *FragmentsController::controller = nullptr;
 FragmentsController::FragmentsController()

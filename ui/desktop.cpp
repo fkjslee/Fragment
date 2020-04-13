@@ -7,7 +7,10 @@
 #include <QVBoxLayout>
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
+namespace
+{
+    using namespace cv;
+}
 
 Desktop::Desktop(QWidget *parent) :
     QWidget(parent),

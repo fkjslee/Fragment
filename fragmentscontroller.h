@@ -21,6 +21,7 @@ struct JointFragment
 class FragmentArea;
 class MainWindow;
 
+
 class FragmentsController
 {
 public:

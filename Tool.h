@@ -10,8 +10,11 @@
 
 #define INFINITE 0x3f3f3f3f
 
-using namespace cv;
 using std::vector;
+
+namespace
+{
+}
 
 class Tool
 {
@@ -121,7 +124,7 @@ public:
         for (int r = 0; r < left.rows; ++r)
         {
             for (int channel = 0; channel < 4; ++channel)
-                res += abs(left.at<Vec4b>(r, c)[channel] - rhs.at<Vec4b>(r, 0)[channel]);
+                res += abs(left.at<cv::Vec4b>(r, c)[channel] - rhs.at<cv::Vec4b>(r, 0)[channel]);
         }
         return res / left.rows;
     }
@@ -135,7 +138,7 @@ public:
         for (int c = 0; c < up.cols; ++c)
         {
             for (int channel = 0; channel < 4; ++channel)
-                res += abs(up.at<Vec4b>(r, c)[channel] - down.at<Vec4b>(0, c)[channel]);
+                res += abs(up.at<cv::Vec4b>(r, c)[channel] - down.at<cv::Vec4b>(0, c)[channel]);
         }
         return res / up.cols;
     }
@@ -152,17 +155,17 @@ public:
             {
                 for (int channel = 0; channel < 4; ++channel)
                 {
-                    res += abs(m1.at<Vec4b>(r, c)[channel] - m2.at<Vec4b>(r, c)[channel]);
+                    res += abs(m1.at<cv::Vec4b>(r, c)[channel] - m2.at<cv::Vec4b>(r, c)[channel]);
                 }
             }
         }
         return res / (m1.rows * m1.cols * m1.channels());
     }
 
-    static QString aHash(const Mat &cmpImg)
+    static QString aHash(const cv::Mat &cmpImg)
     {
         cv::Mat img = cmpImg.clone();
-        cv::resize(img, img, Size(8, 8));
+        cv::resize(img, img, cv::Size(8, 8));
         cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
         double absGrayscale = 0;
         for (int r = 0; r < img.rows; ++r)
@@ -188,7 +191,7 @@ public:
     }
 
     // from blog https://blog.csdn.net/enter89/article/details/90293971
-    static int cmpWithOriginalMat(const Mat &m1, const Mat &m2)
+    static int cmpWithOriginalMat(const cv::Mat &m1, const cv::Mat &m2)
     {
         const QString &h1 = aHash(m1);
         const QString &h2 = aHash(m2);
