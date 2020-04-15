@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     CommonHeader.cpp \
     commands.cpp \
+    network.cpp \
     ui/desktop.cpp \
     eventgraphicsscene.cpp \
     ui/fragmentarea.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     CommonHeader.h \
     Tool.h \
     commands.h \
+    network.h \
     ui/desktop.h \
     eventgraphicsscene.h \
     ui/fragmentarea.h \
