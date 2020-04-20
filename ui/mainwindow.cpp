@@ -13,7 +13,7 @@ MainWindow *MainWindow::mainWindow = nullptr;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    FragmentsController::getController()->createAllFragments("./fragment2/");
+    FragmentsController::getController()->createAllFragments("./MIT_1/");
     ui->setupUi(this);
     fragCtrl = FragmentsController::getController();
     connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);

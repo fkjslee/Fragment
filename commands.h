@@ -5,7 +5,7 @@
 #include <QPoint>
 #include <fragmentscontroller.h>
 #include <ui/fragmentui.h>
-#include <ui/fragmentarea.h>
+#include <ui/mainwindow.h>
 
 class MoveUndo : public QUndoCommand
 {
@@ -25,7 +25,7 @@ private:
 class JointUndo : public QUndoCommand
 {
 public:
-    JointUndo(std::vector<FragmentUi*> undoFragments, FragmentUi* redoFragments, FragmentArea* fragmentArea, QUndoCommand *parent = nullptr);
+    JointUndo(std::vector<FragmentUi*> undoFragments, FragmentUi* redoFragments, QUndoCommand *parent = nullptr);
 
     void undo();
     void redo();
@@ -34,13 +34,12 @@ private:
     std::vector<FragmentUi*> undoFragments;
     FragmentUi* redoFragments;
     FragmentsController* fragCtller;
-    FragmentArea* fragmentArea;
 };
 
 class SplitUndo : public QUndoCommand
 {
 public:
-    SplitUndo(std::vector<FragmentUi*> undoFragments, std::vector<FragmentUi*> redoFragments, FragmentArea* fragmentArea, QUndoCommand *parent = nullptr);
+    SplitUndo(std::vector<FragmentUi*> undoFragments, std::vector<FragmentUi*> redoFragments, QUndoCommand *parent = nullptr);
 
     void undo();
     void redo();
@@ -48,6 +47,5 @@ public:
 private:
     std::vector<FragmentUi*> undoFragments;
     std::vector<FragmentUi*> redoFragments;
-    FragmentArea* fragmentArea;
     FragmentsController* fragCtller;
 };

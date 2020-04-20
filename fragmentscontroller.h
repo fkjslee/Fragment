@@ -1,6 +1,8 @@
 #ifndef FRAGMENTSCONTROLLER_H
 #define FRAGMENTSCONTROLLER_H
 
+#define MINE
+
 #include <vector>
 #include <ui/fragmentui.h>
 #include <QGraphicsScene>
@@ -40,7 +42,9 @@ public:
     const std::vector<FragmentUi *> getSelectedFragments();
     std::vector<FragmentUi *> &getUnsortedFragments();
     std::vector<FragmentUi *> &getSortedFragments();
-    bool jointFragment(FragmentUi *f1, JointFragment jointFragment, FragmentArea *fragmentArea);
+#ifdef MINE
+    bool jointFragment(FragmentUi *f1, JointFragment jointFragment);
+#endif
     void selectFragment();
     void unSelectFragment();
 

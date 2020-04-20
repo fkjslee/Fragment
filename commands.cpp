@@ -25,8 +25,8 @@ void MoveUndo::redo()
     item->setPos(redoPos);
 }
 
-JointUndo::JointUndo(std::vector<FragmentUi *> undoFragments, FragmentUi *redoFragment, FragmentArea* fragmentArea, QUndoCommand *parent) :
-    QUndoCommand(parent), undoFragments(undoFragments), redoFragments(redoFragment), fragmentArea(fragmentArea)
+JointUndo::JointUndo(std::vector<FragmentUi *> undoFragments, FragmentUi *redoFragment, QUndoCommand *parent) :
+    QUndoCommand(parent), undoFragments(undoFragments), redoFragments(redoFragment)
 {
     fragCtller = FragmentsController::getController();
 }
@@ -37,7 +37,7 @@ void JointUndo::undo()
     for (FragmentUi* fragment : undoFragments)
         fragCtller->getUnsortedFragments().push_back(fragment);
     QUndoCommand::undo();
-    fragmentArea->update();
+    MainWindow::mainWindow->update();
 }
 
 void JointUndo::redo()
@@ -45,15 +45,15 @@ void JointUndo::redo()
     fragCtller->getUnsortedFragments().push_back(redoFragments);
     for (FragmentUi* fragment : undoFragments)
         Tool::eraseInVector(fragCtller->getUnsortedFragments(), fragment);
-    fragmentArea->update();
+    MainWindow::mainWindow->update();
     QUndoCommand::redo();
 }
 
 
 #endif
 
-SplitUndo::SplitUndo(std::vector<FragmentUi *> undoFragments, std::vector<FragmentUi*> redoFragments, FragmentArea *fragmentArea, QUndoCommand *parent) :
-    QUndoCommand(parent), undoFragments(undoFragments), redoFragments(redoFragments), fragmentArea(fragmentArea)
+SplitUndo::SplitUndo(std::vector<FragmentUi *> undoFragments, std::vector<FragmentUi*> redoFragments, QUndoCommand *parent) :
+    QUndoCommand(parent), undoFragments(undoFragments), redoFragments(redoFragments)
 {
     fragCtller = FragmentsController::getController();
 }
@@ -64,7 +64,7 @@ void SplitUndo::undo()
         Tool::eraseInVector(fragCtller->getUnsortedFragments(), fragment);
     for (FragmentUi* fragment : undoFragments)
         fragCtller->getUnsortedFragments().push_back(fragment);
-    fragmentArea->update();
+    MainWindow::mainWindow->update();
 }
 
 void SplitUndo::redo()
@@ -73,5 +73,5 @@ void SplitUndo::redo()
         Tool::eraseInVector(fragCtller->getUnsortedFragments(), fragment);
     for (FragmentUi* fragment : redoFragments)
         fragCtller->getUnsortedFragments().push_back(fragment);
-    fragmentArea->update();
+    MainWindow::mainWindow->update();
 }

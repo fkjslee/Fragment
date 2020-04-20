@@ -19,7 +19,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     qInfo() << "createAllFragments " << fragmentsPath;
     QDir dir(fragmentsPath);
     QStringList filter;
-    filter << "*.jpg" << "*.png";
+    filter << "fragment*.jpg" << "fragment*.png";
     QStringList nameList = dir.entryList(filter);
     int i = 0;
     for (const QString &fileName : nameList)
@@ -115,7 +115,7 @@ bool FragmentsController::splitSelectedFragments(FragmentArea *fragmentArea)
         }
         undoFragments.emplace_back(splitFragment);
     }
-    CommonHeader::undoStack->push(new SplitUndo(undoFragments, redoFragments, fragmentArea));
+    CommonHeader::undoStack->push(new SplitUndo(undoFragments, redoFragments));
     return true;
 }
 
@@ -145,7 +145,8 @@ std::vector<FragmentUi *> &FragmentsController::getSortedFragments()
     return sortedFragments;
 }
 
-bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment, FragmentArea *fragmentArea)
+
+bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment)
 {
     FragmentUi *f2 = jointFragment.item;
     const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
@@ -183,7 +184,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragm
     std::vector<FragmentUi *> undoFragments;
     undoFragments.push_back(f1);
     undoFragments.push_back(f2);
-    JointUndo *temp = new JointUndo(undoFragments, newFragment, fragmentArea);
+    JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
     qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName() << " with absGrayscale = " << jointFragment.absGrayscale;
     return true;

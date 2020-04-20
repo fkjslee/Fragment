@@ -92,7 +92,7 @@ void FragmentArea::on_btnJoint_clicked()
     {
         FragmentUi *f1 = jointFragments[0];
         FragmentUi *f2 = jointFragments[1];
-        fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2), this);
+        fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2));
     }
     update();
 }

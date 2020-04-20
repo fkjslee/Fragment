@@ -50,7 +50,6 @@ void loadLanguage()
 
 int main(int argc, char *argv[])
 {
-    qInfo() << "receive : " << Network::sendMsg("a 4");
     QApplication a(argc, argv);
     setStyle();
     loadLanguage();
