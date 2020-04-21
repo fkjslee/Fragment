@@ -37,6 +37,8 @@ private slots:
 
     void on_unSelect_clicked();
 
+    void on_btnAutoJoint_clicked();
+
 private:
     Ui::FragmentArea *ui;
     EventGraphicsScene *scene;

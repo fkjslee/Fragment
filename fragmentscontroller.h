@@ -1,13 +1,14 @@
 #ifndef FRAGMENTSCONTROLLER_H
 #define FRAGMENTSCONTROLLER_H
 
-#define MINE
+//#define MINE
 
 #include <vector>
 #include <ui/fragmentui.h>
 #include <QGraphicsScene>
 #include <ui/fragmentarea.h>
 #include <ui/mainwindow.h>
+#include <NumCpp.hpp>
 
 enum JointMethod {leftRight, rightLeft, upDown, downUp};
 
@@ -38,12 +39,15 @@ public:
      * get most possible jointsing method through giving fragment(f1 and f2)
      */
     JointFragment mostPossibleJointMethod(FragmentUi *f1, FragmentUi *f2);
-    bool splitSelectedFragments(FragmentArea *fragmentArea);
+    bool splitSelectedFragments();
     const std::vector<FragmentUi *> getSelectedFragments();
     std::vector<FragmentUi *> &getUnsortedFragments();
     std::vector<FragmentUi *> &getSortedFragments();
+    FragmentUi* findFragmentByName(const QString& name);
 #ifdef MINE
     bool jointFragment(FragmentUi *f1, JointFragment jointFragment);
+#else
+    bool jointFragment(FragmentUi *f1, FragmentUi *f2, const QStringList &transformStr);
 #endif
     void selectFragment();
     void unSelectFragment();

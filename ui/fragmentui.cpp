@@ -40,14 +40,12 @@ void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     pressPos = pos();
     undoPos = pos().toPoint();
-    qDebug() << "FragmentUi mousePressEvent";
     setCursor(Qt::ClosedHandCursor);
     QGraphicsPixmapItem::mousePressEvent(event);
 }
 
 void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "FragmentUi mouseReleaseEvent";
     if ((pos() - pressPos).manhattanLength() > 1e-7)
         CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
     setCursor(Qt::OpenHandCursor);
@@ -63,33 +61,28 @@ void FragmentUi::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void FragmentUi::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "fragment dropEvent";
     Q_UNUSED(event)
     QGraphicsPixmapItem::dropEvent(event);
 }
 
 void FragmentUi::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "fragment dragEnterEvent";
     event->accept();
     QGraphicsPixmapItem::dragEnterEvent(event);
 }
 
 void FragmentUi::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "FragmentUi dragEnterEvent";
     QGraphicsPixmapItem::dragLeaveEvent(event);
 }
 
 void FragmentUi::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
 {
-    qDebug() << "FragmentUi dragMoveEvent";
     QGraphicsPixmapItem::dragMoveEvent(event);
 }
 
 QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
-//    qDebug() << "here";
 //    if (change == ItemPositionChange && scene()) {
 //        // value is the new position.
 

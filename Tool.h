@@ -7,6 +7,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QUndoStack>
+#include "opencv2/imgcodecs/legacy/constants_c.h"
+#include <opencv2/imgproc/types_c.h>
 
 #define INFINITE 0x3f3f3f3f
 
@@ -47,6 +49,7 @@ public:
 
     static cv::Mat QImageToMat(const QImage &image)
     {
+        qDebug() << "imgage format = " << image.format();
         cv::Mat mat;
         switch(image.format())
         {
@@ -58,8 +61,8 @@ public:
                 mat = cv::Mat(image.height(), image.width(), CV_8UC4, ucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
                 break;
             case QImage::Format_RGB888:
-                //        mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
-                //        cv::cvtColor(mat, mat, COLOR_BGR2RGB);
+                mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
+                cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
                 break;
             case QImage::Format_Indexed8:
                 mat = cv::Mat(image.height(), image.width(), CV_8UC1, ucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
@@ -68,6 +71,55 @@ public:
                 ;
         }
         return mat;
+    }
+
+    static cv::Mat Mat8UC4To8UC3(const cv::Mat& src) {
+        cv::Mat dst(src.size(), CV_8UC3);
+        for (int i = 0; i < src.rows; ++i)
+            for (int j = 0; j < src.cols; ++j) {
+                for (int channel = 0; channel < 3; ++channel)
+                    dst.at<cv::Vec3b>(i, j)[channel] = src.at<cv::Vec4b>(i, j)[channel];
+            }
+        return dst;
+    }
+
+    static cv::Mat Mat8UC3To8UC4(const cv::Mat& src) {
+        cv::Mat dst(src.size(), CV_8UC4);
+        for (int i = 0; i < src.rows; ++i)
+            for (int j = 0; j < src.cols; ++j) {
+                for (int channel = 0; channel < 3; ++channel)
+                    dst.at<cv::Vec4b>(i, j)[channel] = src.at<cv::Vec3b>(i, j)[channel];
+                dst.at<cv::Vec4b>(i, j)[3] = 0xff;
+            }
+        return dst;
+    }
+
+    static QString Mat8UC3ToString(const cv::Mat& src) {
+        QString dst;
+        for (int i = 0; i < src.rows; ++i)
+            for (int j = 0; j < src.cols; ++j) {
+                for (int channel = 0; channel < 3; ++channel) {
+                    dst += QString::number(src.at<cv::Vec3b>(i, j)[channel]);
+                    if (i != src.rows - 1 || j != src.cols - 1 || channel != 2)
+                        dst += " ";
+                }
+                }
+        return dst;
+    }
+
+    static cv::Mat stringToMat(const std::string& src) {
+        cv::Mat mat2(1, src.size(), CV_8U, (char*)src.data());
+        cv::Mat dst = cv::imdecode(mat2, CV_LOAD_IMAGE_COLOR);
+        return dst;
+    }
+
+    static std::string matToString(const cv::Mat& src) {
+        std::string dst;
+        std::vector<unsigned char> buff;
+        cv::imencode(".png", src, buff);
+        dst.resize(buff.size());
+        memcpy(&dst[0], buff.data(), buff.size());
+        return dst;
     }
 
     static QImage MatToQImage(const cv::Mat &mat)
@@ -105,7 +157,7 @@ public:
         {
             const uchar *pSrc = static_cast<const uchar *>(mat.data);
             // Create QImage with same dimensions as input Mat
-            QImage image(pSrc, mat.cols, mat.rows, int(mat.step), QImage::Format_ARGB32);
+            QImage image(pSrc, mat.cols, mat.rows, int(mat.step), QImage::Format_RGB32);
             return image.copy();
         }
         else

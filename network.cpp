@@ -100,6 +100,7 @@ QString Network::sendMsg(const QString &msg)
     recv(sock, szBuffer, 2000, NULL);
 
 
+    qInfo() << "client send msg : " << msg;
     std::vector<QString> sendMsgs;
 //    sendMsgs.push_back(helloMsg);
     sendMsgs.push_back(msg);
