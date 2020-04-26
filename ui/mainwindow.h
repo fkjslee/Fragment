@@ -27,6 +27,11 @@ public:
     static MainWindow *mainWindow;
     void update();
 
+protected:
+    void wheelEvent(QWheelEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+
 private:
     void createMenu();
 
@@ -56,6 +61,8 @@ private:
     QMenu *menuLanguage;
     QAction *actChinese;
     QAction *actEnglish;
+
+    bool ctrlPress = false;
 
 };
 #endif // MAINWINDOW_H

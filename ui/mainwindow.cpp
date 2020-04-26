@@ -8,6 +8,7 @@
 #include <QUndoStack>
 #include <CommonHeader.h>
 #include <QDir>
+#include <QWheelEvent>
 
 MainWindow *MainWindow::mainWindow = nullptr;
 MainWindow::MainWindow(QWidget *parent)
@@ -33,6 +34,31 @@ void MainWindow::update()
     ui->fragmentArea->update();
     on_imageSizeController_valueChanged(ui->imageSizeController->value());
     QMainWindow::update();
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event)
+{
+    if (event->delta() > 0 && ctrlPress) {
+        ui->imageSizeController->setValue(ui->imageSizeController->value() + ui->imageSizeController->singleStep());
+    } else if (event->delta() < 0 && ctrlPress) {
+        ui->imageSizeController->setValue(ui->imageSizeController->value() - ui->imageSizeController->singleStep());
+    } else {
+        QMainWindow::wheelEvent(event);
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Control) {
+        ctrlPress = true;
+    }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Control) {
+        ctrlPress = false;
+    }
 }
 
 void MainWindow::createMenu()
