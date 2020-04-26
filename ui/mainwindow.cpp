@@ -31,6 +31,7 @@ void MainWindow::update()
 {
     ui->desktop->update();
     ui->fragmentArea->update();
+    on_imageSizeController_valueChanged(ui->imageSizeController->value());
     QMainWindow::update();
 }
 
@@ -90,7 +91,6 @@ void MainWindow::on_imageSizeController_valueChanged(int value)
     {
         fragment->scaledToWidth(1.0 * value / 100);
     }
-    update();
 }
 
 void MainWindow::changeLanguageToCN()

@@ -9,6 +9,7 @@
 #include <ui/fragmentarea.h>
 #include <ui/mainwindow.h>
 #include <NumCpp.hpp>
+#include <opencv2/opencv.hpp>
 
 enum JointMethod {leftRight, rightLeft, upDown, downUp};
 
@@ -47,7 +48,7 @@ public:
 #ifdef MINE
     bool jointFragment(FragmentUi *f1, JointFragment jointFragment);
 #else
-    bool jointFragment(FragmentUi *f1, FragmentUi *f2, const QStringList &transformStr);
+    bool jointFragment(FragmentUi *f1, FragmentUi *f2, const cv::Mat& transMat);
 #endif
     void selectFragment();
     void unSelectFragment();

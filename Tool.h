@@ -49,7 +49,6 @@ public:
 
     static cv::Mat QImageToMat(const QImage &image)
     {
-        qDebug() << "imgage format = " << image.format();
         cv::Mat mat;
         switch(image.format())
         {
@@ -91,19 +90,6 @@ public:
                     dst.at<cv::Vec4b>(i, j)[channel] = src.at<cv::Vec3b>(i, j)[channel];
                 dst.at<cv::Vec4b>(i, j)[3] = 0xff;
             }
-        return dst;
-    }
-
-    static QString Mat8UC3ToString(const cv::Mat& src) {
-        QString dst;
-        for (int i = 0; i < src.rows; ++i)
-            for (int j = 0; j < src.cols; ++j) {
-                for (int channel = 0; channel < 3; ++channel) {
-                    dst += QString::number(src.at<cv::Vec3b>(i, j)[channel]);
-                    if (i != src.rows - 1 || j != src.cols - 1 || channel != 2)
-                        dst += " ";
-                }
-                }
         return dst;
     }
 

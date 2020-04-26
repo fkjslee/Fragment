@@ -44,15 +44,9 @@ FragmentArea::~FragmentArea()
 void FragmentArea::update()
 {
     qDebug() << "update fragment area";
-//    SceneBackground background;
-//    background.setScale(int(scene->width()), int(scene->height()));
-//    qDebug() << background.width();
-//    background.save("C:\\Users\\fkjslee\\Desktop\\ant_1.3.4\\img.jpg");
-//    ui->view->setBackgroundBrush(background);
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
-//        disconnect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
     fragmentItems.clear();
 
@@ -60,7 +54,6 @@ void FragmentArea::update()
     {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
-//        connect(fragment, &FragmentUi::fragmentsMoveEvents, this, &FragmentArea::fragmentsMoveEvents);
     }
 
     scene->update();
@@ -153,10 +146,11 @@ void FragmentArea::on_btnAutoJoint_clicked()
                 qCritical() << "another fragment is null";
                 return;
             }
-            QStringList transform;
-            for (int j = 0; j < 9; ++j)
-                transform.append(msgList2[i+1+j]);
-            fragCtrl->jointFragment(selectFragments[0], anotherFragment, transform);
+            cv::Mat transMat(3, 3, CV_32FC1);
+            for (int j = 0; j < 3; ++j)
+                for (int k = 0; k < 3; ++k)
+                    transMat.at<float>(j, k) = msgList2[i+1+(j*3+k)].toFloat();
+            fragCtrl->jointFragment(selectFragments[0], anotherFragment, transMat);
             jointSuccess = true;
             break;
         }

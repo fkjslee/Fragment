@@ -4,11 +4,35 @@
 #include <commands.h>
 #include <CommonHeader.h>
 #include <Python.h>
-#include <QJsonDocument>
+#include <ctime>
+#include <complex>
+#include <numpy/arrayobject.h>
+#define NO_IMPOET_ARRAY
 
 namespace
 {
     using namespace cv;
+
+PyObject* mat8UC42numpy(const Mat& src) {
+    npy_intp dims[3] = {src.rows, src.cols, 3};
+    unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * src.rows * src.cols * 3);
+    int p = 0;
+    for (int i = 0; i < src.rows; ++i)
+        for (int j = 0; j < src.cols; ++j)
+            for (int k = 0; k < 3; ++k)
+                data[p++] = src.at<Vec4b>(i, j)[k];
+    return PyArray_SimpleNewFromData(3, dims, NPY_UBYTE, data);
+}
+
+PyObject* mat32FC12numpy(const Mat& src) {
+    npy_intp dims[2] = {src.rows, src.cols};
+    float* data = (float*)malloc(sizeof(float) * src.rows * src.cols);
+    int p = 0;
+    for (int i = 0; i < src.rows; ++i)
+        for (int j = 0; j < src.cols; ++j)
+            data[p++] = src.at<float>(i, j);
+    return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, data);
+}
 }
 
 FragmentsController *FragmentsController::controller = nullptr;
@@ -19,9 +43,10 @@ FragmentsController::FragmentsController()
 void FragmentsController::createAllFragments(const QString &fragmentsPath)
 {
     Py_Initialize();
+    import_array();
     if ( !Py_IsInitialized() )
     {
-        qDebug() << "initialize failed!\n";
+        qCritical() << "initialize failed!\n";
         return;
     }
     PyRun_SimpleString("import sys");
@@ -38,9 +63,6 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName));
         unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("%1").arg(i)));
         ++i;
-    }
-    for (FragmentUi* fragment : getUnsortedFragments()) {
-        qDebug() << fragment->getOriginalImage().format();
     }
 }
 
@@ -160,11 +182,6 @@ std::vector<FragmentUi *> &FragmentsController::getSortedFragments()
 
 FragmentUi *FragmentsController::findFragmentByName(const QString &name)
 {
-    qDebug() << "all unsorted fragments";
-
-    for (FragmentUi* f : getUnsortedFragments()) {
-        qDebug() << f->getFragmentName();
-    }
     for (FragmentUi* f : getUnsortedFragments()) {
         if (f->getFragmentName().split(" ").contains(name))
             return f;
@@ -217,72 +234,36 @@ bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragm
     return true;
 }
 #else
-bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const QStringList& transformStr)
+bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv::Mat& transMat)
 {
-    qDebug() << "joint " << f1->getFragmentName() << "  " << f2->getFragmentName();
     static PyObject* pModule = PyImport_ImportModule("FusionImage");
     if (!pModule) {
-        qDebug() << ("Cant open python file!\n");
+        qCritical() << ("Cant open python file!\n");
         return -1;
     }
 
     static PyObject* pFunhello= PyObject_GetAttrString(pModule,"callFusionImage");
     if(!pFunhello){
-        qDebug() << "Get function failed" << endl;
+        qCritical() << "Get function failed" << endl;
         return 0;
     }
 
-    qDebug() << (f2 == nullptr);
     cv::Mat src = Tool::QImageToMat(f1->getOriginalImage()); // 8UC4
     cv::Mat dst = Tool::QImageToMat(f2->getOriginalImage());
 
-    QJsonObject jsonSrc;
-    jsonSrc["row"] = src.rows;
-    jsonSrc["col"] = src.cols;
-    jsonSrc["data"] = Tool::Mat8UC3ToString(src.type() == CV_8UC4 ? Tool::Mat8UC4To8UC3(src) : src);
+    PyObject* matArg = PyTuple_New(3);
+    PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
+    PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
+    PyTuple_SetItem(matArg, 2, mat32FC12numpy(transMat));
 
-    QJsonObject jsonDst;
-    jsonDst["row"] = dst.rows;
-    jsonDst["col"] = dst.cols;
-    jsonDst["data"] = Tool::Mat8UC3ToString(src.type() == CV_8UC4 ? Tool::Mat8UC4To8UC3(dst) : src);
-
-    QString trans;
-    for (int i = 0; i < 9; ++i) {
-        trans += transformStr[i];
-        if (i != 8)
-            trans += " ";
-    }
-//    QString str = "{\"col\":\"333\",\"data\":\"456x\",\"row\":\"111\"}";
-//    QJsonDocument document = QJsonDocument::fromJson(str.toLocal8Bit().data());
-//    QJsonObject jsonRes = document.object(); // str to json
-//    QString s = QString(QJsonDocument(jsonSrc).toJson()); // json to str
-//    s = s.replace("\n", "");
-//    s = s.replace(" ", "");
-//    qDebug() << QString(QJsonDocument(jsonRes).toJson());
-    PyObject* args = PyTuple_New(3);
-    PyTuple_SetItem(args, 0, Py_BuildValue("s", QString(QJsonDocument(jsonSrc).toJson()).toStdString().c_str()));
-    PyTuple_SetItem(args, 1, Py_BuildValue("s", QString(QJsonDocument(jsonDst).toJson()).toStdString().c_str()));
-    PyTuple_SetItem(args, 2, Py_BuildValue("s", trans.toStdString().c_str()));
     qInfo() << "run python FusionImage";
-    auto gstate = PyGILState_Ensure();
-    PyObject* resObj = PyEval_CallObject(pFunhello, args);
-    PyGILState_Release(gstate);
-//    PyObject* res = PyObject_CallFunction(pFunhello, "s", s.toStdString().c_str());
-
-    QStringList res = QString(QLatin1String(PyBytes_AsString(resObj))).split(" ");
-    int resRow = res[0].toInt();
-    int resCol = res[1].toInt();
-    cv::Mat resMat(resRow, resCol, CV_8UC3);
-    int cnt = 2;
-    for (int i = 0; i < resRow; ++i)
-        for (int j = 0; j < resCol; ++j)
-            for (int k = 0; k < 3; ++k) {
-                resMat.at<Vec3b>(i, j)[k] = res[cnt++].toInt();
-            }
-//    cv::imwrite("fffu.png", resMat);
-//    Py_Finalize();
-
-
+    auto locker = PyGILState_Ensure();
+    PyObject* resObj = PyEval_CallObject(pFunhello, matArg);
+    PyArrayObject* ret_array;
+    PyArray_OutputConverter(resObj, &ret_array);
+    npy_intp *shape = PyArray_SHAPE(ret_array);
+    Mat resMat(shape[0], shape[1], CV_8UC3, PyArray_DATA(ret_array));
+    PyGILState_Release(locker);
 
     std::vector<Piece> pieces;
     for (Piece p : f1->getPiece())
