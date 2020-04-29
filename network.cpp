@@ -92,15 +92,19 @@ QString Network::sendMsg(const QString &msg)
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr("166.111.139.116");  //具体的IP地址
-    serv_addr.sin_port = htons(12345);  //端口
+    serv_addr.sin_addr.s_addr = inet_addr("166.111.139.116");
+    serv_addr.sin_port = htons(12345); //port
     connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
-    char szBuffer[2000];
-    recv(sock, szBuffer, 2000, NULL);
+    const int recvLen = 4096;
+    char szBuffer[recvLen];
+    if (recv(sock, szBuffer, recvLen, 0) == -1) {
+        qCritical() << "can't connect to server!!!!!!!!!!";
+        return "-1";
+    }
 
 
-    qInfo() << "client send msg : " << msg;
+    qInfo() << "client send msg : " << msg.left(20);
     std::vector<QString> sendMsgs;
 //    sendMsgs.push_back(helloMsg);
     sendMsgs.push_back(msg);
@@ -117,7 +121,7 @@ QString Network::sendMsg(const QString &msg)
 
         if (sendMsg == endMsg)
             break;
-        recv(sock, szBuffer, 2000, NULL);
+        recv(sock, szBuffer, recvLen, 0);
         res = szBuffer;
     }
 

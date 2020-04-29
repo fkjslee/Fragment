@@ -67,7 +67,6 @@ void FragmentArea::fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint b
 
 void FragmentArea::on_btnJoint_clicked()
 {
-    return;
     std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
     if (jointFragments.size() != 2)
     {
@@ -88,12 +87,9 @@ void FragmentArea::on_btnJoint_clicked()
     {
         FragmentUi *f1 = jointFragments[0];
         FragmentUi *f2 = jointFragments[1];
-#ifdef MINE
-        fragCtrl->jointFragment(f1, FragmentsController::getController()->mostPossibleJointMethod(f1, f2));
-#else
-//        nc::NdArray<double> t(3, 3);
-//        fragCtrl->jointFragment(f1, f2, t);
-#endif
+        QString res = Network::sendMsg("b " + f1->getFragmentName() + " " + f2->getFragmentName());
+        cv::Mat transMat = Tool::str2TransMat(res);
+        fragCtrl->jointFragment(f1, f2, transMat);
     }
     update();
 }
@@ -126,6 +122,9 @@ void FragmentArea::on_btnAutoJoint_clicked()
     for (const QString &fragName : selectFragments[0]->getFragmentName().split(" ")) {
         qDebug() << "selectFragment name = " << selectFragments[0]->getFragmentName();
         QString res = Network::sendMsg("a " + fragName);
+        if (res == "-1") {
+            return;
+        }
         res.replace("[", "");
         res.replace("]", "");
         res.replace("\n", "");

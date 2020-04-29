@@ -189,51 +189,6 @@ FragmentUi *FragmentsController::findFragmentByName(const QString &name)
     return nullptr;
 }
 
-#ifdef MINE
-bool FragmentsController::jointFragment(FragmentUi *f1, JointFragment jointFragment)
-{
-    FragmentUi *f2 = jointFragment.item;
-    const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
-    const cv::Mat &m2 = Tool::QImageToMat(f2->getOriginalImage());
-    cv::Mat jointMat;
-    switch(jointFragment.method)
-    {
-        case leftRight:
-            if (m1.rows == m2.rows)
-                cv::hconcat(m1, m2, jointMat);
-            break;
-        case rightLeft:
-            if (m1.rows == m2.rows)
-                cv::hconcat(m2, m1, jointMat);
-            break;
-        case upDown:
-            if (m1.cols == m2.cols)
-                cv::vconcat(m1, m2, jointMat);
-            break;
-        case downUp:
-            if (m1.cols == m2.cols)
-                cv::vconcat(m2, m1, jointMat);
-            break;
-    }
-    if (jointMat.empty()) return false;
-    std::vector<Piece> pieces;
-    for (Piece p : f1->getPiece())
-        pieces.emplace_back(p);
-    for (Piece p : f2->getPiece())
-        pieces.emplace_back(p);
-    FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(jointMat), f1->getFragmentName() + " " + f2->getFragmentName());
-    newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
-    newFragment->undoFragments.push_back(f1);
-    newFragment->undoFragments.push_back(f2);
-    std::vector<FragmentUi *> undoFragments;
-    undoFragments.push_back(f1);
-    undoFragments.push_back(f2);
-    JointUndo *temp = new JointUndo(undoFragments, newFragment);
-    CommonHeader::undoStack->push(temp);
-    qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName() << " with absGrayscale = " << jointFragment.absGrayscale;
-    return true;
-}
-#else
 bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv::Mat& transMat)
 {
     static PyObject* pModule = PyImport_ImportModule("FusionImage");
@@ -282,7 +237,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv
     qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName();
     return true;
 }
-#endif
 
 void FragmentsController::selectFragment()
 {

@@ -47,6 +47,26 @@ public:
         return reinterpret_cast<void *>(const_cast<uchar *>(c));
     }
 
+    static cv::Mat str2TransMat(QString src) {
+        cv::Mat dst(3, 3, CV_32FC1);
+        if (src == "-1") {
+            return cv::Mat(0, 0, CV_32FC1);
+        }
+        src.replace("[", "");
+        src.replace("]", "");
+        src.replace("\n", "");
+        QStringList msgList = src.split(" ");
+        QStringList msgList2;
+        for (QString s : msgList)
+            if (s != "")
+                msgList2.append(s);
+
+        for (int j = 0; j < 3; ++j)
+            for (int k = 0; k < 3; ++k)
+                dst.at<float>(j, k) = msgList2[j*3+k].toFloat();
+        return dst;
+    }
+
     static cv::Mat QImageToMat(const QImage &image)
     {
         cv::Mat mat;
