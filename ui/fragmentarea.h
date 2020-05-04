@@ -37,7 +37,7 @@ private slots:
 
     void on_unSelect_clicked();
 
-    void on_btnAutoJoint_clicked();
+    void on_sldRotate_valueChanged(int value);
 
 private:
     Ui::FragmentArea *ui;

@@ -3,7 +3,10 @@
 #include <QDir>
 #include <commands.h>
 #include <CommonHeader.h>
+#pragma push_macro("slots")
+#undef slots
 #include <Python.h>
+#pragma pop_macro("slots")
 #include <ctime>
 #include <complex>
 #include <numpy/arrayobject.h>
@@ -60,18 +63,10 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     for (const QString &fileName : nameList)
     {
         std::vector<Piece> vec;
-        vec.push_back(Piece(dir.absolutePath() + "/" + fileName));
+        vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
         unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("%1").arg(i)));
         ++i;
     }
-}
-
-bool FragmentsController::createFragment(const QString &fragmentPath)
-{
-    std::vector<Piece> vec;
-    vec.push_back(Piece(fragmentPath));
-    unsortedFragments.emplace_back(new FragmentUi(vec, QImage(fragmentPath), vec[0].pieceName));
-    return true;
 }
 
 FragmentsController *FragmentsController::getController()
@@ -82,67 +77,15 @@ FragmentsController *FragmentsController::getController()
         return controller;
 }
 
-std::vector<JointFragment> FragmentsController::getMostPossibleFragments(FragmentUi *item)
-{
-    std::vector<JointFragment> res;
-    if (item == nullptr)
-    {
-        std::vector<FragmentUi *> unsorted_fragments = getUnsortedFragments();
-        for (FragmentUi *unsorted_fragment : unsorted_fragments)
-        {
-            res.emplace_back(JointFragment(unsorted_fragment, JointMethod::leftRight, 0));
-            if (res.size() >= 5)
-                break;
-        }
-    }
-    else
-    {
-        JointFragment minFragment(nullptr, JointMethod::leftRight, INFINITE);
-        for (FragmentUi *otherFragment : getUnsortedFragments())
-        {
-            if (item == otherFragment) continue;
-            JointFragment possilbeFragment = mostPossibleJointMethod(item, otherFragment);
-            if (possilbeFragment.absGrayscale < minFragment.absGrayscale)
-                minFragment = possilbeFragment;
-        }
-        if (minFragment.item != nullptr)
-            res.emplace_back(minFragment);
-    }
-    return res;
-}
-
-JointFragment FragmentsController::mostPossibleJointMethod(FragmentUi *f1, FragmentUi *f2)
-{
-    JointFragment minFragment(nullptr, JointMethod::leftRight, INFINITE);
-    const cv::Mat &m1 = Tool::QImageToMat(f1->getOriginalImage());
-    const cv::Mat &m2 = Tool::QImageToMat(f2->getOriginalImage());
-    double absGrayscale;
-    absGrayscale = Tool::calcLeftRightAbsGrayscale(m1, m2);
-    if (absGrayscale < minFragment.absGrayscale)
-        minFragment = JointFragment(f2, JointMethod::leftRight, absGrayscale);
-
-    absGrayscale = Tool::calcLeftRightAbsGrayscale(m2, m1);
-    if (absGrayscale < minFragment.absGrayscale)
-        minFragment = JointFragment(f2, JointMethod::rightLeft, absGrayscale);
-
-    absGrayscale = Tool::calcUpDownAbsGrayscale(m1, m2);
-    if (absGrayscale < minFragment.absGrayscale)
-        minFragment = JointFragment(f2, JointMethod::upDown, absGrayscale);
-
-    absGrayscale = Tool::calcUpDownAbsGrayscale(m2, m1);
-    if (absGrayscale < minFragment.absGrayscale)
-        minFragment = JointFragment(f2, JointMethod::downUp, absGrayscale);
-    return minFragment;
-}
-
 bool FragmentsController::splitSelectedFragments()
 {
     std::vector<FragmentUi *> redoFragments;
     std::vector<FragmentUi *> undoFragments;
     for (FragmentUi *splitFragment : getSelectedFragments())
     {
-        for (Piece piece : splitFragment->getPiece())
+        for (Piece piece : splitFragment->getPieces())
         {
+            piece.transMat = cv::Mat::eye(3, 3, CV_32FC1);
             std::vector<Piece> vec;
             vec.push_back(piece);
             FragmentUi *newSplitFragment = new FragmentUi(vec, QImage(piece.piecePath), piece.pieceName);
@@ -159,12 +102,12 @@ const std::vector<FragmentUi *> FragmentsController::getSelectedFragments()
     std::vector<FragmentUi *> selectedFragments;
     for (FragmentUi *f : unsortedFragments)
     {
-        if (f->getSelected())
+        if (f->isSelected())
             selectedFragments.emplace_back(f);
     }
     for (FragmentUi *f : sortedFragments)
     {
-        if (f->getSelected())
+        if (f->isSelected())
             selectedFragments.emplace_back(f);
     }
     return selectedFragments;
@@ -189,12 +132,35 @@ FragmentUi *FragmentsController::findFragmentByName(const QString &name)
     return nullptr;
 }
 
-bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv::Mat& transMat)
+bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat& transMat)
 {
+    Piece p1 = f1->getPieces()[piece1ID];
+    Piece p2 = f2->getPieces()[piece2ID];
+    cv::Mat p1Inv;
+    cv::invert(p1.transMat, p1Inv);
+    cv::Mat p2Inv;
+    cv::invert(p1.transMat, p2Inv);
+//    qInfo() << "p3 = ";
+//    for (int i = 0; i < 3; ++i)
+//        for (int j = 0; j < 3; ++j)
+//            qInfo() << p2.transMat.at<float>(i, j);
+//    qInfo() << "p4 = ";
+//    for (int i = 0; i < 3; ++i)
+//        for (int j = 0; j < 3; ++j)
+//            qInfo() << p2Inv.at<float>(i, j);
+    std::vector<Piece> pieces;
+    for (Piece p : f1->getPieces()) {
+        pieces.emplace_back(p);
+    }
+    for (Piece p : f2->getPieces()) {
+        p.transMat = p.transMat * p2Inv;
+        p.transMat = p.transMat * transMat;
+        pieces.emplace_back(p);
+    }
     static PyObject* pModule = PyImport_ImportModule("FusionImage");
     if (!pModule) {
         qCritical() << ("Cant open python file!\n");
-        return -1;
+        return 1;
     }
 
     static PyObject* pFunhello= PyObject_GetAttrString(pModule,"callFusionImage");
@@ -210,6 +176,10 @@ bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv
     PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
     PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
     PyTuple_SetItem(matArg, 2, mat32FC12numpy(transMat));
+//    qInfo() << "p2 = ";
+//    for (int i = 0; i < 3; ++i)
+//        for (int j = 0; j < 3; ++j)
+//            qInfo() << p2Inv.at<float>(i, j);
 
     qInfo() << "run python FusionImage";
     auto locker = PyGILState_Ensure();
@@ -220,11 +190,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv
     Mat resMat(shape[0], shape[1], CV_8UC3, PyArray_DATA(ret_array));
     PyGILState_Release(locker);
 
-    std::vector<Piece> pieces;
-    for (Piece p : f1->getPiece())
-        pieces.emplace_back(p);
-    for (Piece p : f2->getPiece())
-        pieces.emplace_back(p);
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(resMat)), f1->getFragmentName() + " " + f2->getFragmentName());
     newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
     newFragment->undoFragments.push_back(f1);
@@ -234,7 +199,14 @@ bool FragmentsController::jointFragment(FragmentUi *f1, FragmentUi *f2, const cv
     undoFragments.push_back(f2);
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
-    qInfo() << "joint fragmens " << f1->getFragmentName() << " and " << f2->getFragmentName();
+    qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName << (int)newFragment;
+//    qInfo() << "p2 = ";
+//    for (Piece p : newFragment->getPieces()) {
+//        qInfo() << p.pieceName;
+//        for (int i = 0; i < 3; ++i)
+//            for (int j = 0; j < 3; ++j)
+//                qInfo() << p.transMat.at<float>(i, j);
+//    }
     return true;
 }
 
@@ -246,7 +218,7 @@ void FragmentsController::selectFragment()
         changed = false;
         for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
         {
-            if (f->getSelected())
+            if (f->isSelected())
             {
                 changed = true;
                 unsortedFragments.push_back(f);
@@ -266,7 +238,7 @@ void FragmentsController::unSelectFragment()
         changed = false;
         for (FragmentUi *f : FragmentsController::getController()->getUnsortedFragments())
         {
-            if (f->getSelected())
+            if (f->isSelected())
             {
                 changed = true;
                 sortedFragments.push_back(f);

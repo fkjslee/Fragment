@@ -8,7 +8,15 @@
 #include <fragmentscontroller.h>
 #include <QMessageBox>
 #include <network.h>
-#include <NumCpp.hpp>
+
+namespace {
+int getPieceID(std::vector<Piece> pieces, QString name) {
+    for (int i = 0; i < (int)pieces.size(); ++i)
+        if (pieces[i].pieceName == name)
+            return i;
+    return -1;
+}
+}
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -87,9 +95,12 @@ void FragmentArea::on_btnJoint_clicked()
     {
         FragmentUi *f1 = jointFragments[0];
         FragmentUi *f2 = jointFragments[1];
+        auto p = f1;
+        f1 = f2;
+        f2 = p;
         QString res = Network::sendMsg("b " + f1->getFragmentName() + " " + f2->getFragmentName());
         cv::Mat transMat = Tool::str2TransMat(res);
-        fragCtrl->jointFragment(f1, f2, transMat);
+        fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
     }
     update();
 }
@@ -110,49 +121,14 @@ void FragmentArea::on_unSelect_clicked()
     FragmentsController::getController()->unSelectFragment();
 }
 
-void FragmentArea::on_btnAutoJoint_clicked()
+void FragmentArea::on_sldRotate_valueChanged(int value)
 {
-    auto selectFragments = fragCtrl->getSelectedFragments();
-    if (selectFragments.size() != 1) {
-        QMessageBox::critical(nullptr, QObject::tr("auto joint error"), QObject::tr("please choose one fragments to auto joint"),
-                              QMessageBox::Cancel);
-        return;
-    }
-
-    for (const QString &fragName : selectFragments[0]->getFragmentName().split(" ")) {
-        qDebug() << "selectFragment name = " << selectFragments[0]->getFragmentName();
-        QString res = Network::sendMsg("a " + fragName);
-        if (res == "-1") {
-            return;
+    FragmentsController* ctrller = FragmentsController::getController();
+    for (FragmentUi* f : ctrller->getUnsortedFragments()) {
+        if (f->isSelected()) {
+            qInfo() << "value = " << value;
+            f->rotate(value);
         }
-        res.replace("[", "");
-        res.replace("]", "");
-        res.replace("\n", "");
-        QStringList msgList = res.split(" ");
-        QStringList msgList2;
-        for (QString s : msgList)
-            if (s != "")
-                msgList2.append(s);
-        bool jointSuccess = false;
-        for (int i = 0; i < msgList2.length(); i += 10) {
-            // if two fragments in one peace, pass them
-            if (selectFragments[0]->getFragmentName().split(" ").contains(msgList2[i])) {
-                continue;
-            }
-            qDebug() << "another name = " << msgList2[i];
-            FragmentUi* anotherFragment = fragCtrl->findFragmentByName(msgList2[i]);
-            if (anotherFragment == nullptr) {
-                qCritical() << "another fragment is null";
-                return;
-            }
-            cv::Mat transMat(3, 3, CV_32FC1);
-            for (int j = 0; j < 3; ++j)
-                for (int k = 0; k < 3; ++k)
-                    transMat.at<float>(j, k) = msgList2[i+1+(j*3+k)].toFloat();
-            fragCtrl->jointFragment(selectFragments[0], anotherFragment, transMat);
-            jointSuccess = true;
-            break;
-        }
-        if (jointSuccess) break;
     }
+    update();
 }

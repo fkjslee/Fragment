@@ -48,19 +48,29 @@ FORMS += \
     ui/mainwindow.ui
 
 
-INCLUDEPATH += /usr/local/include \
-                /usr/local/include/opencv4 \
-                /usr/local/lib/eigen \
-                /usr/local/lib/include \
-                /usr/local/include/opencv4\opencv2 \
-                /usr/include/python2.7
-#                -I/usr/include/python2.7 -I/usr/include/x86_64-linux-gnu/python2.7  -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fdebug-prefix-map=/build/python2.7-5Z483E/python2.7-2.7.17=. -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
+#INCLUDEPATH += /usr/local/include \
+#                /usr/local/include/opencv4 \
+#                /usr/local/lib/eigen \
+#                /usr/local/lib/include \
+#                /usr/local/include/opencv4\opencv2 \
+#                /usr/include/python2.7
+##                -I/usr/include/python2.7 -I/usr/include/x86_64-linux-gnu/python2.7  -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fdebug-prefix-map=/build/python2.7-5Z483E/python2.7-2.7.17=. -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
 
-LIBS += /usr/local/lib/libopencv_highgui.so \
-        /usr/local/lib/libopencv_core.so    \
-        /usr/local/lib/libopencv_imgproc.so \
-        /usr/local/lib/libopencv_imgcodecs.so \
-        -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7 -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+#LIBS += /usr/local/lib/libopencv_highgui.so \
+#        /usr/local/lib/libopencv_core.so    \
+#        /usr/local/lib/libopencv_imgproc.so \
+#        /usr/local/lib/libopencv_imgcodecs.so \
+#        -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7 -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+
+
+INCLUDEPATH += C:\opencv3\build\include \
+                C:\opencv3\build\include\opencv2 \
+                -I C:\Users\fkjslee\anaconda3\envs\python27\include \
+                C:\Users\fkjslee\anaconda3\envs\python27\Lib\site-packages\numpy\core\include
+
+LIBS += C:\opencv3\build\x64\vc15\lib\opencv_world430.lib \
+    -LC:\Users\fkjslee\anaconda3\envs\python27\libs -lpython27 \
+    -LC:\Users\fkjslee\anaconda3\envs\python27\Lib
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

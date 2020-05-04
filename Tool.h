@@ -113,21 +113,6 @@ public:
         return dst;
     }
 
-    static cv::Mat stringToMat(const std::string& src) {
-        cv::Mat mat2(1, src.size(), CV_8U, (char*)src.data());
-        cv::Mat dst = cv::imdecode(mat2, CV_LOAD_IMAGE_COLOR);
-        return dst;
-    }
-
-    static std::string matToString(const cv::Mat& src) {
-        std::string dst;
-        std::vector<unsigned char> buff;
-        cv::imencode(".png", src, buff);
-        dst.resize(buff.size());
-        memcpy(&dst[0], buff.data(), buff.size());
-        return dst;
-    }
-
     static QImage MatToQImage(const cv::Mat &mat)
     {
         // 8-bits unsigned, NO. OF CHANNELS = 1

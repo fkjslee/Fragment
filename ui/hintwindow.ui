@@ -27,6 +27,13 @@
      </property>
     </widget>
    </item>
+   <item>
+    <widget class="QPushButton" name="btnAutoJoint">
+     <property name="text">
+      <string>自动拼接</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

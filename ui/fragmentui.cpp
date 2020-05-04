@@ -11,7 +11,6 @@
 #include <CommonHeader.h>
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
-int Piece::fragmentCnt = 0;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
     : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
 {
@@ -29,9 +28,18 @@ void FragmentUi::scaledToWidth(const double scale)
     update();
 }
 
+void FragmentUi::rotate(double ang)
+{
+    this->rotateAng = ang;
+    update();
+}
+
 void FragmentUi::update(const QRectF &rect)
 {
-    showImage = originalImage.scaledToWidth(int(originalImage.width() * scale));
+    QMatrix matrix;
+    matrix.rotate(this->rotateAng);
+    this->showImage = this->originalImage.transformed(matrix,Qt::FastTransformation);
+    showImage = this->showImage.scaledToWidth(int(originalImage.width() * scale));
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);
 }
@@ -52,35 +60,6 @@ void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsPixmapItem::mouseReleaseEvent(event);
 }
 
-void FragmentUi::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
-{
-    setCursor(Qt::ClosedHandCursor);
-    Q_UNUSED(event)
-    QGraphicsPixmapItem::mouseDoubleClickEvent(event);
-}
-
-void FragmentUi::dropEvent(QGraphicsSceneDragDropEvent *event)
-{
-    Q_UNUSED(event)
-    QGraphicsPixmapItem::dropEvent(event);
-}
-
-void FragmentUi::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
-{
-    event->accept();
-    QGraphicsPixmapItem::dragEnterEvent(event);
-}
-
-void FragmentUi::dragLeaveEvent(QGraphicsSceneDragDropEvent *event)
-{
-    QGraphicsPixmapItem::dragLeaveEvent(event);
-}
-
-void FragmentUi::dragMoveEvent(QGraphicsSceneDragDropEvent *event)
-{
-    QGraphicsPixmapItem::dragMoveEvent(event);
-}
-
 QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
 //    if (change == ItemPositionChange && scene()) {
@@ -98,8 +77,10 @@ QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const 
     return QGraphicsItem::itemChange(change, value);
 }
 
-void FragmentUi::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void FragmentUi::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
-    QGraphicsPixmapItem::mouseMoveEvent(event);
+    QMenu menu;
+    QAction *removeAction = menu.addAction("Remove");
+    QAction *selectedAction = menu.addAction("selected");
+    menu.exec(event->screenPos());
 }
-

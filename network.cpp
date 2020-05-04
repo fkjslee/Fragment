@@ -1,9 +1,9 @@
 #ifdef _WIN32
 #include "network.h"
+#include <WinSock2.h>
 #include <vector>
 #include <QtDebug>
-#include<netinet/in.h>
-//#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 const QString helloMsg = "client: \"ping...\"";
 const QString endMsg = "bye";

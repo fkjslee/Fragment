@@ -32,6 +32,7 @@ Desktop::Desktop(QWidget *parent) :
     ui->view->setWindowTitle("Desktop");
     ui->view->show();
     ui->view->setAcceptDrops(true);
+    this->hide();
 }
 
 void Desktop::update()
