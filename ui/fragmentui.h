@@ -5,6 +5,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <opencv2/opencv.hpp>
+#include <fragmentsscene.h>
 
 class Piece
 {
@@ -23,6 +24,10 @@ class FragmentUi : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
+
+signals:
+    void refreshHintWindow();
+
 public:
     FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
     const QImage &getOriginalImage() const
@@ -49,7 +54,6 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
 
 public:
     std::vector<FragmentUi *> undoFragments;

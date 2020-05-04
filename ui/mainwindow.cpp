@@ -14,13 +14,13 @@ MainWindow *MainWindow::mainWindow = nullptr;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    FragmentsController::getController()->createAllFragments("./MIT_1/");
     ui->setupUi(this);
+    FragmentsController::getController()->createAllFragments("./MIT_1/");
     fragCtrl = FragmentsController::getController();
-    connect(ui->desktop->getScene(), &EventGraphicsScene::removeFragment, ui->fragmentArea, &FragmentArea::update);
 
     createMenu();
     mainWindow = this;
+    update();
 }
 
 MainWindow::~MainWindow()
@@ -30,7 +30,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::update()
 {
-    ui->desktop->update();
+    ui->storeArea->update();
     ui->fragmentArea->update();
     on_imageSizeController_valueChanged(ui->imageSizeController->value());
     QMainWindow::update();
@@ -162,18 +162,5 @@ void MainWindow::triggerNew()
     fileDialog->setWindowTitle(tr("open file"));
     fileDialog->setDirectory("./");
     fileDialog->setFileMode(QFileDialog::Directory);
-//    fileDialog->setViewMode(QFileDialog::List);
-//    qDebug() << fileDialog->getExistingDirectory();
-//    FragmentsController::getController()->createAllFragments(fileDialog->getExistingDirectory());
-//    QStringList filter;
-//    filter << "Image files (*.png *.jpg)";
-//    qDebug() << filter;
-//    fileDialog->setNameFilters(filter);
-//    QStringList fileNames;
-//    if (fileDialog->exec())
-//    {
-//        fileNames = fileDialog->selectedFiles();
-//    }
-
 }
 

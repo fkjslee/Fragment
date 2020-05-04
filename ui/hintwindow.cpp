@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <network.h>
 
-
+HintWindow* HintWindow::hintWindow = nullptr;
 namespace {
 int getPieceID(std::vector<Piece> pieces, QString name) {
     for (int i = 0; i < (int)pieces.size(); ++i)
@@ -22,7 +22,8 @@ HintWindow::HintWindow(QWidget *parent) :
     ui(new Ui::HintWindow)
 {
     ui->setupUi(this);
-    scene = new EventGraphicsScene(EventGraphicsScene::hintArea);
+    hintWindow = this;
+    scene = new HintScene;
     ui->view->setScene(scene);
     scene->setBackgroundBrush(QColor(128, 128, 128));
     on_refreshBtn_clicked();
@@ -85,7 +86,7 @@ void HintWindow::getNewFragments()
                     HintFragment hintFrag;
                     hintFrag.thisFrag = f;
                     hintFrag.originFrag = anotherFragment;
-                    hintFrag.showFrag = new FragmentUi(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), anotherFragment->getFragmentName());
+                    hintFrag.showFrag = new FragmentUi(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName());
                     hintFrag.p1ID = p1;
                     hintFrag.p2ID = p2;
                     hintFrag.transMat = transMat.clone();
@@ -113,6 +114,7 @@ void HintWindow::setNewFragments()
 
 void HintWindow::on_refreshBtn_clicked()
 {
+    qInfo() << "refresh";
     deleteOldFragments();
     getNewFragments();
     setNewFragments();

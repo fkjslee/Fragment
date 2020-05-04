@@ -9,6 +9,7 @@
 #include <commands.h>
 #include <Tool.h>
 #include <CommonHeader.h>
+#include <ui/hintwindow.h>
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
@@ -20,6 +21,7 @@ FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalI
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable);
     setPixmap(QPixmap::fromImage(showImage));
     undoPos = QPoint(0, 0);
+    connect(this, &FragmentUi::refreshHintWindow, HintWindow::getHintWindow(), &HintWindow::on_refreshBtn_clicked);
 }
 
 void FragmentUi::scaledToWidth(const double scale)
@@ -46,10 +48,13 @@ void FragmentUi::update(const QRectF &rect)
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    qInfo() << "press";
     pressPos = pos();
     undoPos = pos().toPoint();
     setCursor(Qt::ClosedHandCursor);
     QGraphicsPixmapItem::mousePressEvent(event);
+    if (!fragmentName.startsWith("mirror"))
+        emit refreshHintWindow();
 }
 
 void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -77,10 +82,3 @@ QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const 
     return QGraphicsItem::itemChange(change, value);
 }
 
-void FragmentUi::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
-{
-    QMenu menu;
-    QAction *removeAction = menu.addAction("Remove");
-    QAction *selectedAction = menu.addAction("selected");
-    menu.exec(event->screenPos());
-}

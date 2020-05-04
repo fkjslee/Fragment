@@ -3,11 +3,11 @@
 
 #include <QWidget>
 #include <ui/fragmentui.h>
-#include "eventgraphicsscene.h"
 #include <QHBoxLayout>
 #include <QGraphicsView>
 #include <fragmentscontroller.h>
 #include <QUndoStack>
+#include <fragmentsscene.h>
 
 namespace Ui
 {
@@ -24,27 +24,27 @@ public:
     explicit FragmentArea(QWidget *parent = nullptr);
     ~FragmentArea();
     virtual void update();
+    static FragmentArea* getFragmentArea() {
+        return fragmentArea;
+    }
 
+    void updateFragmentsPos();
 
-private slots:
-    void fragmentsMoveEvents(QGraphicsSceneMouseEvent *event, QPoint biasPos);
-
+public slots:
     void on_btnJoint_clicked();
 
     void on_btnSplit_clicked();
 
-    void on_autoStitch_clicked();
-
-    void on_unSelect_clicked();
-
+private slots:
     void on_sldRotate_valueChanged(int value);
 
 private:
     Ui::FragmentArea *ui;
-    EventGraphicsScene *scene;
+    FragmentsScene *scene;
     std::vector<FragmentUi *> fragmentItems;
     FragmentsController *fragCtrl;
     QUndoStack *undoStack;
+    static FragmentArea* fragmentArea;
 };
 
 #endif // FRAGMENTAREA_H

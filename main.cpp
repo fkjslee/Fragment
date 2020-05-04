@@ -6,7 +6,7 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <ui//desktop.h>
+#include <ui//storearea.h>
 #include <QTranslator>
 #include <QJsonObject>
 #include <QJsonDocument>

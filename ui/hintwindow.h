@@ -2,8 +2,8 @@
 #define HINTWINDOW_H
 
 #include <QWidget>
-#include "eventgraphicsscene.h"
 #include "fragmentui.h"
+#include <hintscene.h>
 
 namespace Ui
 {
@@ -26,22 +26,26 @@ class HintWindow : public QWidget
 public:
     explicit HintWindow(QWidget *parent = nullptr);
     ~HintWindow();
+    static HintWindow* getHintWindow() {
+        return hintWindow;
+    }
 
 private:
     void deleteOldFragments();
     void getNewFragments();
     void setNewFragments();
 
-private slots:
-    void on_refreshBtn_clicked();
-
+public slots:
     void on_btnAutoJoint_clicked();
+
+    void on_refreshBtn_clicked();
 
 private:
     Ui::HintWindow *ui;
-    EventGraphicsScene *scene;
+    HintScene *scene;
     std::vector<HintFragment> hintFragments;
     std::vector<HintFragment> getSelecetHintFrags();
+    static HintWindow* hintWindow;
 };
 
 #endif // HINTWINDOW_H

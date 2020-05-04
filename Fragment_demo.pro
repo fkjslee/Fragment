@@ -18,9 +18,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     CommonHeader.cpp \
     commands.cpp \
+    fragmentsscene.cpp \
+    hintscene.cpp \
     network.cpp \
-    ui/desktop.cpp \
-    eventgraphicsscene.cpp \
+    storescene.cpp \
+    ui/storearea.cpp \
     ui/fragmentarea.cpp \
     fragmentscontroller.cpp \
     ui/fragmentui.cpp \
@@ -32,9 +34,11 @@ HEADERS += \
     CommonHeader.h \
     Tool.h \
     commands.h \
+    fragmentsscene.h \
+    hintscene.h \
     network.h \
-    ui/desktop.h \
-    eventgraphicsscene.h \
+    storescene.h \
+    ui/storearea.h \
     ui/fragmentarea.h \
     fragmentscontroller.h \
     ui/fragmentui.h \
@@ -42,7 +46,7 @@ HEADERS += \
     ui/mainwindow.h
 
 FORMS += \
-    ui/desktop.ui \
+    ui/storearea.ui \
     ui/fragmentarea.ui \
     ui/hintwindow.ui \
     ui/mainwindow.ui

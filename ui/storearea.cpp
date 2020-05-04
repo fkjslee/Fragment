@@ -1,6 +1,6 @@
 #include <QtDebug>
-#include "desktop.h"
-#include "ui_desktop.h"
+#include "storearea.h"
+#include "ui_storearea.h"
 #include <QLabel>
 #include <QGraphicsItem>
 #include <ui/fragmentui.h>
@@ -12,12 +12,12 @@ namespace
     using namespace cv;
 }
 
-Desktop::Desktop(QWidget *parent) :
+StoreArea::StoreArea(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Desktop)
+    ui(new Ui::StoreArea)
 {
     ui->setupUi(this);
-    scene = new EventGraphicsScene(EventGraphicsScene::SceneType::desktop);
+    scene = new storeScene();
 
     fragCtrl = FragmentsController::getController();
     int i = 0;
@@ -32,12 +32,11 @@ Desktop::Desktop(QWidget *parent) :
     ui->view->setWindowTitle("Desktop");
     ui->view->show();
     ui->view->setAcceptDrops(true);
-    this->hide();
 }
 
-void Desktop::update()
+void StoreArea::update()
 {
-    qDebug() << "update desktop area";
+    qDebug() << "update store area";
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
@@ -54,18 +53,13 @@ void Desktop::update()
     QApplication::processEvents();
 }
 
-void Desktop::dropEvent(QDropEvent *event)
+void StoreArea::dropEvent(QDropEvent *event)
 {
     Q_UNUSED(event)
 }
 
-Desktop::~Desktop()
+StoreArea::~StoreArea()
 {
     delete ui;
     delete scene;
-}
-
-void Desktop::on_btnSelect_clicked()
-{
-    FragmentsController::getController()->selectFragment();
 }

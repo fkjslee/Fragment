@@ -12,7 +12,7 @@ class FragmentArea;
 class MainWindow;
 
 
-class FragmentsController
+class FragmentsController : public QObject
 {
 public:
     void createAllFragments(const QString &fragmentsPath);
@@ -24,6 +24,8 @@ public:
     FragmentUi* findFragmentByName(const QString& name);
     bool jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat& transMat);
     void selectFragment();
+
+public slots:
     void unSelectFragment();
 
 private:

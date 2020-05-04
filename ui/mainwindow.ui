@@ -20,14 +20,14 @@
    <property name="styleSheet">
     <string notr="true">b</string>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="60,5,30">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="618,382">
       <item>
        <widget class="FragmentArea" name="fragmentArea" native="true"/>
       </item>
       <item>
-       <widget class="Desktop" name="desktop" native="true"/>
+       <widget class="StoreArea" name="storeArea" native="true"/>
       </item>
      </layout>
     </item>
@@ -43,15 +43,12 @@
        <number>1</number>
       </property>
       <property name="value">
-       <number>100</number>
+       <number>50</number>
       </property>
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
      </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout"/>
     </item>
     <item>
      <widget class="HintWindow" name="hintWindow" native="true"/>
@@ -64,19 +61,13 @@
      <x>0</x>
      <y>0</y>
      <width>1021</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>Desktop</class>
-   <extends>QWidget</extends>
-   <header>ui/desktop.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>FragmentArea</class>
    <extends>QWidget</extends>
@@ -87,6 +78,12 @@
    <class>HintWindow</class>
    <extends>QWidget</extends>
    <header>ui/hintwindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>StoreArea</class>
+   <extends>QWidget</extends>
+   <header>ui/storearea.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

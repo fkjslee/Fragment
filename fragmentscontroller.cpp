@@ -67,6 +67,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("%1").arg(i)));
         ++i;
     }
+    FragmentArea::getFragmentArea()->updateFragmentsPos();
 }
 
 FragmentsController *FragmentsController::getController()
@@ -199,7 +200,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     undoFragments.push_back(f2);
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
-    qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName << (int)newFragment;
+    qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName;
 //    qInfo() << "p2 = ";
 //    for (Piece p : newFragment->getPieces()) {
 //        qInfo() << p.pieceName;
