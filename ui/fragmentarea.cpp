@@ -97,17 +97,29 @@ void FragmentArea::on_btnJoint_clicked()
     {
         FragmentUi *f1 = jointFragments[0];
         FragmentUi *f2 = jointFragments[1];
-        auto p = f1;
-        f1 = f2;
-        f2 = p;
-        QString res = Network::sendMsg("b " + f1->getFragmentName() + " " + f2->getFragmentName());
-        if (res[0] > '9' || res[0] < '0') {
-            QMessageBox::warning(nullptr, QObject::tr("joint error"), res,
-                                  QMessageBox::Cancel);
-            return;
+
+        auto p1s = f1->getPieces();
+        auto p2s = f2->getPieces();
+
+        bool jointSucc = false;
+        for (int i = 0; i < (int)p1s.size(); ++i) {
+            for (int j = 0;  j< (int)p2s.size(); ++j) {
+                Piece p1 = p1s[i];
+                Piece p2 = p2s[i];
+                QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
+                cv::Mat transMat = Tool::str2TransMat(res);
+                if (transMat.rows != 0) {
+                    fragCtrl->jointFragment(f1, i, f2, j, transMat);
+                    jointSucc = true;
+                    break;
+                }
+            }
+            if (jointSucc) break;
         }
-        cv::Mat transMat = Tool::str2TransMat(res);
-        fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
+        if (!jointSucc) {
+            QMessageBox::warning(nullptr, QObject::tr("joint error"), "These two fragments are not aligned.",
+                                  QMessageBox::Cancel);
+        }
     }
     update();
 }

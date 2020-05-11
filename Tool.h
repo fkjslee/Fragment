@@ -88,7 +88,7 @@ public:
 
     static cv::Mat str2TransMat(QString src) {
         cv::Mat dst(3, 3, CV_32FC1);
-        if (src == "-1") {
+        if (src == "-1" || src == "These two fragments are not aligned.") {
             return cv::Mat(0, 0, CV_32FC1);
         }
         src.replace("[", "");
