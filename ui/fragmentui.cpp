@@ -48,7 +48,6 @@ void FragmentUi::update(const QRectF &rect)
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qInfo() << "press";
     pressPos = pos();
     undoPos = pos().toPoint();
     setCursor(Qt::ClosedHandCursor);

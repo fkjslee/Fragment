@@ -123,7 +123,6 @@ void FragmentArea::on_sldRotate_valueChanged(int value)
     FragmentsController* ctrller = FragmentsController::getController();
     for (FragmentUi* f : ctrller->getUnsortedFragments()) {
         if (f->isSelected()) {
-            qInfo() << "value = " << value;
             f->rotate(value);
         }
     }

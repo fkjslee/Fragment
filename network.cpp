@@ -31,6 +31,8 @@ QString Network::sendMsg(const QString &msg)
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     SOCKET sock = socket(PF_INET, SOCK_STREAM, 0);
+//    int nNetTimeout = 10000;
+//    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, ( char * )&nNetTimeout, sizeof(int));
 
     sockaddr_in sockAddr = initSockAddr("166.111.139.116", 12345);
     connect(sock, reinterpret_cast<SOCKADDR *>(&sockAddr), sizeof(SOCKADDR));
@@ -39,7 +41,6 @@ QString Network::sendMsg(const QString &msg)
     recv(sock, szBuffer, 2000, NULL);
 
     std::vector<QString> sendMsgs;
-//    sendMsgs.push_back(helloMsg);
     sendMsgs.push_back(msg);
     sendMsgs.push_back(endMsg);
     QString res;

@@ -9,6 +9,7 @@
 #include <QUndoStack>
 #include "opencv2/imgcodecs/legacy/constants_c.h"
 #include <opencv2/imgproc/types_c.h>
+#include <math.h>
 
 #define INFINITE 0x3f3f3f3f
 
@@ -25,6 +26,44 @@ public:
     static QString jsonObjToString(const QJsonObject &json)
     {
         return QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
+    }
+
+    static void showMat(const cv::Mat& src) {
+        if (src.type() != CV_32FC1) std::cout << "wrong type ";
+        else if (src.rows * src.cols != 9) std::cout << "wrong size";
+        else {
+            for (int i = 0; i < src.rows; ++i) {
+                for (int j = 0; j < src.cols; ++j)
+                    std::cout << src.at<float>(i, j) << '\t';
+                std::cout << std::endl;
+            }
+        }
+    }
+
+    static cv::Mat getFirst2RowsMat(const cv::Mat& src) {
+        if (src.type() != CV_32FC1) return cv::Mat(0, 0, CV_32FC1);
+        if (src.size() != cv::Size(3, 3)) return cv::Mat(0, 0, CV_32FC1);
+        if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1 > 1e-7))
+            return cv::Mat(0, 0, CV_32FC1);
+        cv::Mat dst(2, 3, CV_32FC1);
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 3; ++j)
+                dst.at<float>(i, j) = src.at<float>(i, j);
+        }
+        return dst;
+    }
+
+    static cv::Mat getFirst3RowsMat(const cv::Mat& src) {
+        if (src.type() != CV_32FC1) return cv::Mat(0, 0, CV_32FC1);
+        if (src.size() != cv::Size(2, 3)) return cv::Mat(0, 0, CV_32FC1);
+        cv::Mat dst(3, 3, CV_32FC1);
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 3; ++j)
+                dst.at<float>(i, j) = src.at<float>(i, j);
+        }
+        dst.at<float>(2, 0) = dst.at<float>(2, 1) = 0;
+        dst.at<float>(2, 2) = 1.0;
+        return dst;
     }
 
     static QJsonObject stringToJsonObj(const QString &str)

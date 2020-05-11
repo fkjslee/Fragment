@@ -114,7 +114,6 @@ void HintWindow::setNewFragments()
 
 void HintWindow::on_refreshBtn_clicked()
 {
-    qInfo() << "refresh";
     deleteOldFragments();
     getNewFragments();
     setNewFragments();
