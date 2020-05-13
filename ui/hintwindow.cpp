@@ -131,6 +131,7 @@ void HintWindow::on_btnAutoJoint_clicked()
     }
     HintFragment selectFrag = selectHintFrags[0];
     fragCtrl->jointFragment(selectFrag.thisFrag, selectFrag.p1ID, selectFrag.originFrag, selectFrag.p2ID, selectFrag.transMat);
+    on_refreshBtn_clicked();
 }
 
 std::vector<HintFragment> HintWindow::getSelecetHintFrags()

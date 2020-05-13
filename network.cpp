@@ -59,7 +59,7 @@ QString Network::sendMsg(const QString &msg)
         res = szBuffer;
     }
 
-    qInfo() << "server return msg : " << res;
+    qInfo() << "server return msg : " << res.replace("/n", "");
     closesocket(sock);
     WSACleanup();
     return res;

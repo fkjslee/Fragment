@@ -7,6 +7,7 @@
 #include <ui/fragmentarea.h>
 #include <ui/mainwindow.h>
 #include <opencv2/opencv.hpp>
+#include <Python.h>
 
 class FragmentArea;
 class MainWindow;
@@ -30,9 +31,11 @@ public slots:
 
 private:
     FragmentsController();
+    void initPython();
 
 private:
     static FragmentsController *controller;
+    PyObject* funcFusionImage;
 
     std::vector<FragmentUi *> sortedFragments;
     std::vector<FragmentUi *> unsortedFragments;

@@ -105,7 +105,7 @@ void FragmentArea::on_btnJoint_clicked()
         for (int i = 0; i < (int)p1s.size(); ++i) {
             for (int j = 0;  j< (int)p2s.size(); ++j) {
                 Piece p1 = p1s[i];
-                Piece p2 = p2s[i];
+                Piece p2 = p2s[j];
                 QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
                 cv::Mat transMat = Tool::str2TransMat(res);
                 if (transMat.rows != 0) {

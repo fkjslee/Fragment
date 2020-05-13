@@ -40,7 +40,7 @@ void FragmentUi::update(const QRectF &rect)
 {
     QMatrix matrix;
     matrix.rotate(this->rotateAng);
-    this->showImage = this->originalImage.transformed(matrix,Qt::FastTransformation);
+    this->showImage = this->originalImage.transformed(matrix,Qt::SmoothTransformation);
     showImage = this->showImage.scaledToWidth(int(originalImage.width() * scale));
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);

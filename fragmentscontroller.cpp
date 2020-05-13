@@ -5,12 +5,12 @@
 #include <CommonHeader.h>
 #pragma push_macro("slots")
 #undef slots
-#include <Python.h>
 #pragma pop_macro("slots")
 #include <ctime>
 #include <complex>
 #include <numpy/arrayobject.h>
 #define NO_IMPOET_ARRAY
+#include <qrgb.h>
 
 namespace
 {
@@ -50,9 +50,10 @@ cv::Mat pyObject2Mat(PyObject* obj, int type) {
 FragmentsController *FragmentsController::controller = nullptr;
 FragmentsController::FragmentsController()
 {
+    initPython();
 }
 
-void FragmentsController::createAllFragments(const QString &fragmentsPath)
+void FragmentsController::initPython()
 {
     Py_Initialize();
     import_array();
@@ -63,6 +64,21 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     }
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("sys.path.append('./')");
+    static PyObject* pModule = PyImport_ImportModule("FusionImage");
+    if (!pModule) {
+        qCritical() << ("Cant open python file!\n");
+        return;
+    }
+
+    funcFusionImage= PyObject_GetAttrString(pModule,"callFusionImage");
+    if(!funcFusionImage){
+        qCritical() << "Get function failed" << endl;
+        return;
+    }
+}
+
+void FragmentsController::createAllFragments(const QString &fragmentsPath)
+{
     qInfo() << "createAllFragments " << fragmentsPath;
     QDir dir(fragmentsPath);
     QStringList filter;
@@ -73,7 +89,10 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     {
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
-        unsortedFragments.emplace_back(new FragmentUi(vec, QImage(dir.absolutePath() + "/" + fileName), QString("%1").arg(i)));
+        QImage img(dir.absolutePath() + "/" + fileName);
+        auto mask = img.createMaskFromColor(qRgb(248, 8, 232), Qt::MaskMode::MaskOutColor);
+        img.setAlphaChannel(mask);
+        unsortedFragments.emplace_back(new FragmentUi(vec, img, QString("%1").arg(i)));
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();
@@ -99,7 +118,10 @@ bool FragmentsController::splitSelectedFragments()
             piece.offsetMat = cv::Mat::eye(3, 3, CV_32FC1);
             std::vector<Piece> vec;
             vec.push_back(piece);
-            FragmentUi *newSplitFragment = new FragmentUi(vec, QImage(piece.piecePath), piece.pieceName);
+            QImage img(piece.piecePath);
+            auto mask = img.createMaskFromColor(qRgb(248, 8, 232), Qt::MaskMode::MaskOutColor);
+            img.setAlphaChannel(mask);
+            FragmentUi *newSplitFragment = new FragmentUi(vec, img, piece.pieceName);
             redoFragments.emplace_back(newSplitFragment);
         }
         undoFragments.emplace_back(splitFragment);
@@ -147,25 +169,11 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
 {
     const Piece p1 = f1->getPieces()[piece1ID];
     const Piece p2 = f2->getPieces()[piece2ID];
-    const cv::Mat p1offsetMat = p1.offsetMat.clone();
-    const cv::Mat p2offsetMat = p2.offsetMat.clone();
     const cv::Mat p1transMat = p1.transMat.clone();
     const cv::Mat p2transMat = p2.transMat.clone();
-    const cv::Mat p2transInv = p2.transMat.clone();
-    const cv::Mat p2offsetInv = p2.offsetMat.clone();
+    cv::Mat p2transInv = p2.transMat.clone();
+    cv::Mat p2offsetInv = p2.offsetMat.clone();
     cv::invert(p2transMat, p2transInv);
-    cv::invert(p2offsetMat, p2offsetInv);
-    static PyObject* pModule = PyImport_ImportModule("FusionImage");
-    if (!pModule) {
-        qCritical() << ("Cant open python file!\n");
-        return 1;
-    }
-
-    static PyObject* funcFusionImage= PyObject_GetAttrString(pModule,"callFusionImage");
-    if(!funcFusionImage){
-        qCritical() << "Get function failed" << endl;
-        return 0;
-    }
 
     cv::Mat src = Tool::QImageToMat(f1->getOriginalImage()); // 8UC4
     cv::Mat dst = Tool::QImageToMat(f2->getOriginalImage());
@@ -173,10 +181,9 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     PyObject* matArg = PyTuple_New(3);
     PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
     PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
-    qInfo() << "f1.size = " << f1->getPieces().size();
-    Tool::showMat(p1.transMat);
-    Tool::showMat(p2transMat);
-    const Mat finalTransMat = p1offsetMat * p1transMat * originTransMat * p2transInv * p2offsetInv;
+    qInfo() << "p1 trans mat";
+    Tool::showMat(p1transMat);
+    const Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
     PyTuple_SetItem(matArg, 2, mat32FC12numpy(finalTransMat));
 
     qInfo() << "run python FusionImage";
@@ -197,24 +204,13 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
 
     std::vector<Piece> pieces;
     for (Piece p : f1->getPieces()) {
-        p.offsetMat = p1offsetMat * offsetMat;
-        p.offsetMatPath = p1.offsetMatPath + " " + p1.pieceName + "_" + p2.pieceName + " ";
+        p.transMat = offsetMat * p.transMat;
         pieces.emplace_back(p);
     }
     for (Piece p : f2->getPieces()) {
-        p.offsetMat = p1offsetMat * offsetMat;
-        p.transMat = p2transMat * p1transMat * originTransMat;
-        p.transMatPath = p1.transMatPath + " " + p1.pieceName + "_" + p2.pieceName + " ";
-        p.offsetMatPath = p1.offsetMatPath + " " + p1.pieceName + "_" + p2.pieceName + " ";
+        p.transMat = offsetMat * finalTransMat * p.transMat;
         pieces.emplace_back(p);
     }
-    for (Piece p : pieces) {
-        if (p.pieceName == "1") {
-            qInfo() << "trans 1";
-            Tool::showMat(p.transMat);
-        }
-    }
-    Tool::showMat(originTransMat);
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(jointImg)), f1->getFragmentName() + " " + f2->getFragmentName());
     newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
     newFragment->undoFragments.push_back(f1);
@@ -227,6 +223,8 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName;
     qInfo() << "transMatpath p1 = " << p1.transMatPath << "  offsetMatPath p1 = " << p1.offsetMatPath;
     qInfo() << "transMatpath p2 = " << p2.transMatPath << "  offsetMatPath p2 = " << p2.offsetMatPath;
+    qInfo() << "offset mat:";
+    Tool::showMat(offsetMat);
     return true;
 }
 
