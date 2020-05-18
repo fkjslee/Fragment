@@ -26,6 +26,7 @@ public:
     ~MainWindow() override;
     static MainWindow *mainWindow;
     void update();
+    int getZoomSize();
 
 protected:
     void wheelEvent(QWheelEvent* event) override;

@@ -29,6 +29,7 @@ public:
     }
 
     void updateFragmentsPos();
+    void setRotateAng(int value);
 
 public slots:
     void on_btnJoint_clicked();
@@ -37,6 +38,11 @@ public slots:
 
 private slots:
     void on_sldRotate_valueChanged(int value);
+
+    void on_btnJointForce_clicked();
+
+private:
+    bool jointCheck();
 
 private:
     Ui::FragmentArea *ui;

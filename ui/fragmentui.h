@@ -13,13 +13,11 @@ public:
     Piece(const QString &piecePath, const QString &pieceName, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1), const cv::Mat &offsetMat = cv::Mat::eye(3, 3, CV_32FC1))
         : piecePath(piecePath), pieceName(pieceName) {
         this->transMat = transMat.clone();
-        this->offsetMat = offsetMat.clone();
     }
 public:
     QString piecePath;
     QString pieceName;
     cv::Mat transMat;
-    cv::Mat offsetMat;
     QString transMatPath = "";
     QString offsetMatPath = "";
 };
@@ -51,7 +49,10 @@ public:
     {
         return pieces;
     }
-    void rotate(double ang);
+    void setPiece(const std::vector<Piece>& pieces) {
+        this->pieces = pieces;
+    }
+    void rotate(int ang);
     void update(const QRectF &rect = QRectF());
 
 protected:
@@ -60,7 +61,8 @@ protected:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 public:
-    std::vector<FragmentUi *> undoFragments;
+    std::vector<const FragmentUi*> undoFragments;
+    int rotateAng = 0;
 
 private:
     static FragmentUi *draggingItem;
@@ -72,7 +74,6 @@ private:
     QPoint undoPos;
     QPointF pressPos;
     double scale = 1.0;
-    double rotateAng = 0;
 };
 
 #endif // FRAGMENTUI_H

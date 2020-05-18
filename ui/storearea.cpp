@@ -36,7 +36,7 @@ StoreArea::StoreArea(QWidget *parent) :
 
 void StoreArea::update()
 {
-    qDebug() << "update store area";
+    qInfo() << "update store area";
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);

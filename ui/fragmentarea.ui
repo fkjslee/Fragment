@@ -55,6 +55,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btnJointForce">
+       <property name="text">
+        <string>强制拼接</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QLabel" name="label">

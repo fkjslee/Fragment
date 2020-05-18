@@ -9,7 +9,9 @@
 #include <commands.h>
 #include <Tool.h>
 #include <CommonHeader.h>
+#include <opencv2/opencv.hpp>
 #include <ui/hintwindow.h>
+#include <qrgb.h>
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
@@ -30,7 +32,7 @@ void FragmentUi::scaledToWidth(const double scale)
     update();
 }
 
-void FragmentUi::rotate(double ang)
+void FragmentUi::rotate(int ang)
 {
     this->rotateAng = ang;
     update();
@@ -38,16 +40,20 @@ void FragmentUi::rotate(double ang)
 
 void FragmentUi::update(const QRectF &rect)
 {
-    QMatrix matrix;
-    matrix.rotate(this->rotateAng);
-    this->showImage = this->originalImage.transformed(matrix,Qt::SmoothTransformation);
+    cv::Mat img = Tool::QImageToMat(this->originalImage).clone();
+    cv::Mat rotateMat = Tool::getRotationMatrix(img.rows/2.0, img.cols/2.0, Tool::angToRad(this->rotateAng));
+    cv::warpAffine(img, img, Tool::getOpencvMat(rotateMat), img.size());
+    showImage = Tool::MatToQImage(img);
     showImage = this->showImage.scaledToWidth(int(originalImage.width() * scale));
+    auto mask = showImage.createMaskFromColor(qRgb(0, 0, 0), Qt::MaskMode::MaskOutColor);
+    showImage.setAlphaChannel(mask);
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);
 }
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+//    FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
     pressPos = pos();
     undoPos = pos().toPoint();
     setCursor(Qt::ClosedHandCursor);
@@ -66,18 +72,6 @@ void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
-//    if (change == ItemPositionChange && scene()) {
-//        // value is the new position.
-
-//        QPointF newPos = value.toPointF();
-//        QRectF rect = scene()->sceneRect();
-//        if (!rect.contains(newPos)) {
-//            // Keep the item inside the scene rect.
-//            newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
-//            newPos.setY(qMin(rect.bottom(), qMax(newPos.y(), rect.top())));
-//            return newPos;
-//        }
-//    }
     return QGraphicsItem::itemChange(change, value);
 }
 

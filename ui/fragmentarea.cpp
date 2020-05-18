@@ -40,11 +40,10 @@ FragmentArea::~FragmentArea()
 
 void FragmentArea::update()
 {
-    qDebug() << "update fragment area";
+    qInfo() << "update fragment area";
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
-//        qInfo() << "pos = " << fragment->getFragmentName() << " " << fragment->pos();
     }
     fragmentItems.clear();
 
@@ -62,7 +61,6 @@ void FragmentArea::update()
 void FragmentArea::updateFragmentsPos()
 {
     QRect windowRect = this->rect();
-    qInfo() << "rect = " << windowRect;
     int i = 0;
     int N = (int)fragCtrl->getUnsortedFragments().size();
     for (FragmentUi *fragment : fragCtrl->getUnsortedFragments())
@@ -75,51 +73,39 @@ void FragmentArea::updateFragmentsPos()
     }
 }
 
+void FragmentArea::setRotateAng(int value)
+{
+    ui->sldRotate->setValue(value);
+}
+
 void FragmentArea::on_btnJoint_clicked()
 {
     std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
-    if (jointFragments.size() != 2)
-    {
-        QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("please choose two fragments to joint"),
-                              QMessageBox::Cancel);
-        return;
-    }
-    for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
-    {
-        if (f == jointFragments[0] || f == jointFragments[1])
-        {
-            QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("fragments only can be joint in joint area"),
-                                  QMessageBox::Cancel);
-            return;
-        }
-    }
-    if (jointFragments.size() == 2)
-    {
-        FragmentUi *f1 = jointFragments[0];
-        FragmentUi *f2 = jointFragments[1];
+    if (jointCheck() == false) return;
+    FragmentUi *f1 = jointFragments[0];
+    FragmentUi *f2 = jointFragments[1];
 
-        auto p1s = f1->getPieces();
-        auto p2s = f2->getPieces();
+    auto p1s = f1->getPieces();
+    auto p2s = f2->getPieces();
 
-        bool jointSucc = false;
-        for (int i = 0; i < (int)p1s.size(); ++i) {
-            for (int j = 0;  j< (int)p2s.size(); ++j) {
-                Piece p1 = p1s[i];
-                Piece p2 = p2s[j];
-                QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
-                cv::Mat transMat = Tool::str2TransMat(res);
-                if (transMat.rows != 0) {
-                    fragCtrl->jointFragment(f1, i, f2, j, transMat);
-                    jointSucc = true;
-                    break;
-                }
+    bool jointSucc = false;
+    for (int i = 0; i < (int)p1s.size(); ++i) {
+        for (int j = 0;  j< (int)p2s.size(); ++j) {
+            Piece p1 = p1s[i];
+            Piece p2 = p2s[j];
+            QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
+            cv::Mat transMat = Tool::str2TransMat(res);
+            if (transMat.rows != 0) {
+                fragCtrl->jointFragment(f1, i, f2, j, transMat);
+                jointSucc = true;
+                break;
             }
-            if (jointSucc) break;
         }
-        if (!jointSucc) {
-            QMessageBox::warning(nullptr, QObject::tr("joint error"), "These two fragments are not aligned.",
-                                  QMessageBox::Cancel);
-        }
+        if (jointSucc) break;
+    }
+    if (!jointSucc) {
+        QMessageBox::warning(nullptr, QObject::tr("joint error"), "These two fragments are not aligned.",
+                              QMessageBox::Cancel);
     }
     update();
 }
@@ -139,4 +125,50 @@ void FragmentArea::on_sldRotate_valueChanged(int value)
         }
     }
     update();
+}
+
+void FragmentArea::on_btnJointForce_clicked()
+{
+    if (jointCheck() == false) return;
+    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    FragmentUi *f1 = jointFragments[0];
+    FragmentUi *f2 = jointFragments[1];
+
+    cv::Mat img1 = Tool::QImageToMat(f1->getOriginalImage()).clone();
+    cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.rows/2.0, img1.cols/2.0, Tool::angToRad(f1->rotateAng));
+    cv::Mat rot1Inv = Tool::getFirst3RowsMat(rotateMat1).clone();
+    cv::invert(rot1Inv, rot1Inv);
+
+    cv::Mat img2 = Tool::QImageToMat(f2->getOriginalImage()).clone();
+    cv::Mat rotateMat2 = Tool::getRotationMatrix(img2.rows/2.0, img2.cols/2.0, Tool::angToRad(f2->rotateAng));
+
+    QPointF movePos = f2->scenePos() - f1->scenePos();
+    cv::Mat transMat = cv::Mat::eye(2, 3, CV_32FC1);
+    transMat.at<float>(0, 2) = movePos.y() * (100.0 / MainWindow::mainWindow->getZoomSize());
+    transMat.at<float>(1, 2) = movePos.x() * (100.0 / MainWindow::mainWindow->getZoomSize());
+    cv::Mat trans1Inv = f1->getPieces()[0].transMat.clone();
+    cv::invert(trans1Inv, trans1Inv);
+    transMat = rot1Inv * trans1Inv * Tool::getFirst3RowsMat(transMat) * Tool::getFirst3RowsMat(rotateMat2) * f2->getPieces()[0].transMat;
+    fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
+}
+
+bool FragmentArea::jointCheck()
+{
+    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    if (jointFragments.size() != 2)
+    {
+        QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("please choose two fragments to joint"),
+                              QMessageBox::Cancel);
+        return false;
+    }
+    for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
+    {
+        if (f == jointFragments[0] || f == jointFragments[1])
+        {
+            QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("fragments only can be joint in joint area"),
+                                  QMessageBox::Cancel);
+            return false;
+        }
+    }
+    return true;
 }

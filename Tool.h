@@ -12,6 +12,8 @@
 #include <math.h>
 #include <qrgb.h>
 
+#define _USE_MATH_DEFINES
+
 #define INFINITE 0x3f3f3f3f
 
 using std::vector;
@@ -30,7 +32,7 @@ public:
     }
 
     static void showMat(const cv::Mat& src) {
-        if (src.type() != CV_32FC1) std::cout << "wrong type " << std::endl;
+        if (src.type() != CV_32FC1 && src.type() != CV_64FC1) std::cout << "wrong type " << std::endl;
         else if (src.rows * src.cols != 9 && src.rows * src.cols != 6) std::cout << "wrong size" << std::endl;
         else {
             for (int i = 0; i < src.rows; ++i) {
@@ -43,7 +45,7 @@ public:
     }
 
     static cv::Mat getFirst2RowsMat(const cv::Mat& src) {
-        if (src.type() != CV_32FC1) return cv::Mat(0, 0, CV_32FC1);
+        if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
         if (src.size() != cv::Size(3, 3)) return cv::Mat(0, 0, CV_32FC1);
         if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1 > 1e-7))
             return cv::Mat(0, 0, CV_32FC1);
@@ -56,8 +58,8 @@ public:
     }
 
     static cv::Mat getFirst3RowsMat(const cv::Mat& src) {
-        if (src.type() != CV_32FC1) return cv::Mat(0, 0, CV_32FC1);
-        if (src.size() != cv::Size(2, 3)) return cv::Mat(0, 0, CV_32FC1);
+        if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
+        if (src.size() != cv::Size(3, 2)) return cv::Mat(0, 0, CV_32FC1);
         cv::Mat dst(3, 3, CV_32FC1);
         for (int i = 0; i < 2; ++i) {
             for (int j = 0; j < 3; ++j)
@@ -130,7 +132,7 @@ public:
             default:
                 ;
         }
-        return mat;
+        return mat.clone();
     }
 
     static cv::Mat Mat8UC4To8UC3(const cv::Mat& src) {
@@ -199,6 +201,45 @@ public:
             qCritical() << "ERROR: Mat could not be converted to QImage.";
             return QImage();
         }
+    }
+
+    static float angToRad(int ang) {
+        return 1.0 * ang / 180.0 * 3.141592653;
+    }
+
+    // cv::getRotationMatrix2D may get singular matrix
+    static cv::Mat getRotationMatrix(float x, float y, float rad) {
+//        cv::Mat res = cv::Mat::eye(2, 3, CV_32FC1);
+//        double alpha = std::cos(rad);
+//        double beta = std::sin(rad);
+//        res.at<float>(0, 0) = alpha;
+//        res.at<float>(0, 1) = beta;
+//        res.at<float>(0, 2) = (1-alpha) * pt.width - pt.height * beta;
+//        res.at<float>(1, 0) = -beta;
+//        res.at<float>(1, 1) = alpha;
+//        res.at<float>(1, 2) = pt.width * beta + (1-alpha) * pt.height;
+        cv::Mat move = cv::Mat::eye(3, 3, CV_32FC1);
+        move.at<float>(0, 2) = y;
+        move.at<float>(1, 2) = x;
+        cv::Mat rotate = cv::Mat::eye(3, 3, CV_32FC1);
+        rotate.at<float>(0, 0) = std::cos(rad);
+        rotate.at<float>(0, 1) = -std::sin(rad);
+        rotate.at<float>(1, 0) = std::sin(rad);
+        rotate.at<float>(1, 1) = std::cos(rad);
+        cv::Mat moveInv = move.clone();
+        cv::invert(moveInv, moveInv);
+        return getFirst2RowsMat(move * rotate * moveInv).clone();
+    }
+
+    static cv::Mat getOpencvMat(const cv::Mat src) {
+        cv::Mat dst = cv::Mat::eye(2, 3, CV_32FC1);
+        dst.at<float>(0, 0) = src.at<float>(0, 0);
+        dst.at<float>(0, 1) = src.at<float>(1, 0);
+        dst.at<float>(0, 2) = src.at<float>(1, 2);
+        dst.at<float>(1, 0) = src.at<float>(0, 1);
+        dst.at<float>(1, 1) = src.at<float>(1, 1);
+        dst.at<float>(1, 2) = src.at<float>(0, 2);
+        return dst.clone();
     }
 
     template<typename T>

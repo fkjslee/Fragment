@@ -30,10 +30,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::update()
 {
+    on_imageSizeController_valueChanged(ui->imageSizeController->value());
     ui->storeArea->update();
     ui->fragmentArea->update();
-    on_imageSizeController_valueChanged(ui->imageSizeController->value());
     QMainWindow::update();
+}
+
+int MainWindow::getZoomSize()
+{
+    return ui->imageSizeController->value();
 }
 
 void MainWindow::wheelEvent(QWheelEvent *event)
@@ -158,9 +163,6 @@ void MainWindow::changeLanguage(QString language)
 
 void MainWindow::triggerNew()
 {
-    QFileDialog *fileDialog = new QFileDialog(this);
-    fileDialog->setWindowTitle(tr("open file"));
-    fileDialog->setDirectory("./");
-    fileDialog->setFileMode(QFileDialog::Directory);
+    FragmentsController::getController()->createAllFragments(QFileDialog::getExistingDirectory());
 }
 

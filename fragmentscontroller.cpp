@@ -77,8 +77,28 @@ void FragmentsController::initPython()
     }
 }
 
+void FragmentsController::initBgColor(const QString& fragmentPath)
+{
+    const QString& path = fragmentPath + QDir::separator() + "bg_color.txt";
+    QFile bgColorFile(path);
+    bgColorFile.open(QIODevice::ReadOnly);
+    const QString& bgColorStr = QString(bgColorFile.readAll());
+    QStringList colors = bgColorStr.split(" ");
+    bgColor = qRgb(colors[0].toInt(), colors[1].toInt(), colors[2].toInt());
+}
+
+void FragmentsController::clearAllFrgments()
+{
+    sortedFragments.clear();
+    unsortedFragments.clear();
+    if (MainWindow::mainWindow)
+        MainWindow::mainWindow->update();
+}
+
 void FragmentsController::createAllFragments(const QString &fragmentsPath)
 {
+    clearAllFrgments();
+    initBgColor(fragmentsPath);
     qInfo() << "createAllFragments " << fragmentsPath;
     QDir dir(fragmentsPath);
     QStringList filter;
@@ -90,7 +110,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
         QImage img(dir.absolutePath() + "/" + fileName);
-        auto mask = img.createMaskFromColor(qRgb(248, 8, 232), Qt::MaskMode::MaskOutColor);
+        auto mask = img.createMaskFromColor(bgColor, Qt::MaskMode::MaskOutColor);
         img.setAlphaChannel(mask);
         unsortedFragments.emplace_back(new FragmentUi(vec, img, QString("%1").arg(i)));
         ++i;
@@ -112,16 +132,16 @@ bool FragmentsController::splitSelectedFragments()
     std::vector<FragmentUi *> undoFragments;
     for (FragmentUi *splitFragment : getSelectedFragments())
     {
-        for (Piece piece : splitFragment->getPieces())
+        for (Piece oldP : splitFragment->getPieces())
         {
-            piece.transMat = cv::Mat::eye(3, 3, CV_32FC1);
-            piece.offsetMat = cv::Mat::eye(3, 3, CV_32FC1);
+            Piece newP = oldP;
+            newP.transMat = cv::Mat::eye(3, 3, CV_32FC1);
             std::vector<Piece> vec;
-            vec.push_back(piece);
-            QImage img(piece.piecePath);
-            auto mask = img.createMaskFromColor(qRgb(248, 8, 232), Qt::MaskMode::MaskOutColor);
+            vec.push_back(newP);
+            QImage img(newP.piecePath);
+            auto mask = img.createMaskFromColor(bgColor, Qt::MaskMode::MaskOutColor);
             img.setAlphaChannel(mask);
-            FragmentUi *newSplitFragment = new FragmentUi(vec, img, piece.pieceName);
+            FragmentUi *newSplitFragment = new FragmentUi(vec, img, newP.pieceName);
             redoFragments.emplace_back(newSplitFragment);
         }
         undoFragments.emplace_back(splitFragment);
@@ -172,7 +192,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     const cv::Mat p1transMat = p1.transMat.clone();
     const cv::Mat p2transMat = p2.transMat.clone();
     cv::Mat p2transInv = p2.transMat.clone();
-    cv::Mat p2offsetInv = p2.offsetMat.clone();
     cv::invert(p2transMat, p2transInv);
 
     cv::Mat src = Tool::QImageToMat(f1->getOriginalImage()); // 8UC4
@@ -181,9 +200,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     PyObject* matArg = PyTuple_New(3);
     PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
     PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
-    qInfo() << "p1 trans mat";
-    Tool::showMat(p1transMat);
-    const Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
+    Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
     PyTuple_SetItem(matArg, 2, mat32FC12numpy(finalTransMat));
 
     qInfo() << "run python FusionImage";
@@ -204,12 +221,16 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
 
     std::vector<Piece> pieces;
     for (Piece p : f1->getPieces()) {
-        p.transMat = offsetMat * p.transMat;
-        pieces.emplace_back(p);
+        Piece newP = p;
+        newP.transMat = p.transMat.clone();
+        newP.transMat = offsetMat.clone() * newP.transMat;
+        pieces.emplace_back(newP);
     }
     for (Piece p : f2->getPieces()) {
-        p.transMat = offsetMat * finalTransMat * p.transMat;
-        pieces.emplace_back(p);
+        Piece newP = p;
+        newP.transMat = p.transMat.clone();
+        newP.transMat = offsetMat.clone() * finalTransMat.clone() * newP.transMat;
+        pieces.emplace_back(newP);
     }
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(jointImg)), f1->getFragmentName() + " " + f2->getFragmentName());
     newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
@@ -221,10 +242,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
     qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName;
-    qInfo() << "transMatpath p1 = " << p1.transMatPath << "  offsetMatPath p1 = " << p1.offsetMatPath;
-    qInfo() << "transMatpath p2 = " << p2.transMatPath << "  offsetMatPath p2 = " << p2.offsetMatPath;
-    qInfo() << "offset mat:";
-    Tool::showMat(offsetMat);
     return true;
 }
 

@@ -32,6 +32,8 @@ public slots:
 private:
     FragmentsController();
     void initPython();
+    void initBgColor(const QString& fragmentPath);
+    void clearAllFrgments();
 
 private:
     static FragmentsController *controller;
@@ -39,6 +41,8 @@ private:
 
     std::vector<FragmentUi *> sortedFragments;
     std::vector<FragmentUi *> unsortedFragments;
+
+    unsigned int bgColor = 0;
 };
 
 #endif // FRAGMENTSCONTROLLER_H
