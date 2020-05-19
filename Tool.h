@@ -209,15 +209,6 @@ public:
 
     // cv::getRotationMatrix2D may get singular matrix
     static cv::Mat getRotationMatrix(float x, float y, float rad) {
-//        cv::Mat res = cv::Mat::eye(2, 3, CV_32FC1);
-//        double alpha = std::cos(rad);
-//        double beta = std::sin(rad);
-//        res.at<float>(0, 0) = alpha;
-//        res.at<float>(0, 1) = beta;
-//        res.at<float>(0, 2) = (1-alpha) * pt.width - pt.height * beta;
-//        res.at<float>(1, 0) = -beta;
-//        res.at<float>(1, 1) = alpha;
-//        res.at<float>(1, 2) = pt.width * beta + (1-alpha) * pt.height;
         cv::Mat move = cv::Mat::eye(3, 3, CV_32FC1);
         move.at<float>(0, 2) = y;
         move.at<float>(1, 2) = x;

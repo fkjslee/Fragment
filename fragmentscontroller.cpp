@@ -11,6 +11,7 @@
 #include <numpy/arrayobject.h>
 #define NO_IMPOET_ARRAY
 #include <qrgb.h>
+#include <network.h>
 
 namespace
 {
@@ -99,6 +100,8 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
 {
     clearAllFrgments();
     initBgColor(fragmentsPath);
+    Network::loadTransMat(fragmentsPath);
+
     qInfo() << "createAllFragments " << fragmentsPath;
     QDir dir(fragmentsPath);
     QStringList filter;

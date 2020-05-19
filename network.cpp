@@ -3,15 +3,15 @@
 #include <WinSock2.h>
 #include <vector>
 #include <QtDebug>
+#include <QFile>
+#include <Tool.h>
+#include <QDir>
 #pragma comment(lib, "ws2_32.lib")
 
 const QString helloMsg = "client: \"ping...\"";
 const QString endMsg = "bye";
 
-Network::Network()
-{
-}
-
+Network* Network::network = new Network;
 namespace
 {
     sockaddr_in initSockAddr(const char *addr, unsigned short port)
@@ -25,7 +25,77 @@ namespace
     }
 }
 
+#ifdef LOCAL_DATA
 
+QString Network::sendMsg(const QString &msg) {
+    qInfo() << "Client send msg: " << msg;
+    QString res;
+    QStringList msgs = msg.split(' ');
+    QString command = msgs[0];
+    if (command == 'a') {
+        int id1 = msgs[1].toInt();
+        for (int i = 0; i < MAX_N; ++i) {
+            if (network->allTransMat[id1][i].rows) {
+                res += QString::number(i) + " ";
+                for (int u = 0; u < 3; ++u)
+                    for (int v = 0; v < 3; ++v) {
+                        float num = float(network->allTransMat[id1][i].at<float>(u, v));
+                        res += QString::number(num) + " ";
+                    }
+            }
+        }
+        return res;
+    } else if (command == 'b') {
+        int id1 = msgs[1].toInt();
+        int id2 = msgs[2].toInt();
+        if (network->allTransMat[id1][id2].rows) {
+            for (int u = 0; u < 3; ++u)
+                for (int v = 0; v < 3; ++v) {
+                    float num = float(network->allTransMat[id1][id2].at<float>(u, v));
+                    res += QString::number(num) + " ";
+            }
+        } else {
+            res = "These two fragments are not aligned.";
+        }
+        return res;
+    } else {
+        return "wrong command";
+    }
+}
+
+void Network::loadTransMat(const QString &path)
+{
+    QFile transMatPath(path + QDir::separator() + "pairwise_alignment.txt");
+    transMatPath.open(QIODevice::ReadOnly);
+    QTextStream in(&transMatPath);
+    QString line = in.readLine();
+    QStringList lines;
+    while (!line.isNull())
+    {
+        lines.append(line);
+        line = in.readLine();
+    }
+    for (int i = 0; i < lines.length(); i += 4) {
+        QStringList ids = lines[i].split('\t');
+        int id1 = ids[0].toInt();
+        int id2 = ids[1].toInt();
+        QStringList m1 = lines[i+1].split(' ');
+        QStringList m2 = lines[i+2].split(' ');
+        cv::Mat mat = cv::Mat::eye(3, 3, CV_32FC1);
+        mat.at<float>(0, 0) = m1[0].toFloat();
+        mat.at<float>(0, 1) = m1[1].toFloat();
+        mat.at<float>(0, 2) = m1[2].toFloat();
+        mat.at<float>(1, 0) = m2[0].toFloat();
+        mat.at<float>(1, 1) = m2[1].toFloat();
+        mat.at<float>(1, 2) = m2[2].toFloat();
+        network->allTransMat[id1][id2] = mat.clone();
+        cv::invert(mat, mat);
+        network->allTransMat[id2][id1] = mat.clone();
+    }
+}
+
+
+#else
 QString Network::sendMsg(const QString &msg)
 {
     WSADATA wsaData;
@@ -64,6 +134,7 @@ QString Network::sendMsg(const QString &msg)
     WSACleanup();
     return res;
 }
+#endif
 
 
 #else
