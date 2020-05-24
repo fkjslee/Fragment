@@ -13,6 +13,36 @@
 #include <ui/hintwindow.h>
 #include <qrgb.h>
 
+namespace {
+void rotateAndOffset(cv::Mat& img, const cv::Mat& rotateMat, cv::Mat& offset) {
+    std::vector<cv::Point2i> colorIdx;
+    for (int i = 0; i < img.rows; ++i)
+        for (int j = 0; j < img.cols; ++j)
+            if ((img.at<cv::Vec4b>(i, j)[0]) || img.at<cv::Vec4b>(i, j)[1] || img.at<cv::Vec4b>(i, j)[2] || img.at<cv::Vec4b>(i, j)[3])
+                colorIdx.push_back(cv::Point2i(j, i));
+
+    int minX = 0x3f3f3f3f;
+    int maxX = -0x3f3f3f3f;
+    int minY = 0x3f3f3f3f;
+    int maxY = -0x3f3f3f3f;
+    cv::Mat opencvRotateMat = rotateMat.clone();
+    for (int i = 0; i < (int)colorIdx.size(); ++i) {
+        int x = opencvRotateMat.at<float>(0, 0) * colorIdx[i].x + opencvRotateMat.at<float>(0, 1) * colorIdx[i].y + opencvRotateMat.at<float>(0, 2);
+        int y = opencvRotateMat.at<float>(1, 0) * colorIdx[i].x + opencvRotateMat.at<float>(1, 1) * colorIdx[i].y + opencvRotateMat.at<float>(1, 2);
+        minX = std::min(minX, x);
+        maxX = std::max(maxX, x);
+        minY = std::min(minY, y);
+        maxY = std::max(maxY, y);
+    }
+
+    offset = cv::Mat::eye(3, 3, CV_32FC1);
+    offset.at<float>(0, 2) = -minX;
+    offset.at<float>(1, 2) = -minY;
+    cv::warpAffine(img, img, Tool::getFirst2RowsMat(offset * rotateMat), cv::Size(maxX - minX, maxY - minY));
+}
+
+}
+
 FragmentUi *FragmentUi::draggingItem = nullptr;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
     : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
@@ -41,10 +71,12 @@ void FragmentUi::rotate(int ang)
 void FragmentUi::update(const QRectF &rect)
 {
     cv::Mat img = Tool::QImageToMat(this->originalImage).clone();
-    cv::Mat rotateMat = Tool::getRotationMatrix(img.rows/2.0, img.cols/2.0, Tool::angToRad(this->rotateAng));
-    cv::warpAffine(img, img, Tool::getOpencvMat(rotateMat), img.size());
+    cv::Mat rotateMat = Tool::getRotationMatrix(img.cols/2.0, img.rows/2.0, Tool::angToRad(this->rotateAng));
+    rotateMat = Tool::getFirst3RowsMat(rotateMat);
+    rotateAndOffset(img, rotateMat, this->offset);
+
     showImage = Tool::MatToQImage(img);
-    showImage = this->showImage.scaledToWidth(int(originalImage.width() * scale));
+    showImage = this->showImage.scaledToWidth(int(showImage.width() * scale));
     auto mask = showImage.createMaskFromColor(qRgb(0, 0, 0), Qt::MaskMode::MaskOutColor);
     showImage.setAlphaChannel(mask);
     setPixmap(QPixmap::fromImage(showImage));

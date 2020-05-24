@@ -6,6 +6,7 @@
 #include <QtDebug>
 #include <QMessageBox>
 #include <network.h>
+#include <Tool.h>
 
 HintWindow* HintWindow::hintWindow = nullptr;
 namespace {
@@ -73,13 +74,14 @@ void HintWindow::getNewFragments()
                     }
                     FragmentUi* anotherFragment = fragCtrl->findFragmentByName(msgList2[i]);
                     if (anotherFragment == nullptr) {
-                        qCritical() << "another fragment is null";
+                        qInfo() << "another fragment " + msgList2[i] << " not in the work area";
                         continue;
                     }
                     cv::Mat transMat(3, 3, CV_32FC1);
                     for (int j = 0; j < 3; ++j)
                         for (int k = 0; k < 3; ++k)
                             transMat.at<float>(j, k) = msgList2[i+1+(j*3+k)].toFloat();
+                    transMat = Tool::normalToOpencvTransMat(transMat);
                     const int p1 = getPieceID(f->getPieces(), pieceName);
                     const int p2 = getPieceID(anotherFragment->getPieces(), msgList2[i]);
 

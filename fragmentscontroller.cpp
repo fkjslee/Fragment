@@ -204,7 +204,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
     PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
     Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
-    PyTuple_SetItem(matArg, 2, mat32FC12numpy(finalTransMat));
+    PyTuple_SetItem(matArg, 2, mat32FC12numpy(Tool::opencvToNormalTransMat(finalTransMat)));
 
     qInfo() << "run python FusionImage";
     auto locker = PyGILState_Ensure();
@@ -220,6 +220,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     PyArg_ParseTuple(resObj, "O|O", &resObjImg, &resObjTransMat);
     Mat jointImg = pyObject2Mat(resObjImg, CV_8UC3);
     Mat offsetMat = pyObject2Mat(resObjTransMat, CV_32FC1);
+    offsetMat = Tool::normalToOpencvTransMat(offsetMat);
     PyGILState_Release(locker);
 
     std::vector<Piece> pieces;

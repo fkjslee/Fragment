@@ -54,7 +54,7 @@ public:
             for (int j = 0; j < 3; ++j)
                 dst.at<float>(i, j) = src.at<float>(i, j);
         }
-        return dst;
+        return dst.clone();
     }
 
     static cv::Mat getFirst3RowsMat(const cv::Mat& src) {
@@ -67,7 +67,7 @@ public:
         }
         dst.at<float>(2, 0) = dst.at<float>(2, 1) = 0;
         dst.at<float>(2, 2) = 1.0;
-        return dst;
+        return dst.clone();
     }
 
     static QJsonObject stringToJsonObj(const QString &str)
@@ -210,8 +210,8 @@ public:
     // cv::getRotationMatrix2D may get singular matrix
     static cv::Mat getRotationMatrix(float x, float y, float rad) {
         cv::Mat move = cv::Mat::eye(3, 3, CV_32FC1);
-        move.at<float>(0, 2) = y;
-        move.at<float>(1, 2) = x;
+        move.at<float>(0, 2) = x;
+        move.at<float>(1, 2) = y;
         cv::Mat rotate = cv::Mat::eye(3, 3, CV_32FC1);
         rotate.at<float>(0, 0) = std::cos(rad);
         rotate.at<float>(0, 1) = -std::sin(rad);
@@ -220,6 +220,34 @@ public:
         cv::Mat moveInv = move.clone();
         cv::invert(moveInv, moveInv);
         return getFirst2RowsMat(move * rotate * moveInv).clone();
+    }
+
+    static cv::Mat normalToOpencvTransMat(const cv::Mat& src) {
+        cv::Mat dst = cv::Mat::eye(3, 3, CV_32FC1);
+        dst.at<float>(0, 0) = src.at<float>(0, 0);
+        dst.at<float>(0, 1) = src.at<float>(1, 0);
+        dst.at<float>(0, 2) = src.at<float>(1, 2);
+        dst.at<float>(1, 0) = src.at<float>(0, 1);
+        dst.at<float>(1, 1) = src.at<float>(1, 1);
+        dst.at<float>(1, 2) = src.at<float>(0, 2);
+        return dst;
+    }
+
+    static cv::Mat opencvToNormalTransMat(const cv::Mat& src) {
+        cv::Mat dst = cv::Mat::eye(3, 3, CV_32FC1);
+        dst.at<float>(0, 0) = src.at<float>(0, 0);
+        dst.at<float>(0, 1) = src.at<float>(1, 0);
+        dst.at<float>(0, 2) = src.at<float>(1, 2);
+        dst.at<float>(1, 0) = src.at<float>(0, 1);
+        dst.at<float>(1, 1) = src.at<float>(1, 1);
+        dst.at<float>(1, 2) = src.at<float>(0, 2);
+        return dst;
+    }
+
+    static cv::Mat getInvMat(const cv::Mat& src) {
+        cv::Mat dst = src.clone();
+        cv::invert(src, dst);
+        return dst;
     }
 
     static cv::Mat getOpencvMat(const cv::Mat src) {

@@ -95,6 +95,7 @@ void FragmentArea::on_btnJoint_clicked()
             Piece p2 = p2s[j];
             QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
             cv::Mat transMat = Tool::str2TransMat(res);
+            transMat = Tool::normalToOpencvTransMat(transMat);
             if (transMat.rows != 0) {
                 fragCtrl->jointFragment(f1, i, f2, j, transMat);
                 jointSucc = true;
@@ -135,20 +136,19 @@ void FragmentArea::on_btnJointForce_clicked()
     FragmentUi *f2 = jointFragments[1];
 
     cv::Mat img1 = Tool::QImageToMat(f1->getOriginalImage()).clone();
-    cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.rows/2.0, img1.cols/2.0, Tool::angToRad(f1->rotateAng));
-    cv::Mat rot1Inv = Tool::getFirst3RowsMat(rotateMat1).clone();
-    cv::invert(rot1Inv, rot1Inv);
+    cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.cols/2.0, img1.rows/2.0, Tool::angToRad(f1->rotateAng));
 
     cv::Mat img2 = Tool::QImageToMat(f2->getOriginalImage()).clone();
-    cv::Mat rotateMat2 = Tool::getRotationMatrix(img2.rows/2.0, img2.cols/2.0, Tool::angToRad(f2->rotateAng));
+    cv::Mat rotateMat2 = Tool::getRotationMatrix(img2.cols/2.0, img2.rows/2.0, Tool::angToRad(f2->rotateAng));
 
-    QPointF movePos = f2->scenePos() - f1->scenePos();
-    cv::Mat transMat = cv::Mat::eye(2, 3, CV_32FC1);
-    transMat.at<float>(0, 2) = movePos.y() * (100.0 / MainWindow::mainWindow->getZoomSize());
-    transMat.at<float>(1, 2) = movePos.x() * (100.0 / MainWindow::mainWindow->getZoomSize());
-    cv::Mat trans1Inv = f1->getPieces()[0].transMat.clone();
-    cv::invert(trans1Inv, trans1Inv);
-    transMat = rot1Inv * trans1Inv * Tool::getFirst3RowsMat(transMat) * Tool::getFirst3RowsMat(rotateMat2) * f2->getPieces()[0].transMat;
+    float moveX = (f2->scenePos().x()) - (f1->scenePos().x());
+    float moveY = (f2->scenePos().y()) - (f1->scenePos().y());
+    cv::Mat transMat = cv::Mat::eye(3, 3, CV_32FC1);
+    transMat.at<float>(0, 2) = moveX * (100.0 / MainWindow::mainWindow->getZoomSize());
+    transMat.at<float>(1, 2) = moveY * (100.0 / MainWindow::mainWindow->getZoomSize());
+    cv::Mat f1Changed = f1->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat1) * f1->getPieces()[0].transMat;
+    cv::Mat f2Changed = f2->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat2) * f2->getPieces()[0].transMat;
+    transMat = Tool::getInvMat(f1Changed) * transMat * f2Changed.clone();
     fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
 }
 

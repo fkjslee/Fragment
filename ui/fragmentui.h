@@ -10,7 +10,7 @@
 class Piece
 {
 public:
-    Piece(const QString &piecePath, const QString &pieceName, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1), const cv::Mat &offsetMat = cv::Mat::eye(3, 3, CV_32FC1))
+    Piece(const QString &piecePath, const QString &pieceName, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1))
         : piecePath(piecePath), pieceName(pieceName) {
         this->transMat = transMat.clone();
     }
@@ -18,8 +18,6 @@ public:
     QString piecePath;
     QString pieceName;
     cv::Mat transMat;
-    QString transMatPath = "";
-    QString offsetMatPath = "";
 };
 
 class FragmentUi : public QObject, public QGraphicsPixmapItem
@@ -43,6 +41,9 @@ public:
     const QString &getFragmentName() const
     {
         return fragmentName;
+    }
+    const cv::Mat getOffsetMat() const {
+        return offset.clone();
     }
     void scaledToWidth(const double scale);
     const std::vector<Piece> &getPieces() const
@@ -73,6 +74,7 @@ private:
     QString fragmentName;
     QPoint undoPos;
     QPointF pressPos;
+    cv::Mat offset;
     double scale = 1.0;
 };
 
