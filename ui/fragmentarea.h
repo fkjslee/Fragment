@@ -51,7 +51,6 @@ private:
     FragmentsController *fragCtrl;
     QUndoStack *undoStack;
     static FragmentArea* fragmentArea;
-    std::vector<cv::Mat> groundTruth;
 };
 
 #endif // FRAGMENTAREA_H

@@ -306,8 +306,21 @@ void FragmentsController::getGroundTruth(const QString& path)
         line = in.readLine();
     }
 
+    groundTruth.clear();
     for (int i = 0; i < lines.length(); i += 2) {
-
+        int fragID = lines[i].toInt();
+        if (fragID - 1 != i / 2) {
+            qCritical() << "error groundTruth";
+        }
+        QStringList nums = lines[i+1].replace("  ", " ").split(" ");
+        cv::Mat transMat = cv::Mat::eye(3, 3, CV_32FC1);
+        transMat.at<float>(0, 0) = nums[0].toFloat();
+        transMat.at<float>(0, 1) = nums[1].toFloat();
+        transMat.at<float>(0, 2) = nums[2].toFloat();
+        transMat.at<float>(1, 0) = nums[3].toFloat();
+        transMat.at<float>(1, 1) = nums[4].toFloat();
+        transMat.at<float>(1, 2) = nums[5].toFloat();
+        groundTruth.emplace_back(Tool::normalToOpencvTransMat(transMat));
     }
 }
 
@@ -317,7 +330,21 @@ int FragmentsController::calcScore()
     for (FragmentUi* f : getUnsortedFragments()) {
         auto pieces = f->getPieces();
         for (int i = 1; i < (int)pieces.size(); ++i) {
-
+            cv::Mat trans = Tool::getInvMat(pieces[0].transMat) * pieces[i].transMat;
+            int p1 = pieces[0].pieceName.toInt();
+            int p2 = pieces[i].pieceName.toInt();
+            cv::Mat gt = Tool::getInvMat(groundTruth[p1]) * groundTruth[p2];
+            float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
+            float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));
+            float x = trans.at<float>(0, 2) / len / 2.0;
+            float y = trans.at<float>(1, 2) / len / 2.0;
+            float xx = gt.at<float>(0, 2) / len2 / 2.0;
+            float yy = gt.at<float>(1, 2) / len2 / 2.0;
+            float eachScore = 1.0 / 4 * std::pow(trans.at<float>(0, 0) / 2 - gt.at<float>(0, 0) / 2, 2) +
+                              1.0 / 4 * std::pow(trans.at<float>(0, 1) / 2 - gt.at<float>(0, 1) / 2, 2) +
+                    1.0 / 4 * std::pow(x - xx, 2) +
+                    1.0 / 4 * std::pow(y - yy, 2);
+            score += (1 - eachScore) * 100 + 0.5;
         }
     }
     return score;

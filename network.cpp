@@ -29,7 +29,7 @@ namespace
 #ifdef LOCAL_DATA
 
 QString Network::sendMsg(const QString &msg) {
-    Sleep(5000);
+//    Sleep(5000);
     qInfo() << "Client send msg: " << msg;
     QString res;
     QStringList msgs = msg.split(' ');

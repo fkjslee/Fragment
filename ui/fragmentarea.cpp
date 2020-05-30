@@ -52,7 +52,7 @@ void FragmentArea::update()
         scene->addItem(fragment);
     }
 
-//    ui->resLabel->setText("score: " + QString::number(calcScore()));
+    ui->resLabel->setText("score: " + QString::number(FragmentsController::getController()->calcScore()));
     scene->update();
     QWidget::update();
     QApplication::processEvents();
@@ -109,6 +109,7 @@ void FragmentArea::on_btnJoint_clicked()
                               QMessageBox::Cancel);
     }
     update();
+
 }
 
 void FragmentArea::on_btnSplit_clicked()

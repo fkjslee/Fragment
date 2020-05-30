@@ -43,6 +43,7 @@ private:
 
     std::vector<FragmentUi *> sortedFragments;
     std::vector<FragmentUi *> unsortedFragments;
+    std::vector<cv::Mat> groundTruth;
 
     unsigned int bgColor = 0;
 };
