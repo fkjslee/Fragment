@@ -100,6 +100,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
 {
     clearAllFrgments();
     initBgColor(fragmentsPath);
+    getGroundTruth(fragmentsPath);
     Network::loadTransMat(fragmentsPath);
 
     qInfo() << "createAllFragments " << fragmentsPath;
@@ -237,7 +238,10 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
         pieces.emplace_back(newP);
     }
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(jointImg)), f1->getFragmentName() + " " + f2->getFragmentName());
-    newFragment->setPos(QPoint((f1->scenePos().x() + f2->scenePos().x()) / 2, (f1->scenePos().y() + f2->scenePos().y()) / 2));
+    float newX = std::min(f1->scenePos().x(), f2->scenePos().x());
+    float newY = std::min(f1->scenePos().y(), f2->scenePos().y());
+    newFragment->setPos(newX, newY);
+    newFragment->rotateAng = f1->rotateAng;
     newFragment->undoFragments.push_back(f1);
     newFragment->undoFragments.push_back(f2);
     std::vector<FragmentUi *> undoFragments;
@@ -287,4 +291,34 @@ void FragmentsController::unSelectFragment()
         }
     }
     MainWindow::mainWindow->update();
+}
+
+void FragmentsController::getGroundTruth(const QString& path)
+{
+    QFile gtFile(path + QDir::separator() + "groundTruth.txt");
+    gtFile.open(QIODevice::ReadOnly);
+    QTextStream in(&gtFile);
+    QString line = in.readLine();
+    QStringList lines;
+    while (!line.isNull())
+    {
+        lines.append(line);
+        line = in.readLine();
+    }
+
+    for (int i = 0; i < lines.length(); i += 2) {
+
+    }
+}
+
+int FragmentsController::calcScore()
+{
+    int score = 0;
+    for (FragmentUi* f : getUnsortedFragments()) {
+        auto pieces = f->getPieces();
+        for (int i = 1; i < (int)pieces.size(); ++i) {
+
+        }
+    }
+    return score;
 }

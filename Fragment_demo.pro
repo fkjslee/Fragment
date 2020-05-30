@@ -22,6 +22,7 @@ SOURCES += \
     hintscene.cpp \
     network.cpp \
     storescene.cpp \
+    ui/refreshthread.cpp \
     ui/storearea.cpp \
     ui/fragmentarea.cpp \
     fragmentscontroller.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
     hintscene.h \
     network.h \
     storescene.h \
+    ui/refreshthread.h \
     ui/storearea.h \
     ui/fragmentarea.h \
     fragmentscontroller.h \

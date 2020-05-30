@@ -27,7 +27,6 @@ FragmentArea::FragmentArea(QWidget *parent) :
     fragmentArea = this;
     scene = new FragmentsScene;
     ui->view->setScene(scene);
-
     fragCtrl = FragmentsController::getController();
     update();
 }
@@ -53,6 +52,7 @@ void FragmentArea::update()
         scene->addItem(fragment);
     }
 
+//    ui->resLabel->setText("score: " + QString::number(calcScore()));
     scene->update();
     QWidget::update();
     QApplication::processEvents();

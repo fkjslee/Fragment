@@ -5,6 +5,7 @@
 #include <QtDebug>
 #include <QFile>
 #include <Tool.h>
+#include <windows.h>
 #include <QDir>
 #pragma comment(lib, "ws2_32.lib")
 
@@ -28,6 +29,7 @@ namespace
 #ifdef LOCAL_DATA
 
 QString Network::sendMsg(const QString &msg) {
+    Sleep(5000);
     qInfo() << "Client send msg: " << msg;
     QString res;
     QStringList msgs = msg.split(' ');

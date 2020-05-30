@@ -19,13 +19,6 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QPushButton" name="autoStitch">
-         <property name="text">
-          <string>show result</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="resLabel">
          <property name="maximumSize">
           <size>
@@ -34,7 +27,7 @@
           </size>
          </property>
          <property name="text">
-          <string>result:</string>
+          <string>score:</string>
          </property>
         </widget>
        </item>

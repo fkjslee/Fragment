@@ -20,6 +20,8 @@ public:
     cv::Mat transMat;
 };
 
+enum Platfrom {WorkArea, HintArea};
+
 class FragmentUi : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
@@ -29,7 +31,7 @@ signals:
     void refreshHintWindow();
 
 public:
-    FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
+    FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname", Platfrom platform=Platfrom::WorkArea);
     const QImage &getOriginalImage() const
     {
         return originalImage;
@@ -64,6 +66,7 @@ protected:
 public:
     std::vector<const FragmentUi*> undoFragments;
     int rotateAng = 0;
+    Platfrom platform;
 
 private:
     static FragmentUi *draggingItem;

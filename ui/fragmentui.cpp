@@ -44,9 +44,10 @@ void rotateAndOffset(cv::Mat& img, const cv::Mat& rotateMat, cv::Mat& offset) {
 }
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
-FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName)
+FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName,  Platfrom platform)
     : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
 {
+    this->platform = platform;
     this->showImage = originalImage;
     setToolTip(fragmentName);
     setCursor(Qt::OpenHandCursor);
@@ -90,8 +91,6 @@ void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
     undoPos = pos().toPoint();
     setCursor(Qt::ClosedHandCursor);
     QGraphicsPixmapItem::mousePressEvent(event);
-    if (!fragmentName.startsWith("mirror"))
-        emit refreshHintWindow();
 }
 
 void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

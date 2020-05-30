@@ -21,6 +21,13 @@
     <widget class="QGraphicsView" name="view"/>
    </item>
    <item>
+    <widget class="QPushButton" name="btnClearAI">
+     <property name="text">
+      <string>停止推荐</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="refreshBtn">
      <property name="text">
       <string>Refresh hint</string>

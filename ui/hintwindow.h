@@ -4,16 +4,26 @@
 #include <QWidget>
 #include "fragmentui.h"
 #include <hintscene.h>
+#include <QThread>
+#include <Tool.h>
+#include <network.h>
+#include <QtDebug>
+#include <fragmentscontroller.h>
+#include <ui/refreshthread.h>
 
 namespace Ui
 {
     class HintWindow;
 }
 
+class RefreshThread;
+
 struct HintFragment {
-    FragmentUi* thisFrag;
-    FragmentUi* originFrag;
-    FragmentUi* showFrag;
+public:
+    HintFragment() {}
+    FragmentUi* fragJoint;
+    FragmentUi* fragBeJointed;
+    FragmentUi* fragInHintWindow;
     int p1ID;
     int p2ID;
     cv::Mat transMat;
@@ -31,20 +41,27 @@ public:
     }
 
 private:
-    void deleteOldFragments();
-    void getNewFragments();
-    void setNewFragments();
 
 public slots:
     void on_btnAutoJoint_clicked();
 
     void on_refreshBtn_clicked();
+    void deleteOldFragments();
+    void setNewFragments();
+
+public:
+    std::vector<HintFragment> hintFragments;
+    static unsigned int maxHintSize;
+
+
+private slots:
+    void on_btnClearAI_clicked();
 
 private:
     Ui::HintWindow *ui;
     HintScene *scene;
-    std::vector<HintFragment> hintFragments;
     std::vector<HintFragment> getSelecetHintFrags();
+    std::vector<RefreshThread*> threads;
     static HintWindow* hintWindow;
 };
 

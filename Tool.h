@@ -11,10 +11,10 @@
 #include <opencv2/imgproc/types_c.h>
 #include <math.h>
 #include <qrgb.h>
+#include <fragmentscontroller.h>
+#include <ui/fragmentui.h>
 
 #define _USE_MATH_DEFINES
-
-#define INFINITE 0x3f3f3f3f
 
 using std::vector;
 
@@ -88,6 +88,15 @@ public:
     static void *ucharToVoid(const uchar *c)
     {
         return reinterpret_cast<void *>(const_cast<uchar *>(c));
+    }
+
+    static bool checkFragInFragmentArea(FragmentUi* frag) {
+        bool exist = false;
+        for (FragmentUi* f : FragmentsController::getController()->getUnsortedFragments()) {
+            if (f == frag)
+                exist = true;
+        }
+        return exist;
     }
 
     static cv::Mat str2TransMat(QString src) {
