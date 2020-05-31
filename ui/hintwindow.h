@@ -27,6 +27,10 @@ public:
     int p1ID;
     int p2ID;
     cv::Mat transMat;
+
+    bool operator == (const HintFragment& rhs) const {
+        return this == &rhs;
+    }
 };
 
 class HintWindow : public QWidget
@@ -45,7 +49,7 @@ private:
 public slots:
     void on_btnAutoJoint_clicked();
 
-    void on_refreshBtn_clicked();
+    void actSuggestTrigged();
     void deleteOldFragments();
     void setNewFragments();
 

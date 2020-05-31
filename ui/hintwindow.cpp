@@ -24,7 +24,7 @@ HintWindow::HintWindow(QWidget *parent) :
     scene = new HintScene;
     ui->view->setScene(scene);
     scene->setBackgroundBrush(QColor(128, 128, 128));
-    on_refreshBtn_clicked();
+    actSuggestTrigged();
 }
 
 HintWindow::~HintWindow()
@@ -40,20 +40,47 @@ HintWindow::~HintWindow()
 
 void HintWindow::deleteOldFragments()
 {
+    FragmentsController* fragCtrl = FragmentsController::getController();
     for (QGraphicsItem* item : scene->items()) {
-        bool has = false;
+        bool fragMirrorInHint = false;
         for (HintFragment hintFrag : hintFragments) {
             if (hintFrag.fragInHintWindow == item) {
-                has = true;
+                fragMirrorInHint = true;
                 break;
             }
         }
-        if (!has) {
+        if (!fragMirrorInHint) {
             scene->removeItem(item);
             delete item;
         }
     }
+    update();
 
+    bool fragUpdate = true;
+    while(fragUpdate) {
+        fragUpdate = false;
+        for (const HintFragment& hintFrag : hintFragments) {
+            bool fragJointInFragArea = false;
+            bool fragBeJointInFragArea = false;
+            for (FragmentUi* f : fragCtrl->getUnsortedFragments()) {
+                if (hintFrag.fragJoint == f) {
+                    fragJointInFragArea = true;
+                }
+                if (hintFrag.fragBeJointed == f) {
+                    fragBeJointInFragArea = true;
+                }
+            }
+            if (!fragJointInFragArea || !fragBeJointInFragArea) {
+                if (scene->items().contains(hintFrag.fragInHintWindow)) {
+                    scene->removeItem(hintFrag.fragInHintWindow);
+                }
+                fragUpdate = true;
+                Tool::eraseInVector(hintFragments, hintFrag);
+                break;
+            }
+        }
+    }
+    update();
 }
 
 void HintWindow::setNewFragments()
@@ -78,7 +105,7 @@ void HintWindow::setNewFragments()
     update();
 }
 
-void HintWindow::on_refreshBtn_clicked()
+void HintWindow::actSuggestTrigged()
 {
     FragmentsController* fragCtrl = FragmentsController::getController();
     std::vector<FragmentUi*> refreshFragments;
@@ -117,7 +144,7 @@ void HintWindow::on_btnAutoJoint_clicked()
         return;
     }
     fragCtrl->jointFragment(selectFrag.fragJoint, selectFrag.p1ID, selectFrag.fragBeJointed, selectFrag.p2ID, selectFrag.transMat);
-    on_refreshBtn_clicked();
+    deleteOldFragments();
 }
 
 std::vector<HintFragment> HintWindow::getSelecetHintFrags()

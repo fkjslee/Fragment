@@ -6,12 +6,14 @@
 #include <QFile>
 #include <Tool.h>
 #include <windows.h>
+#include <algorithm>
 #include <QDir>
 #pragma comment(lib, "ws2_32.lib")
 
 const QString helloMsg = "client: \"ping...\"";
 const QString endMsg = "bye";
 
+int Network::fragSuggesNum = 2;
 Network* Network::network = new Network;
 namespace
 {
@@ -23,6 +25,11 @@ namespace
         sockAddr.sin_port = htons(port);
         sockAddr.sin_addr.s_addr = inet_addr(addr);
         return sockAddr;
+    }
+    template<class T>
+    const T& minElement(const T& a, const T& b)
+    {
+        return (b < a) ? b : a;
     }
 }
 
@@ -36,30 +43,19 @@ QString Network::sendMsg(const QString &msg) {
     QString command = msgs[0];
     if (command == 'a') {
         int id1 = msgs[1].toInt();
-        for (int i = 0; i < MAX_N; ++i) {
-            if (network->allTransMat[id1][i].rows) {
-                res += QString::number(i) + " ";
-                for (int u = 0; u < 3; ++u)
-                    for (int v = 0; v < 3; ++v) {
-                        float num = float(network->allTransMat[id1][i].at<float>(u, v));
-                        res += QString::number(num) + " ";
-                    }
-            }
+        for (int i = 0; i < minElement(fragSuggesNum, (int)network->allTransMat[id1].size()); ++i) {
+            int id2 = network->allTransMat[id1][i].otherFrag;
+            res += QString::number(id2) + " ";
+            for (int u = 0; u < 3; ++u)
+                for (int v = 0; v < 3; ++v) {
+                    float num = float(network->allTransMat[id1][i].transMat.at<float>(u, v));
+                    res += QString::number(num) + " ";
+                }
         }
         return res;
     } else if (command == 'b') {
-        int id1 = msgs[1].toInt();
-        int id2 = msgs[2].toInt();
-        if (network->allTransMat[id1][id2].rows) {
-            for (int u = 0; u < 3; ++u)
-                for (int v = 0; v < 3; ++v) {
-                    float num = float(network->allTransMat[id1][id2].at<float>(u, v));
-                    res += QString::number(num) + " ";
-            }
-        } else {
-            res = "These two fragments are not aligned.";
-        }
-        return res;
+        // don't need
+        return "wrong command";
     } else {
         return "wrong command";
     }
@@ -67,7 +63,13 @@ QString Network::sendMsg(const QString &msg) {
 
 void Network::loadTransMat(const QString &path)
 {
-    QFile transMatPath(path + QDir::separator() + "pairwise_alignment.txt");
+    QDir dir(path);
+    QStringList filter;
+    filter << "*_calc_res_np_res.txt";
+    QStringList nameList = dir.entryList(filter);
+
+
+    QFile transMatPath(path + QDir::separator() + nameList[0]);
     transMatPath.open(QIODevice::ReadOnly);
     QTextStream in(&transMatPath);
     QString line = in.readLine();
@@ -78,9 +80,10 @@ void Network::loadTransMat(const QString &path)
         line = in.readLine();
     }
     for (int i = 0; i < lines.length(); i += 4) {
-        QStringList ids = lines[i].split('\t');
-        int id1 = ids[0].toInt();
-        int id2 = ids[1].toInt();
+        QStringList ids = lines[i].split(' ');
+        int id1 = int(ids[0].toFloat() + 0.5);
+        int id2 = int(ids[1].toFloat() + 0.5);
+        float confidence = ids[2].toFloat();
         QStringList m1 = lines[i+1].split(' ');
         QStringList m2 = lines[i+2].split(' ');
         cv::Mat mat = cv::Mat::eye(3, 3, CV_32FC1);
@@ -90,10 +93,14 @@ void Network::loadTransMat(const QString &path)
         mat.at<float>(1, 0) = m2[0].toFloat();
         mat.at<float>(1, 1) = m2[1].toFloat();
         mat.at<float>(1, 2) = m2[2].toFloat();
-        network->allTransMat[id1][id2] = mat.clone();
-        cv::invert(mat, mat);
-        network->allTransMat[id2][id1] = mat.clone();
+        TransMatAndConfi matAndConfi;
+        matAndConfi.otherFrag = id2;
+        matAndConfi.transMat = mat.clone();
+        matAndConfi.confidence = confidence;
+        network->allTransMat[id1].emplace_back(matAndConfi);
     }
+    for (int i = 0; i < MAX_N; ++i)
+        std::sort(network->allTransMat[i].begin(), network->allTransMat[i].end());
 }
 
 

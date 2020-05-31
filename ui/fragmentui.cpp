@@ -54,7 +54,7 @@ FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalI
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable);
     setPixmap(QPixmap::fromImage(showImage));
     undoPos = QPoint(0, 0);
-    connect(this, &FragmentUi::refreshHintWindow, HintWindow::getHintWindow(), &HintWindow::on_refreshBtn_clicked);
+    connect(this, &FragmentUi::refreshHintWindow, HintWindow::getHintWindow(), &HintWindow::actSuggestTrigged);
 }
 
 void FragmentUi::scaledToWidth(const double scale)

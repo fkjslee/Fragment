@@ -7,8 +7,8 @@ RefreshThread::RefreshThread(FragmentUi* const fragment, QString pieceName, Hint
     this->pieceName = pieceName;
     this->hintWindow = hintWindow;
     fragCtrl = FragmentsController::getController();
-    connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments);
-    connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments);
+    connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
+    connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
 }
 
 int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
@@ -28,6 +28,7 @@ void RefreshThread::run()
     setHint(res);
     emit deleteOldFragments();
     emit setNewFragments();
+    qDebug() << "here 31";
     locker.unlock();
 }
 

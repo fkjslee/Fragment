@@ -9,13 +9,25 @@
 
 const int MAX_N = 500;
 
+class TransMatAndConfi {
+public:
+    int otherFrag;
+    cv::Mat transMat;
+    float confidence;
+    bool operator < (const TransMatAndConfi& rhs) const {
+        return this->confidence > rhs.confidence;
+    }
+};
+
 class Network
 {
 public:
     static QString sendMsg(const QString &msg);
     static void loadTransMat(const QString& path);
-    cv::Mat allTransMat[MAX_N][MAX_N];
+    std::vector<TransMatAndConfi> allTransMat[MAX_N];
     static Network* network;
+
+    static int fragSuggesNum;
 
 private:
     Network() {

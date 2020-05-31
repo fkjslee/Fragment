@@ -18,6 +18,6 @@ void FragmentsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     connect(actSplit, &QAction::triggered, FragmentArea::getFragmentArea(), &FragmentArea::on_btnSplit_clicked);
     connect(actJoint, &QAction::triggered, FragmentArea::getFragmentArea(), &FragmentArea::on_btnJoint_clicked);
     connect(actRemoveFromDesktop, &QAction::triggered, FragmentsController::getController(), &FragmentsController::unSelectFragment);
-    connect(actRefreshHint, &QAction::triggered, HintWindow::getHintWindow(), &HintWindow::on_refreshBtn_clicked);
+    connect(actRefreshHint, &QAction::triggered, HintWindow::getHintWindow(), &HintWindow::actSuggestTrigged);
     menu.exec(event->screenPos());
 }
