@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QDateTime>
 #include <network.h>
+#include <QMutex>
 
 void setStyle()
 {
@@ -51,6 +52,7 @@ void loadLanguage()
 
 QString logFilePath = "";
 QFile* logFile = nullptr;
+QMutex locker;
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
     QString textType;
@@ -71,10 +73,10 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         break;
     }
 
+    locker.lock();
     QString text;
     text = QString("[%1] %2: %3").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).arg(textType).arg(msg);
     fprintf(stderr, "%s\n", text.toStdString().c_str());
-
     if (logFile == nullptr) {
         int cnt = 0;
         logFilePath = "./log/log_file_" + QString::number(cnt) + ".txt";
@@ -91,6 +93,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     text_stream << text << endl;
     logFile->flush();
     logFile->close();
+    locker.unlock();
 }
 
 int main(int argc, char *argv[])

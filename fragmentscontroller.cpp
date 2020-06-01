@@ -83,9 +83,21 @@ void FragmentsController::initBgColor(const QString& fragmentPath)
     const QString& path = fragmentPath + QDir::separator() + "bg_color.txt";
     QFile bgColorFile(path);
     bgColorFile.open(QIODevice::ReadOnly);
-    const QString& bgColorStr = QString(bgColorFile.readAll());
-    QStringList colors = bgColorStr.split(" ");
-    bgColor = qRgb(colors[0].toInt(), colors[1].toInt(), colors[2].toInt());
+
+    QTextStream in(&bgColorFile);
+    QString line = in.readLine();
+    QStringList lines;
+    while (!line.isNull())
+    {
+        lines.append(line);
+        line = in.readLine();
+    }
+
+    bgColor.clear();
+    for (QString line : lines) {
+        QStringList colors = line.split(" ");
+        bgColor.emplace_back(qRgb(colors[0].toInt(), colors[1].toInt(), colors[2].toInt()));
+    }
 }
 
 void FragmentsController::clearAllFrgments()
@@ -114,14 +126,15 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
         QImage img(dir.absolutePath() + "/" + fileName);
-        auto mask = img.createMaskFromColor(bgColor, Qt::MaskMode::MaskOutColor);
-        img.setAlphaChannel(mask);
+        for (auto bg_color : bgColor) {
+            auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
+            img.setAlphaChannel(mask);
+        }
         unsortedFragments.emplace_back(new FragmentUi(vec, img, QString("%1").arg(i)));
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();
-    if (MainWindow::mainWindow)
-        MainWindow::mainWindow->update();
+    if (MainWindow::mainWindow) MainWindow::mainWindow->update();
 }
 
 FragmentsController *FragmentsController::getController()
@@ -145,8 +158,10 @@ bool FragmentsController::splitSelectedFragments()
             std::vector<Piece> vec;
             vec.push_back(newP);
             QImage img(newP.piecePath);
-            auto mask = img.createMaskFromColor(bgColor, Qt::MaskMode::MaskOutColor);
-            img.setAlphaChannel(mask);
+            for (auto bg_color : bgColor) {
+                auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
+                img.setAlphaChannel(mask);
+            }
             FragmentUi *newSplitFragment = new FragmentUi(vec, img, newP.pieceName);
             redoFragments.emplace_back(newSplitFragment);
         }

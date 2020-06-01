@@ -79,6 +79,8 @@ void Network::loadTransMat(const QString &path)
         lines.append(line);
         line = in.readLine();
     }
+    for (int i = 0; i < MAX_N; ++i)
+        network->allTransMat[i].clear();
     for (int i = 0; i < lines.length(); i += 4) {
         QStringList ids = lines[i].split(' ');
         int id1 = int(ids[0].toFloat() + 0.5);
@@ -97,7 +99,24 @@ void Network::loadTransMat(const QString &path)
         matAndConfi.otherFrag = id2;
         matAndConfi.transMat = mat.clone();
         matAndConfi.confidence = confidence;
-        network->allTransMat[id1].emplace_back(matAndConfi);
+        bool has = false;
+        for (TransMatAndConfi m : network->allTransMat[id1]) {
+            if (m.otherFrag == id2)
+                has = true;
+        }
+        if (!has)
+            network->allTransMat[id1].emplace_back(matAndConfi);
+
+        matAndConfi.otherFrag = id1;
+        matAndConfi.transMat = Tool::getInvMat(mat.clone());
+        matAndConfi.confidence = confidence;
+        has = false;
+        for (TransMatAndConfi m : network->allTransMat[id2]) {
+            if (m.otherFrag == id1)
+                has = true;
+        }
+        if (!has)
+            network->allTransMat[id2].emplace_back(matAndConfi);
     }
     for (int i = 0; i < MAX_N; ++i)
         std::sort(network->allTransMat[i].begin(), network->allTransMat[i].end());

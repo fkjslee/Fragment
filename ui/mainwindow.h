@@ -64,6 +64,8 @@ private:
     QAction *actChinese;
     QAction *actEnglish;
 
+    QMenu *menuSetting;
+
     bool ctrlPress = false;
 
 };

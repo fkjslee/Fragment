@@ -45,7 +45,7 @@ private:
     std::vector<FragmentUi *> unsortedFragments;
     std::vector<cv::Mat> groundTruth;
 
-    unsigned int bgColor = 0;
+    std::vector<unsigned int> bgColor;
 };
 
 #endif // FRAGMENTSCONTROLLER_H

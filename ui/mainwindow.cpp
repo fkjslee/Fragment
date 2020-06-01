@@ -92,7 +92,7 @@ void MainWindow::createMenu()
     menuEdit = new QMenu(tr("edit"), this);
     actCopy = new QAction(tr("copy"), this);
     actCopy->setShortcut(Qt::CTRL | Qt::Key_C);
-    menuEdit->addAction(actCopy);
+//    menuEdit->addAction(actCopy);
 
     QUndoStack *undoStack = CommonHeader::undoStack;
     actUndo = undoStack->createUndoAction(this, tr("undo"));
@@ -114,6 +114,9 @@ void MainWindow::createMenu()
     menuLanguage->addAction(actEnglish);
     connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
     ui->menubar->addMenu(menuTool);
+
+    menuSetting = new QMenu(tr("设置"), this);
+    ui->menubar->addMenu(menuSetting);
 }
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
