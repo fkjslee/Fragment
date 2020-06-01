@@ -36,10 +36,11 @@ public slots:
 
     void on_btnSplit_clicked();
 
+    void on_btnJointForce_clicked();
+
 private slots:
     void on_sldRotate_valueChanged(int value);
 
-    void on_btnJointForce_clicked();
 
 private:
     bool jointCheck();

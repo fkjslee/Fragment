@@ -76,7 +76,7 @@ void MainWindow::createMenu()
 
     actOpen = new QAction(tr("open file"), this);
     actOpen->setShortcut(Qt::CTRL | Qt::Key_O);
-    menuFile->addAction(actOpen);
+//    menuFile->addAction(actOpen);
 
     actSave = new QAction(tr("save"), this);
     actSave->setShortcut(Qt::CTRL | Qt::Key_S);
@@ -84,6 +84,7 @@ void MainWindow::createMenu()
 
     actClose = new QAction(tr("close"), this);
     actClose->setShortcut(Qt::CTRL | Qt::Key_W);
+    connect(actClose, &QAction::triggered, this, &MainWindow::triggerClose);
     menuFile->addAction(actClose);
     ui->menubar->addMenu(menuFile);
 
@@ -164,5 +165,10 @@ void MainWindow::changeLanguage(QString language)
 void MainWindow::triggerNew()
 {
     FragmentsController::getController()->createAllFragments(QFileDialog::getExistingDirectory());
+}
+
+void MainWindow::triggerClose()
+{
+    qApp->quit();
 }
 

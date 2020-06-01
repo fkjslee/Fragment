@@ -29,6 +29,7 @@ FragmentArea::FragmentArea(QWidget *parent) :
     ui->view->setScene(scene);
     fragCtrl = FragmentsController::getController();
     update();
+    ui->btnJoint->hide();
 }
 
 FragmentArea::~FragmentArea()
@@ -39,7 +40,6 @@ FragmentArea::~FragmentArea()
 
 void FragmentArea::update()
 {
-    qInfo() << "update fragment area";
     for (FragmentUi *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
@@ -80,6 +80,8 @@ void FragmentArea::setRotateAng(int value)
 
 void FragmentArea::on_btnJoint_clicked()
 {
+    qInfo() << "click btn joint";
+    return;
     std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
     if (jointCheck() == false) return;
     FragmentUi *f1 = jointFragments[0];
@@ -131,6 +133,7 @@ void FragmentArea::on_sldRotate_valueChanged(int value)
 
 void FragmentArea::on_btnJointForce_clicked()
 {
+    qInfo() << "click btn joint force";
     if (jointCheck() == false) return;
     std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
     FragmentUi *f1 = jointFragments[0];

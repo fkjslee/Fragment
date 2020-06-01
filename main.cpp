@@ -13,6 +13,7 @@
 #include <Tool.h>
 #include <QMessageBox>
 #include <QFile>
+#include <QDateTime>
 #include <network.h>
 
 void setStyle()
@@ -48,42 +49,53 @@ void loadLanguage()
     configFile.close();
 }
 
-void showMat(cv::Mat m) {
-    for (int i = 0; i < m.rows; ++i) {
-        QString res = "";
-        for (int j = 0; j < m.cols; ++j) {
-            if (m.type() == CV_8UC1)
-                res += QString::number(uchar(m.at<uchar>(i ,j))) + " ";
-            else
-                res += QString::number(float(m.at<float>(i ,j))) + " ";
-        }
-        qInfo() << res;
+QString logFilePath = "";
+QFile* logFile = nullptr;
+
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    QString textType;
+    switch (type) {
+    case QtDebugMsg:
+        textType = QString("Debug");
+        break;
+    case QtWarningMsg:
+        textType = QString("Warning");
+        break;
+    case QtCriticalMsg:
+        textType = QString("Critical");
+        break;
+    case QtFatalMsg:
+        textType = QString("Fatal");
+        break;
+    default:
+        break;
     }
+
+    QString text;
+    text = QString("[%1] %2: %3").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).arg(textType).arg(msg);
+    fprintf(stderr, "%s\n", text.toStdString().c_str());
+
+    if (logFile == nullptr) {
+        int cnt = 0;
+        logFilePath = "./log/log_file_" + QString::number(cnt) + ".txt";
+        logFile = new QFile(logFilePath);
+        while(QFile(logFilePath).exists()) {
+            ++cnt;
+            logFilePath = "./log/log_file_" + QString::number(cnt) + ".txt";
+            logFile = new QFile(logFilePath);
+        }
+        fprintf(stderr, "log file path : %s\n", logFilePath.toStdString().c_str());
+    }
+    QTextStream text_stream(logFile);
+    logFile->open(QIODevice::ReadWrite | QIODevice::Append);
+    text_stream << text << endl;
+    logFile->flush();
+    logFile->close();
 }
 
 int main(int argc, char *argv[])
 {
-//    cv::Mat m1 = cv::Mat::eye(2, 2, CV_8UC1);
-//    m1.at<uchar>(0, 0) = 1;
-//    m1.at<uchar>(0, 1) = 2;
-//    m1.at<uchar>(1, 0) = 3;
-//    m1.at<uchar>(1, 1) = 4;
-
-//    cv::Mat trans = cv::Mat::eye(2, 3, CV_32FC1);
-//    trans.at<float>(0, 0) = 1;
-//    trans.at<float>(0, 1) = 2;
-//    trans.at<float>(0, 2) = 0;
-//    trans.at<float>(1, 0) = 2;
-//    trans.at<float>(1, 1) = 4;
-//    trans.at<float>(1, 2) = 0;
-//    qInfo() << "--------------trans--------------------------";
-//    showMat(trans);
-//    qInfo() << "--------------before----------------";
-//    showMat(m1);
-//    qInfo() << "-------------after-----------------";
-//    cv::warpAffine(m1, m1, trans, cv::Size(9, 9));
-//    showMat(m1);
-//    return 0;
+    qInstallMessageHandler(myMessageOutput);
     QApplication a(argc, argv);
     setStyle();
     loadLanguage();

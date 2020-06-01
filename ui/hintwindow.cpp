@@ -126,6 +126,7 @@ void HintWindow::actSuggestTrigged()
 
 void HintWindow::on_btnAutoJoint_clicked()
 {
+    qInfo() << "click btn auto joint";
     FragmentsController* fragCtrl = FragmentsController::getController();
 
     auto selectHintFrags = getSelecetHintFrags();

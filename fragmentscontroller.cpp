@@ -120,6 +120,8 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();
+    if (MainWindow::mainWindow)
+        MainWindow::mainWindow->update();
 }
 
 FragmentsController *FragmentsController::getController()

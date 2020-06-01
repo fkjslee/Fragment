@@ -16,7 +16,7 @@ void FragmentsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     QAction *actRemoveFromDesktop = menu.addAction(tr("移出桌面"));
     QAction *actRefreshHint = menu.addAction(tr("AI推荐选中碎片"));
     connect(actSplit, &QAction::triggered, FragmentArea::getFragmentArea(), &FragmentArea::on_btnSplit_clicked);
-    connect(actJoint, &QAction::triggered, FragmentArea::getFragmentArea(), &FragmentArea::on_btnJoint_clicked);
+    connect(actJoint, &QAction::triggered, FragmentArea::getFragmentArea(), &FragmentArea::on_btnJointForce_clicked);
     connect(actRemoveFromDesktop, &QAction::triggered, FragmentsController::getController(), &FragmentsController::unSelectFragment);
     connect(actRefreshHint, &QAction::triggered, HintWindow::getHintWindow(), &HintWindow::actSuggestTrigged);
     menu.exec(event->screenPos());

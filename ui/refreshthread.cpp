@@ -28,7 +28,6 @@ void RefreshThread::run()
     setHint(res);
     emit deleteOldFragments();
     emit setNewFragments();
-    qDebug() << "here 31";
     locker.unlock();
 }
 

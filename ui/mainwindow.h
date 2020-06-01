@@ -42,6 +42,7 @@ private slots:
     void changeLanguageToEN();
     void changeLanguage(QString language);
     void triggerNew();
+    void triggerClose();
 
 private:
     FragmentsController *fragCtrl;
