@@ -353,10 +353,21 @@ int FragmentsController::calcScore()
             cv::Mat gt = Tool::getInvMat(groundTruth[p1]) * groundTruth[p2];
             float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
             float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));
-            float x = trans.at<float>(0, 2) / len / 2.0;
-            float y = trans.at<float>(1, 2) / len / 2.0;
-            float xx = gt.at<float>(0, 2) / len2 / 2.0;
-            float yy = gt.at<float>(1, 2) / len2 / 2.0;
+            float x, y, xx, yy;
+            if (std::abs(len) > 1e-7) {
+                x = trans.at<float>(0, 2) / len / 2.0;
+                y = trans.at<float>(1, 2) / len / 2.0;
+            } else {
+                x = 0;
+                y = 0;
+            }
+            if (std::abs(len2) > 1e-7) {
+                xx = gt.at<float>(0, 2) / len2 / 2.0;
+                yy = gt.at<float>(1, 2) / len2 / 2.0;
+            } else {
+                xx = 0;
+                yy = 0;
+            }
             float eachScore = 1.0 / 4 * std::pow(trans.at<float>(0, 0) / 2 - gt.at<float>(0, 0) / 2, 2) +
                               1.0 / 4 * std::pow(trans.at<float>(0, 1) / 2 - gt.at<float>(0, 1) / 2, 2) +
                     1.0 / 4 * std::pow(x - xx, 2) +
