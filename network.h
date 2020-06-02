@@ -28,6 +28,7 @@ public:
     static Network* network;
 
     static int fragSuggesNum;
+    static float fragSuggesConfi;
 
 private:
     Network() {

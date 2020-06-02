@@ -13,7 +13,8 @@
 const QString helloMsg = "client: \"ping...\"";
 const QString endMsg = "bye";
 
-int Network::fragSuggesNum = 2;
+int Network::fragSuggesNum = 200;
+float Network::fragSuggesConfi = 0.8;
 Network* Network::network = new Network;
 namespace
 {
@@ -26,10 +27,17 @@ namespace
         sockAddr.sin_addr.s_addr = inet_addr(addr);
         return sockAddr;
     }
+
     template<class T>
     const T& minElement(const T& a, const T& b)
     {
         return (b < a) ? b : a;
+    }
+
+    template<class T>
+    const T& maxElement(const T& a, const T& b)
+    {
+        return (b < a) ? a : b;
     }
 }
 
@@ -44,6 +52,7 @@ QString Network::sendMsg(const QString &msg) {
     if (command == 'a') {
         int id1 = msgs[1].toInt();
         for (int i = 0; i < minElement(fragSuggesNum, (int)network->allTransMat[id1].size()); ++i) {
+            if (network->allTransMat[id1][i].confidence < fragSuggesConfi) break;
             int id2 = network->allTransMat[id1][i].otherFrag;
             res += QString::number(id2) + " ";
             for (int u = 0; u < 3; ++u)
@@ -118,8 +127,24 @@ void Network::loadTransMat(const QString &path)
         if (!has)
             network->allTransMat[id2].emplace_back(matAndConfi);
     }
+
     for (int i = 0; i < MAX_N; ++i)
         std::sort(network->allTransMat[i].begin(), network->allTransMat[i].end());
+
+    float minConfi = 1000000.0;
+    float maxConfi = -1000000.0;
+    for (int i = 0; i < MAX_N; ++i) {
+        for (int j = 0; j < (int)network->allTransMat[i].size(); ++j) {
+            minConfi = minElement(minConfi, network->allTransMat[i][j].confidence);
+            maxConfi = maxElement(maxConfi, network->allTransMat[i][j].confidence);
+        }
+    }
+    for (int i = 0; i < MAX_N; ++i) {
+        for (int j = 0; j < (int)network->allTransMat[i].size(); ++j) {
+            network->allTransMat[i][j].confidence = (network->allTransMat[i][j].confidence - minConfi) / (maxConfi - minConfi);
+//            qInfo() << i << network->allTransMat[i][j].otherFrag << " = " << network->allTransMat[i][j].confidence;
+        }
+    }
 }
 
 

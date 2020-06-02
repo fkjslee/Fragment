@@ -23,7 +23,7 @@
    <item>
     <widget class="QPushButton" name="btnClearAI">
      <property name="text">
-      <string>停止推荐</string>
+      <string>取消推荐</string>
      </property>
     </widget>
    </item>
@@ -31,13 +31,6 @@
     <widget class="QPushButton" name="refreshBtn">
      <property name="text">
       <string>Refresh hint</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="btnAutoJoint">
-     <property name="text">
-      <string>自动拼接</string>
      </property>
     </widget>
    </item>

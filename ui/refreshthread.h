@@ -17,7 +17,7 @@ class RefreshThread : public QThread {
 
 public:
     RefreshThread() {}
-    RefreshThread(FragmentUi* const fragment, QString pieceName, HintWindow* hintWindow);
+    RefreshThread(FragmentUi* const fragment, HintWindow* hintWindow);
 
     virtual void run() override;
 
@@ -27,14 +27,13 @@ signals:
 
 private:
     int getPieceID(std::vector<Piece> pieces, QString name);
-    void setHint(QString res);
+    void setHint(QString res, const QString& pieceName);
 
 private:
     FragmentUi* fragment;
     FragmentsController* fragCtrl;
-    QString pieceName;
     HintWindow* hintWindow;
-    static QMutex locker;
+    static QMutex setFragmentLocker;
 };
 
 

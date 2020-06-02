@@ -1,10 +1,9 @@
 #include "refreshthread.h"
 
 
-QMutex RefreshThread::locker;
-RefreshThread::RefreshThread(FragmentUi* const fragment, QString pieceName, HintWindow* hintWindow) {
+QMutex RefreshThread::setFragmentLocker;
+RefreshThread::RefreshThread(FragmentUi* const fragment, HintWindow* hintWindow) {
     this->fragment = fragment;
-    this->pieceName = pieceName;
     this->hintWindow = hintWindow;
     fragCtrl = FragmentsController::getController();
     connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
@@ -20,18 +19,20 @@ int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
 
 void RefreshThread::run()
 {
-    QString res = Network::sendMsg("a " + pieceName);
-    if (res == "-1") {
-       return;
+    for (Piece p : fragment->getPieces()) {
+        QString res = Network::sendMsg("a " + p.pieceName);
+        if (res == "-1") {
+           return;
+        }
+        setFragmentLocker.lock();
+        setHint(res, p.pieceName);
+        emit deleteOldFragments();
+        emit setNewFragments();
+        setFragmentLocker.unlock();
     }
-    locker.lock();
-    setHint(res);
-    emit deleteOldFragments();
-    emit setNewFragments();
-    locker.unlock();
 }
 
-void RefreshThread::setHint(QString res)
+void RefreshThread::setHint(QString res, const QString& pieceName)
 {
     res.replace("[", "");
     res.replace("]", "");

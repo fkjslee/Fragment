@@ -116,11 +116,9 @@ void HintWindow::actSuggestTrigged()
     }
 
     for (FragmentUi* f : refreshFragments) {
-        for (Piece p : f->getPieces()) {
-            RefreshThread* thread = new RefreshThread(f, p.pieceName, this);
-            thread->start();
-            this->threads.push_back(thread);
-        }
+        RefreshThread* thread = new RefreshThread(f, this);
+        thread->start();
+        this->threads.push_back(thread);
     }
 }
 
