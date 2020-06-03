@@ -7,10 +7,11 @@
 
 #define LOCAL_DATA
 
-const int MAX_N = 500;
+const int MAX_FRAGMENT_NUM = 500;
 
 class TransMatAndConfi {
 public:
+    int thisFrag;
     int otherFrag;
     cv::Mat transMat;
     float confidence;
@@ -24,7 +25,7 @@ class Network
 public:
     static QString sendMsg(const QString &msg);
     static void loadTransMat(const QString& path);
-    std::vector<TransMatAndConfi> allTransMat[MAX_N];
+    std::vector<TransMatAndConfi> allTransMat[MAX_FRAGMENT_NUM];
     static Network* network;
 
     static int fragSuggesNum;

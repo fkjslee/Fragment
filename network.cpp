@@ -52,9 +52,9 @@ QString Network::sendMsg(const QString &msg) {
     if (command == 'a') {
         int id1 = msgs[1].toInt();
         for (int i = 0; i < minElement(fragSuggesNum, (int)network->allTransMat[id1].size()); ++i) {
-            if (network->allTransMat[id1][i].confidence < fragSuggesConfi) break;
             int id2 = network->allTransMat[id1][i].otherFrag;
             res += QString::number(id2) + " ";
+            res += QString::number(network->allTransMat[id1][i].confidence) + " ";
             for (int u = 0; u < 3; ++u)
                 for (int v = 0; v < 3; ++v) {
                     float num = float(network->allTransMat[id1][i].transMat.at<float>(u, v));
@@ -88,7 +88,7 @@ void Network::loadTransMat(const QString &path)
         lines.append(line);
         line = in.readLine();
     }
-    for (int i = 0; i < MAX_N; ++i)
+    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
         network->allTransMat[i].clear();
     for (int i = 0; i < lines.length(); i += 4) {
         QStringList ids = lines[i].split(' ');
@@ -128,18 +128,18 @@ void Network::loadTransMat(const QString &path)
             network->allTransMat[id2].emplace_back(matAndConfi);
     }
 
-    for (int i = 0; i < MAX_N; ++i)
+    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
         std::sort(network->allTransMat[i].begin(), network->allTransMat[i].end());
 
     float minConfi = 1000000.0;
     float maxConfi = -1000000.0;
-    for (int i = 0; i < MAX_N; ++i) {
+    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i) {
         for (int j = 0; j < (int)network->allTransMat[i].size(); ++j) {
             minConfi = minElement(minConfi, network->allTransMat[i][j].confidence);
             maxConfi = maxElement(maxConfi, network->allTransMat[i][j].confidence);
         }
     }
-    for (int i = 0; i < MAX_N; ++i) {
+    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i) {
         for (int j = 0; j < (int)network->allTransMat[i].size(); ++j) {
             network->allTransMat[i][j].confidence = (network->allTransMat[i][j].confidence - minConfi) / (maxConfi - minConfi);
 //            qInfo() << i << network->allTransMat[i][j].otherFrag << " = " << network->allTransMat[i][j].confidence;

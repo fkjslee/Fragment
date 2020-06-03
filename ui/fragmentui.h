@@ -11,12 +11,12 @@ class Piece
 {
 public:
     Piece(const QString &piecePath, const QString &pieceName, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1))
-        : piecePath(piecePath), pieceName(pieceName) {
+        : piecePath(piecePath), pieceID(pieceName) {
         this->transMat = transMat.clone();
     }
 public:
     QString piecePath;
-    QString pieceName;
+    QString pieceID;
     cv::Mat transMat;
 };
 

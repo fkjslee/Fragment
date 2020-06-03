@@ -9,7 +9,7 @@ unsigned int HintWindow::maxHintSize = 5;
 namespace {
 int getPieceID(std::vector<Piece> pieces, QString name) {
     for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceName == name)
+        if (pieces[i].pieceID == name)
             return i;
     return -1;
 }

@@ -12,6 +12,18 @@
 
 class HintWindow;
 struct HintFragment;
+
+class GetResThread : public QThread {
+public:
+    GetResThread(QString* res, std::vector<TransMatAndConfi>* confiMat, const QString& pieceName);
+    virtual void run() override;
+
+private:
+    QString* res;
+    QString pieceName;
+    std::vector<TransMatAndConfi>* confiMats;
+};
+
 class RefreshThread : public QThread {
     Q_OBJECT
 
@@ -27,7 +39,7 @@ signals:
 
 private:
     int getPieceID(std::vector<Piece> pieces, QString name);
-    void setHint(QString res, const QString& pieceName);
+    void setHint(const std::vector<TransMatAndConfi>& resConfiMat);
 
 private:
     FragmentUi* fragment;

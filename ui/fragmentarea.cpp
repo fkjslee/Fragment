@@ -13,7 +13,7 @@ FragmentArea* FragmentArea::fragmentArea = nullptr;
 namespace {
 int getPieceID(std::vector<Piece> pieces, QString name) {
     for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceName == name)
+        if (pieces[i].pieceID == name)
             return i;
     return -1;
 }
@@ -82,36 +82,6 @@ void FragmentArea::on_btnJoint_clicked()
 {
     qInfo() << "click btn joint";
     return;
-    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
-    if (jointCheck() == false) return;
-    FragmentUi *f1 = jointFragments[0];
-    FragmentUi *f2 = jointFragments[1];
-
-    auto p1s = f1->getPieces();
-    auto p2s = f2->getPieces();
-
-    bool jointSucc = false;
-    for (int i = 0; i < (int)p1s.size(); ++i) {
-        for (int j = 0;  j< (int)p2s.size(); ++j) {
-            Piece p1 = p1s[i];
-            Piece p2 = p2s[j];
-            QString res = Network::sendMsg("b " + p1.pieceName + " " + p2.pieceName);
-            cv::Mat transMat = Tool::str2TransMat(res);
-            transMat = Tool::normalToOpencvTransMat(transMat);
-            if (transMat.rows != 0) {
-                fragCtrl->jointFragment(f1, i, f2, j, transMat);
-                jointSucc = true;
-                break;
-            }
-        }
-        if (jointSucc) break;
-    }
-    if (!jointSucc) {
-        QMessageBox::warning(nullptr, QObject::tr("joint error"), "These two fragments are not aligned.",
-                              QMessageBox::Cancel);
-    }
-    update();
-
 }
 
 void FragmentArea::on_btnSplit_clicked()

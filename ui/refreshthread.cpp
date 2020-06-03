@@ -12,49 +12,54 @@ RefreshThread::RefreshThread(FragmentUi* const fragment, HintWindow* hintWindow)
 
 int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
     for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceName == name)
+        if (pieces[i].pieceID == name)
             return i;
     return -1;
 }
 
 void RefreshThread::run()
 {
+    std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
+    std::vector<GetResThread*> allThreads;
     for (Piece p : fragment->getPieces()) {
-        QString res = Network::sendMsg("a " + p.pieceName);
+        QString res = Network::sendMsg("a " + p.pieceID);
         if (res == "-1") {
            return;
         }
-        setFragmentLocker.lock();
-        setHint(res, p.pieceName);
-        emit deleteOldFragments();
-        emit setNewFragments();
-        setFragmentLocker.unlock();
+        GetResThread* thread = new GetResThread(&res, &allConfiMats[p.pieceID.toInt()], p.pieceID);
+        thread->start();
+        allThreads.emplace_back(thread);
     }
+
+    for (GetResThread* thread : allThreads) {
+        thread->quit();
+        thread->wait();
+    }
+
+    std::vector<TransMatAndConfi> resConfiMat;
+    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
+        for (int j = 0; j < (int)allConfiMats[i].size(); ++j)
+            resConfiMat.emplace_back(allConfiMats[i][j]);
+    sort(resConfiMat.begin(), resConfiMat.end());
+
+    setFragmentLocker.lock();
+    setHint(resConfiMat);
+    emit deleteOldFragments();
+    emit setNewFragments();
+    setFragmentLocker.unlock();
 }
 
-void RefreshThread::setHint(QString res, const QString& pieceName)
+void RefreshThread::setHint(const std::vector<TransMatAndConfi>& resConfiMat)
 {
-    res.replace("[", "");
-    res.replace("]", "");
-    res.replace("\n", "");
-    QStringList msgList = res.split(" ");
-    QStringList msgList2;
-    for (QString s : msgList)
-        if (s != "")
-            msgList2.append(s);
-    for (int i = 0; i < msgList2.length(); i += 10) {
-        FragmentUi* anotherFragment = fragCtrl->findFragmentByName(msgList2[i]);
+    for (const TransMatAndConfi& confiMat : resConfiMat) {
+        FragmentUi* anotherFragment = fragCtrl->findFragmentByName(QString::number(confiMat.otherFrag));
         if (anotherFragment == nullptr) {
-            qInfo() << "another fragment " + msgList2[i] << " not in the work area";
+            qInfo() << "another fragment " + QString::number(confiMat.otherFrag) << " not in the work area";
             continue;
         }
-        cv::Mat transMat(3, 3, CV_32FC1);
-        for (int j = 0; j < 3; ++j)
-            for (int k = 0; k < 3; ++k)
-                transMat.at<float>(j, k) = msgList2[i+1+(j*3+k)].toFloat();
-        transMat = Tool::normalToOpencvTransMat(transMat);
-        const int p1 = getPieceID(fragment->getPieces(), pieceName);
-        const int p2 = getPieceID(anotherFragment->getPieces(), msgList2[i]);
+
+        const int p1 = getPieceID(fragment->getPieces(), QString::number(confiMat.thisFrag));
+        const int p2 = getPieceID(anotherFragment->getPieces(), QString::number(confiMat.otherFrag));
 
         struct HintFragment hintFrag;
         hintFrag.fragJoint = fragment;
@@ -62,7 +67,7 @@ void RefreshThread::setHint(QString res, const QString& pieceName)
         hintFrag.fragInHintWindow = new FragmentUi(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName(), Platfrom::HintArea);
         hintFrag.p1ID = p1;
         hintFrag.p2ID = p2;
-        hintFrag.transMat = transMat.clone();
+        hintFrag.transMat = confiMat.transMat.clone();
         std::vector<HintFragment> vec = hintWindow->hintFragments;
         bool fragInHint = false;
         for (HintFragment f : vec) {
@@ -80,6 +85,39 @@ void RefreshThread::setHint(QString res, const QString& pieceName)
         if (hintWindow->hintFragments.size() >= HintWindow::maxHintSize)
             hintWindow->hintFragments.erase(hintWindow->hintFragments.begin());
         hintWindow->hintFragments.emplace_back(hintFrag);
+        break;
     }
 }
 
+GetResThread::GetResThread(QString *res, std::vector<TransMatAndConfi>* confiMats, const QString& pieceName)
+{
+    this->res = res;
+    this->pieceName = pieceName;
+    this->confiMats = confiMats;
+}
+
+void GetResThread::run()
+{
+    res->replace("[", "");
+    res->replace("]", "");
+    res->replace("\n", "");
+    QStringList msgList = res->split(" ");
+    QStringList msgList2;
+    for (QString s : msgList)
+        if (s != "")
+            msgList2.append(s);
+    for (int i = 0; i < msgList2.length(); i += 11) {
+        cv::Mat transMat(3, 3, CV_32FC1);
+        for (int j = 0; j < 3; ++j)
+            for (int k = 0; k < 3; ++k)
+                transMat.at<float>(j, k) = msgList2[i+2+(j*3+k)].toFloat();
+        transMat = Tool::normalToOpencvTransMat(transMat);
+
+        TransMatAndConfi confiMat;
+        confiMat.thisFrag = pieceName.toInt();
+        confiMat.otherFrag = msgList[i].toInt();
+        confiMat.confidence = msgList[i+1].toFloat();
+        confiMat.transMat = transMat.clone();
+        confiMats->emplace_back(confiMat);
+    }
+}

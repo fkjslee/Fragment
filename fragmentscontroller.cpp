@@ -162,7 +162,7 @@ bool FragmentsController::splitSelectedFragments()
                 auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
                 img.setAlphaChannel(mask);
             }
-            FragmentUi *newSplitFragment = new FragmentUi(vec, img, newP.pieceName);
+            FragmentUi *newSplitFragment = new FragmentUi(vec, img, newP.pieceID);
             redoFragments.emplace_back(newSplitFragment);
         }
         undoFragments.emplace_back(splitFragment);
@@ -266,7 +266,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     undoFragments.push_back(f2);
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
-    qInfo() << "joint fragments " << p1.pieceName << " and " << p2.pieceName;
+    qInfo() << "joint fragments " << p1.pieceID << " and " << p2.pieceID;
     return true;
 }
 
@@ -348,8 +348,8 @@ int FragmentsController::calcScore()
         auto pieces = f->getPieces();
         for (int i = 1; i < (int)pieces.size(); ++i) {
             cv::Mat trans = Tool::getInvMat(pieces[0].transMat) * pieces[i].transMat;
-            int p1 = pieces[0].pieceName.toInt();
-            int p2 = pieces[i].pieceName.toInt();
+            int p1 = pieces[0].pieceID.toInt();
+            int p2 = pieces[i].pieceID.toInt();
             cv::Mat gt = Tool::getInvMat(groundTruth[p1]) * groundTruth[p2];
             float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
             float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));
