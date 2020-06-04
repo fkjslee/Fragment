@@ -15,11 +15,11 @@ struct HintFragment;
 
 class GetResThread : public QThread {
 public:
-    GetResThread(QString* res, std::vector<TransMatAndConfi>* confiMat, const QString& pieceName);
+    GetResThread(std::vector<TransMatAndConfi>* confiMat, const QString& pieceName);
     virtual void run() override;
 
 private:
-    QString* res;
+
     QString pieceName;
     std::vector<TransMatAndConfi>* confiMats;
 };
@@ -28,8 +28,9 @@ class RefreshThread : public QThread {
     Q_OBJECT
 
 public:
-    RefreshThread() {}
-    RefreshThread(FragmentUi* const fragment, HintWindow* hintWindow);
+    RefreshThread(FragmentUi* const fragment);
+
+    void stopThread();
 
     virtual void run() override;
 
@@ -44,8 +45,9 @@ private:
 private:
     FragmentUi* fragment;
     FragmentsController* fragCtrl;
-    HintWindow* hintWindow;
     static QMutex setFragmentLocker;
+    std::vector<GetResThread*> allThreads;
+    bool stoped;
 };
 
 

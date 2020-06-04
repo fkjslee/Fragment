@@ -61,6 +61,8 @@ public:
 private slots:
     void on_btnClearAI_clicked();
 
+    void on_refreshBtn_clicked();
+
 private:
     Ui::HintWindow *ui;
     HintScene *scene;

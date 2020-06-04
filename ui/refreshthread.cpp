@@ -2,12 +2,15 @@
 
 
 QMutex RefreshThread::setFragmentLocker;
-RefreshThread::RefreshThread(FragmentUi* const fragment, HintWindow* hintWindow) {
+RefreshThread::RefreshThread(FragmentUi* const fragment) {
     this->fragment = fragment;
-    this->hintWindow = hintWindow;
     fragCtrl = FragmentsController::getController();
-    connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
-    connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
+    stoped = false;
+}
+
+void RefreshThread::stopThread()
+{
+    stoped = true;
 }
 
 int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
@@ -20,19 +23,13 @@ int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
 void RefreshThread::run()
 {
     std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
-    std::vector<GetResThread*> allThreads;
     for (Piece p : fragment->getPieces()) {
-        QString res = Network::sendMsg("a " + p.pieceID);
-        if (res == "-1") {
-           return;
-        }
-        GetResThread* thread = new GetResThread(&res, &allConfiMats[p.pieceID.toInt()], p.pieceID);
+        GetResThread* thread = new GetResThread(&allConfiMats[p.pieceID.toInt()], p.pieceID);
         thread->start();
         allThreads.emplace_back(thread);
     }
 
     for (GetResThread* thread : allThreads) {
-        thread->quit();
         thread->wait();
     }
 
@@ -42,15 +39,18 @@ void RefreshThread::run()
             resConfiMat.emplace_back(allConfiMats[i][j]);
     sort(resConfiMat.begin(), resConfiMat.end());
 
-    setFragmentLocker.lock();
-    setHint(resConfiMat);
-    emit deleteOldFragments();
-    emit setNewFragments();
-    setFragmentLocker.unlock();
+    if(!stoped) {
+        setFragmentLocker.lock();
+        setHint(resConfiMat);
+        HintWindow::getHintWindow()->deleteOldFragments();
+        HintWindow::getHintWindow()->setNewFragments();
+        setFragmentLocker.unlock();
+    }
 }
 
 void RefreshThread::setHint(const std::vector<TransMatAndConfi>& resConfiMat)
 {
+    HintWindow* hintWindow = HintWindow::getHintWindow();
     for (const TransMatAndConfi& confiMat : resConfiMat) {
         FragmentUi* anotherFragment = fragCtrl->findFragmentByName(QString::number(confiMat.otherFrag));
         if (anotherFragment == nullptr) {
@@ -89,19 +89,19 @@ void RefreshThread::setHint(const std::vector<TransMatAndConfi>& resConfiMat)
     }
 }
 
-GetResThread::GetResThread(QString *res, std::vector<TransMatAndConfi>* confiMats, const QString& pieceName)
+GetResThread::GetResThread(std::vector<TransMatAndConfi>* confiMats, const QString& pieceName)
 {
-    this->res = res;
     this->pieceName = pieceName;
     this->confiMats = confiMats;
 }
 
 void GetResThread::run()
 {
-    res->replace("[", "");
-    res->replace("]", "");
-    res->replace("\n", "");
-    QStringList msgList = res->split(" ");
+    QString res = Network::sendMsg("a " + pieceName);
+    res.replace("[", "");
+    res.replace("]", "");
+    res.replace("\n", "");
+    QStringList msgList = res.split(" ");
     QStringList msgList2;
     for (QString s : msgList)
         if (s != "")

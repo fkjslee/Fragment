@@ -30,7 +30,6 @@ HintWindow::HintWindow(QWidget *parent) :
 HintWindow::~HintWindow()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i) {
-        threads[i]->quit();
         threads[i]->wait();
         delete threads[i];
     }
@@ -116,7 +115,7 @@ void HintWindow::actSuggestTrigged()
     }
 
     for (FragmentUi* f : refreshFragments) {
-        RefreshThread* thread = new RefreshThread(f, this);
+        RefreshThread* thread = new RefreshThread(f);
         thread->start();
         this->threads.push_back(thread);
     }
@@ -160,12 +159,15 @@ std::vector<HintFragment> HintWindow::getSelecetHintFrags()
 void HintWindow::on_btnClearAI_clicked()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i) {
-        threads[i]->quit();
-        threads[i]->wait();
-        delete threads[i];
+        threads[i]->stopThread();
     }
     threads.clear();
     hintFragments.clear();
     deleteOldFragments();
+    update();
+}
+
+void HintWindow::on_refreshBtn_clicked()
+{
     update();
 }
