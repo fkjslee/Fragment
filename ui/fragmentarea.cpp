@@ -55,7 +55,6 @@ void FragmentArea::update()
     ui->resLabel->setText("score: " + QString::number(FragmentsController::getController()->calcScore()));
     scene->update();
     QWidget::update();
-    QApplication::processEvents();
 }
 
 void FragmentArea::updateFragmentsPos()

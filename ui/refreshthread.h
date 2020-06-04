@@ -42,6 +42,9 @@ private:
     int getPieceID(std::vector<Piece> pieces, QString name);
     void setHint(const std::vector<TransMatAndConfi>& resConfiMat);
 
+public:
+    static int confidence;
+
 private:
     FragmentUi* fragment;
     FragmentsController* fragCtrl;

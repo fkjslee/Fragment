@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QDateTime>
 #include <network.h>
+#include <ui/refreshthread.h>
 #include <QMutex>
 
 void setStyle()
@@ -99,11 +100,12 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[])
 {
     qInstallMessageHandler(myMessageOutput);
+    qInfo() << "launch application. delay =" << Network::delay << "ms confidence =" << RefreshThread::confidence << "%";
     QApplication a(argc, argv);
     setStyle();
     loadLanguage();
     MainWindow w;
-//    w.showMaximized();
+    w.showMaximized();
 //    w.showFullScreen();
     w.show();
     return a.exec();

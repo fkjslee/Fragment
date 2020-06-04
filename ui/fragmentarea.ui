@@ -50,7 +50,7 @@
      <item>
       <widget class="QPushButton" name="btnJointForce">
        <property name="text">
-        <string>强制拼接</string>
+        <string>拼接</string>
        </property>
       </widget>
      </item>

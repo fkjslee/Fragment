@@ -5,8 +5,6 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-#define LOCAL_DATA
-
 const int MAX_FRAGMENT_NUM = 500;
 
 class TransMatAndConfi {
@@ -30,6 +28,7 @@ public:
 
     static int fragSuggesNum;
     static float fragSuggesConfi;
+    static int delay;
 
 private:
     Network() {

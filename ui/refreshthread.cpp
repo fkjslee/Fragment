@@ -1,6 +1,8 @@
 #include "refreshthread.h"
+#include <cstdlib>
 
 
+int RefreshThread::confidence = int(100 * 0.9 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
 RefreshThread::RefreshThread(FragmentUi* const fragment) {
     this->fragment = fragment;
@@ -37,7 +39,13 @@ void RefreshThread::run()
     for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
         for (int j = 0; j < (int)allConfiMats[i].size(); ++j)
             resConfiMat.emplace_back(allConfiMats[i][j]);
-    sort(resConfiMat.begin(), resConfiMat.end());
+
+
+    int random = rand() % 100;
+    if (random < confidence)
+        sort(resConfiMat.begin(), resConfiMat.end());
+    else
+        sort(resConfiMat.rbegin(), resConfiMat.rend());
 
     if(!stoped) {
         setFragmentLocker.lock();
