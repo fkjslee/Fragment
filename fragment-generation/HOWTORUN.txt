@@ -1,0 +1,6 @@
+If you want total pieces fixed: eg. 6 pieces are generated
+python main.py ./image 6
+
+If you want h_cuts and v_cuts fixed: eg. 5 horizontal lines and 9 vertical lines
+
+python main.py ./image 6 10
