@@ -26,7 +26,7 @@ public:
     bool jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat& transMat);
     void selectFragment();
     void getGroundTruth(const QString& path);
-    int calcScore();
+    float calcScore();
 
 public slots:
     void unSelectFragment();

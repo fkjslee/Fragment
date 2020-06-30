@@ -14,7 +14,7 @@ const QString endMsg = "bye";
 
 int Network::fragSuggesNum = 200;
 float Network::fragSuggesConfi = 0.8;
-int Network::delay = 5000;
+int Network::delay = 1 * 1000;
 Network* Network::network = new Network;
 namespace
 {

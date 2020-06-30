@@ -341,9 +341,9 @@ void FragmentsController::getGroundTruth(const QString& path)
     }
 }
 
-int FragmentsController::calcScore()
+float FragmentsController::calcScore()
 {
-    int score = 0;
+    float score = 0;
     for (FragmentUi* f : getUnsortedFragments()) {
         auto pieces = f->getPieces();
         for (int i = 1; i < (int)pieces.size(); ++i) {
@@ -372,7 +372,7 @@ int FragmentsController::calcScore()
                               1.0 / 4 * std::pow(trans.at<float>(0, 1) / 2 - gt.at<float>(0, 1) / 2, 2) +
                     1.0 / 4 * std::pow(x - xx, 2) +
                     1.0 / 4 * std::pow(y - yy, 2);
-            score += (1 - eachScore) * 100 + 0.5;
+            score += (1 - eachScore) * 100;
         }
     }
     return score;

@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./mixed2/");
+    FragmentsController::getController()->createAllFragments("./fragment3/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();

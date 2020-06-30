@@ -2,12 +2,15 @@
 #include <cstdlib>
 
 
-int RefreshThread::confidence = int(100 * 0.9 + 0.5);
+int RefreshThread::confidence = int(100 * 0.6 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
 RefreshThread::RefreshThread(FragmentUi* const fragment) {
     this->fragment = fragment;
     fragCtrl = FragmentsController::getController();
     stoped = false;
+    HintWindow* hintWindow = HintWindow::getHintWindow();
+    connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
+    connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
 }
 
 void RefreshThread::stopThread()
@@ -50,8 +53,8 @@ void RefreshThread::run()
     if(!stoped) {
         setFragmentLocker.lock();
         setHint(resConfiMat);
-        HintWindow::getHintWindow()->deleteOldFragments();
-        HintWindow::getHintWindow()->setNewFragments();
+        emit deleteOldFragments();
+        emit setNewFragments();
         setFragmentLocker.unlock();
     }
 }
