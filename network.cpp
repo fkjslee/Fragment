@@ -13,8 +13,8 @@ const QString helloMsg = "client: \"ping...\"";
 const QString endMsg = "bye";
 
 int Network::fragSuggesNum = 200;
-float Network::fragSuggesConfi = 0.8;
-int Network::delay = 1 * 1000;
+float Network::fragSuggesConfi = 0.8f;
+int Network::delay = 0 * 1000;
 Network* Network::network = new Network;
 namespace
 {

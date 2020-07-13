@@ -255,8 +255,8 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
         pieces.emplace_back(newP);
     }
     FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(jointImg)), f1->getFragmentName() + " " + f2->getFragmentName());
-    float newX = std::min(f1->scenePos().x(), f2->scenePos().x());
-    float newY = std::min(f1->scenePos().y(), f2->scenePos().y());
+    float newX = f1->scenePos().x() - offsetMat.at<float>(0, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
+    float newY = f1->scenePos().y() - offsetMat.at<float>(1, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
     newFragment->setPos(newX, newY);
     newFragment->rotateAng = f1->rotateAng;
     newFragment->undoFragments.push_back(f1);
