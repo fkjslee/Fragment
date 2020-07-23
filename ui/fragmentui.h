@@ -36,10 +36,6 @@ public:
     {
         return originalImage;
     }
-    const QImage &getShowImage() const
-    {
-        return showImage;
-    }
     const QString &getFragmentName() const
     {
         return fragmentName;
@@ -79,6 +75,7 @@ private:
     QPointF pressPos;
     cv::Mat offset;
     double scale = 1.0;
+    bool calcing = false;
 };
 
 #endif // FRAGMENTUI_H

@@ -105,7 +105,6 @@ int main(int argc, char *argv[])
     setStyle();
     loadLanguage();
     MainWindow w;
-    w.showMaximized();
 //    w.showFullScreen();
     w.show();
     return a.exec();

@@ -47,7 +47,7 @@ public:
     static cv::Mat getFirst2RowsMat(const cv::Mat& src) {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
         if (src.size() != cv::Size(3, 3)) return cv::Mat(0, 0, CV_32FC1);
-        if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1 > 1e-7))
+        if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1.0) > 1e-7)
             return cv::Mat(0, 0, CV_32FC1);
         cv::Mat dst(2, 3, CV_32FC1);
         for (int i = 0; i < 2; ++i) {
@@ -268,6 +268,53 @@ public:
         dst.at<float>(1, 1) = src.at<float>(1, 1);
         dst.at<float>(1, 2) = src.at<float>(0, 2);
         return dst.clone();
+    }
+
+    static cv::Mat fusionImage(cv::Mat& src, cv::Mat& dst, const cv::Mat& transMat, cv::Mat& offset) {
+        std::vector<cv::Point2i> colorIdx;
+        for (int i = 0; i < src.rows; ++i)
+            for (int j = 0; j < src.cols; ++j)
+                if ((src.at<cv::Vec4b>(i, j)[0]) || src.at<cv::Vec4b>(i, j)[1] || src.at<cv::Vec4b>(i, j)[2] || src.at<cv::Vec4b>(i, j)[3])
+                    colorIdx.push_back(cv::Point2i(j, i));
+        for (int i = 0; i < dst.rows; ++i)
+            for (int j = 0; j < dst.cols; ++j)
+                if ((dst.at<cv::Vec4b>(i, j)[0]) || dst.at<cv::Vec4b>(i, j)[1] || dst.at<cv::Vec4b>(i, j)[2] || dst.at<cv::Vec4b>(i, j)[3]) {
+                    int x = transMat.at<float>(0, 0) * colorIdx[i].x + transMat.at<float>(0, 1) * colorIdx[i].y + transMat.at<float>(0, 2);
+                    int y = transMat.at<float>(1, 0) * colorIdx[i].x + transMat.at<float>(1, 1) * colorIdx[i].y + transMat.at<float>(1, 2);
+                    colorIdx.push_back(cv::Point2i(x, y));
+                }
+
+        int minX = 0x3f3f3f3f;
+        int maxX = -0x3f3f3f3f;
+        int minY = 0x3f3f3f3f;
+        int maxY = -0x3f3f3f3f;
+        cv::Mat opencvRotateMat = transMat.clone();
+        for (int i = 0; i < (int)colorIdx.size(); ++i) {
+            int x = colorIdx[i].x;
+            int y = colorIdx[i].y;
+            minX = (std::min)(minX, x);
+            maxX = (std::max)(maxX, x);
+            minY = (std::min)(minY, y);
+            maxY = (std::max)(maxY, y);
+        }
+
+        offset = cv::Mat::eye(3, 3, CV_32FC1);
+        offset.at<float>(0, 2) = -minX;
+        offset.at<float>(1, 2) = -minY;
+
+        cv::Mat srcTransed;
+        cv::warpAffine(src, srcTransed, Tool::getFirst2RowsMat(offset), cv::Size(maxX - minX, maxY - minY));
+        cv::Mat dstTransed;
+        cv::warpAffine(dst, dstTransed, Tool::getFirst2RowsMat(offset * transMat), cv::Size(maxX - minX, maxY - minY));
+        for (int i = 0; i < srcTransed.rows; ++i) {
+            for (int j = 0; j < srcTransed.cols; ++j) {
+                for (int k = 0; k < 4; ++k) {
+                    if (dstTransed.at<cv::Vec4b>(i, j)[k] && !srcTransed.at<cv::Vec4b>(i, j)[k])
+                        srcTransed.at<cv::Vec4b>(i, j)[k] = dstTransed.at<cv::Vec4b>(i, j)[k];
+                }
+            }
+        }
+        return srcTransed;
     }
 
     template<typename T>

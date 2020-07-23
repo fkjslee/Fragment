@@ -40,7 +40,6 @@ void rotateAndOffset(cv::Mat& img, const cv::Mat& rotateMat, cv::Mat& offset) {
     offset.at<float>(1, 2) = -minY;
     cv::warpAffine(img, img, Tool::getFirst2RowsMat(offset * rotateMat), cv::Size(maxX - minX, maxY - minY));
 }
-
 }
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
@@ -80,6 +79,13 @@ void FragmentUi::update(const QRectF &rect)
     showImage = this->showImage.scaledToWidth(int(showImage.width() * scale));
     auto mask = showImage.createMaskFromColor(qRgb(0, 0, 0), Qt::MaskMode::MaskOutColor);
     showImage.setAlphaChannel(mask);
+    if (calcing) {
+        QImage thinkingImg("C:/Users/fkjslee/Documents/Fragment/thinking.png");
+        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
+
+        cv::imshow("fff", thinkMat);
+        cv::waitKey(0);
+    }
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);
 }
