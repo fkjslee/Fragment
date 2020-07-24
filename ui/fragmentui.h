@@ -6,6 +6,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <opencv2/opencv.hpp>
 #include <fragmentsscene.h>
+#include <QMutex>
 
 class Piece
 {
@@ -53,6 +54,21 @@ public:
     }
     void rotate(int ang);
     void update(const QRectF &rect = QRectF());
+    void startToCalc() {
+        calcing = true;
+        locker.lock();
+        calcCnt++;
+        locker.unlock();
+    }
+    void endToCalc() {
+        calcing = false;
+        locker.lock();
+        calcCnt--;
+        locker.unlock();
+    }
+    bool getCacl() {
+        return calcing;
+    }
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -76,6 +92,8 @@ private:
     cv::Mat offset;
     double scale = 1.0;
     bool calcing = false;
+    static int calcCnt;
+    QMutex locker;
 };
 
 #endif // FRAGMENTUI_H

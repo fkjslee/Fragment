@@ -11,11 +11,14 @@ RefreshThread::RefreshThread(FragmentUi* const fragment) {
     HintWindow* hintWindow = HintWindow::getHintWindow();
     connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
+    connect(this, &RefreshThread::finished, this, &RefreshThread::stopThread);
 }
 
 void RefreshThread::stopThread()
 {
     stoped = true;
+    fragment->endToCalc();
+    MainWindow::mainWindow->update();
 }
 
 int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){

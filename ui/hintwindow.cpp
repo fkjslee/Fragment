@@ -30,6 +30,7 @@ HintWindow::HintWindow(QWidget *parent) :
 HintWindow::~HintWindow()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i) {
+        if (threads[i]->isFinished() == false) threads[i]->stopThread();
         threads[i]->wait();
         delete threads[i];
     }
@@ -115,6 +116,8 @@ void HintWindow::actSuggestTrigged()
     }
 
     for (FragmentUi* f : refreshFragments) {
+        f->startToCalc();
+        MainWindow::mainWindow->update();
         RefreshThread* thread = new RefreshThread(f);
         thread->start();
         this->threads.push_back(thread);
@@ -159,7 +162,7 @@ std::vector<HintFragment> HintWindow::getSelecetHintFrags()
 void HintWindow::on_btnClearAI_clicked()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i) {
-        threads[i]->stopThread();
+        if (threads[i]->isFinished() == false) threads[i]->stopThread();
     }
     threads.clear();
     hintFragments.clear();

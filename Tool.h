@@ -270,7 +270,7 @@ public:
         return dst.clone();
     }
 
-    static cv::Mat fusionImage(cv::Mat& src, cv::Mat& dst, const cv::Mat& transMat, cv::Mat& offset) {
+    static cv::Mat fusionImage(const cv::Mat& src, const cv::Mat& dst, const cv::Mat& transMat, cv::Mat& offset) {
         std::vector<cv::Point2i> colorIdx;
         for (int i = 0; i < src.rows; ++i)
             for (int j = 0; j < src.cols; ++j)
@@ -279,8 +279,8 @@ public:
         for (int i = 0; i < dst.rows; ++i)
             for (int j = 0; j < dst.cols; ++j)
                 if ((dst.at<cv::Vec4b>(i, j)[0]) || dst.at<cv::Vec4b>(i, j)[1] || dst.at<cv::Vec4b>(i, j)[2] || dst.at<cv::Vec4b>(i, j)[3]) {
-                    int x = transMat.at<float>(0, 0) * colorIdx[i].x + transMat.at<float>(0, 1) * colorIdx[i].y + transMat.at<float>(0, 2);
-                    int y = transMat.at<float>(1, 0) * colorIdx[i].x + transMat.at<float>(1, 1) * colorIdx[i].y + transMat.at<float>(1, 2);
+                    int x = transMat.at<float>(0, 0) * j + transMat.at<float>(0, 1) * i + transMat.at<float>(0, 2);
+                    int y = transMat.at<float>(1, 0) * j + transMat.at<float>(1, 1) * i + transMat.at<float>(1, 2);
                     colorIdx.push_back(cv::Point2i(x, y));
                 }
 
@@ -288,7 +288,6 @@ public:
         int maxX = -0x3f3f3f3f;
         int minY = 0x3f3f3f3f;
         int maxY = -0x3f3f3f3f;
-        cv::Mat opencvRotateMat = transMat.clone();
         for (int i = 0; i < (int)colorIdx.size(); ++i) {
             int x = colorIdx[i].x;
             int y = colorIdx[i].y;
@@ -297,6 +296,7 @@ public:
             minY = (std::min)(minY, y);
             maxY = (std::max)(maxY, y);
         }
+
 
         offset = cv::Mat::eye(3, 3, CV_32FC1);
         offset.at<float>(0, 2) = -minX;

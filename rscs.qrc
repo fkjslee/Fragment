@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/new/pre">
         <file>resources/fragment.png</file>
+        <file>resources/thinking.png</file>
     </qresource>
 </RCC>

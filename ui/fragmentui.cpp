@@ -43,6 +43,7 @@ void rotateAndOffset(cv::Mat& img, const cv::Mat& rotateMat, cv::Mat& offset) {
 }
 
 FragmentUi *FragmentUi::draggingItem = nullptr;
+int FragmentUi::calcCnt = 0;
 FragmentUi::FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName,  Platfrom platform)
     : pieces(pieces), originalImage(originalImage), fragmentName(fragmentName)
 {
@@ -77,15 +78,24 @@ void FragmentUi::update(const QRectF &rect)
 
     showImage = Tool::MatToQImage(img);
     showImage = this->showImage.scaledToWidth(int(showImage.width() * scale));
+    cv::Mat fusionImg = Tool::QImageToMat(showImage);
+    if (calcing) {
+        qInfo() << "here 83";
+        QImage thinkingImg(":/new/pre/resources/thinking.png");
+        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
+        cv::Mat smallerMat = cv::getRotationMatrix2D(cv::Point(0, 0), 0, 0.5);
+        cv::warpAffine(thinkMat, thinkMat, smallerMat, cv::Size(thinkMat.rows / 2, thinkMat.cols / 2));
+        int moveX = showImage.width() / 2 - thinkMat.cols / 2;
+        int moveY = showImage.height();
+        cv::Mat trans = cv::Mat::eye(3, 3, CV_32FC1);
+        trans.at<float>(0, 2) = moveX;
+        trans.at<float>(1, 2) = moveY;
+        cv::Mat offset = cv::Mat::eye(3, 3, CV_32FC1);
+        fusionImg = Tool::fusionImage(Tool::QImageToMat(showImage), thinkMat, trans, offset);
+    }
+    showImage = Tool::MatToQImage(fusionImg);
     auto mask = showImage.createMaskFromColor(qRgb(0, 0, 0), Qt::MaskMode::MaskOutColor);
     showImage.setAlphaChannel(mask);
-    if (calcing) {
-        QImage thinkingImg("C:/Users/fkjslee/Documents/Fragment/thinking.png");
-        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
-
-        cv::imshow("fff", thinkMat);
-        cv::waitKey(0);
-    }
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);
 }
