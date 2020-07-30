@@ -32,8 +32,6 @@ public:
     void setRotateAng(int value);
 
 public slots:
-    void on_btnJoint_clicked();
-
     void on_btnSplit_clicked();
 
     void on_btnJointForce_clicked();

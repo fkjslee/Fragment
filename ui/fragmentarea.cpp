@@ -74,13 +74,8 @@ void FragmentArea::updateFragmentsPos()
 
 void FragmentArea::setRotateAng(int value)
 {
-    ui->sldRotate->setValue(value);
-}
-
-void FragmentArea::on_btnJoint_clicked()
-{
-    qInfo() << "click btn joint";
-    return;
+    if (FragmentsController::getController()->getSelectedFragments().size() == 1)
+        ui->sldRotate->setValue(value);
 }
 
 void FragmentArea::on_btnSplit_clicked()

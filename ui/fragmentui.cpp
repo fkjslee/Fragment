@@ -76,7 +76,6 @@ void FragmentUi::update(const QRectF &rect)
 
 void FragmentUi::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-//    FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
     pressPos = pos();
     undoPos = pos().toPoint();
     setCursor(Qt::ClosedHandCursor);
@@ -89,6 +88,8 @@ void FragmentUi::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
     setCursor(Qt::OpenHandCursor);
     QGraphicsPixmapItem::mouseReleaseEvent(event);
+    if (this->platform == Platfrom::WorkArea)
+        FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
 }
 
 QVariant FragmentUi::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
