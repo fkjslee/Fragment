@@ -16,66 +16,11 @@
 namespace
 {
     using namespace cv;
-
-PyObject* mat8UC42numpy(const Mat& src) {
-    npy_intp dims[3] = {src.rows, src.cols, 3};
-    unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * src.rows * src.cols * 3);
-    int p = 0;
-    for (int i = 0; i < src.rows; ++i)
-        for (int j = 0; j < src.cols; ++j)
-            for (int k = 0; k < 3; ++k)
-                data[p++] = src.at<Vec4b>(i, j)[k];
-    return PyArray_SimpleNewFromData(3, dims, NPY_UBYTE, data);
-}
-
-PyObject* mat32FC12numpy(const Mat& src) {
-    npy_intp dims[2] = {src.rows, src.cols};
-    float* data = (float*)malloc(sizeof(float) * src.rows * src.cols);
-    int p = 0;
-    for (int i = 0; i < src.rows; ++i)
-        for (int j = 0; j < src.cols; ++j)
-            data[p++] = src.at<float>(i, j);
-    return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, data);
-}
-
-cv::Mat pyObject2Mat(PyObject* obj, int type) {
-    PyArrayObject* ret_array;
-    PyArray_OutputConverter(obj, &ret_array);
-    npy_intp *shape = PyArray_SHAPE(ret_array);
-    Mat resMat(shape[0], shape[1], type, PyArray_DATA(ret_array));
-    return resMat;
-}
-
 }
 
 FragmentsController *FragmentsController::controller = nullptr;
 FragmentsController::FragmentsController()
 {
-    initPython();
-}
-
-void FragmentsController::initPython()
-{
-    Py_Initialize();
-    import_array();
-    if ( !Py_IsInitialized() )
-    {
-        qCritical() << "initialize failed!\n";
-        return;
-    }
-    PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append('./')");
-    static PyObject* pModule = PyImport_ImportModule("FusionImage");
-    if (!pModule) {
-        qCritical() << ("Cant open python file!\n");
-        return;
-    }
-
-    funcFusionImage= PyObject_GetAttrString(pModule,"callFusionImage");
-    if(!funcFusionImage){
-        qCritical() << "Get function failed" << endl;
-        return;
-    }
 }
 
 void FragmentsController::initBgColor(const QString& fragmentPath)
@@ -98,6 +43,7 @@ void FragmentsController::initBgColor(const QString& fragmentPath)
         QStringList colors = line.split(" ");
         bgColor.emplace_back(qRgb(colors[0].toInt(), colors[1].toInt(), colors[2].toInt()));
     }
+    bgColor.emplace_back(qRgb(0, 0, 0));
 }
 
 void FragmentsController::clearAllFrgments()
@@ -218,28 +164,12 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     cv::Mat src = Tool::QImageToMat(f1->getOriginalImage()); // 8UC4
     cv::Mat dst = Tool::QImageToMat(f2->getOriginalImage());
 
-    PyObject* matArg = PyTuple_New(3);
-    PyTuple_SetItem(matArg, 0, mat8UC42numpy(src));
-    PyTuple_SetItem(matArg, 1, mat8UC42numpy(dst));
     Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
-    PyTuple_SetItem(matArg, 2, mat32FC12numpy(Tool::opencvToNormalTransMat(finalTransMat)));
 
-    qInfo() << "run python FusionImage";
-    auto locker = PyGILState_Ensure();
-    PyObject* resObj = PyEval_CallObject(funcFusionImage, matArg);
-    PyErr_Print();
-    if (resObj == nullptr) {
-        PyErr_Print();
-        return false;
-    }
-    PyObject* resObjImg;
-    PyObject* resObjTransMat;
-    // PyArg_ParseTuple reference: https://docs.python.org/2.0/ext/parseTuple.html
-    PyArg_ParseTuple(resObj, "O|O", &resObjImg, &resObjTransMat);
-    Mat jointImg = pyObject2Mat(resObjImg, CV_8UC3);
-    Mat offsetMat = pyObject2Mat(resObjTransMat, CV_32FC1);
-    offsetMat = Tool::normalToOpencvTransMat(offsetMat);
-    PyGILState_Release(locker);
+    cv::Mat offsetMat;
+    cv::Mat resMat = Tool::fusionImage(src, dst, finalTransMat, offsetMat);
+
+    qInfo() << "run FusionImage";
 
     std::vector<Piece> pieces;
     for (Piece p : f1->getPieces()) {
@@ -254,9 +184,37 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
         newP.transMat = offsetMat.clone() * finalTransMat.clone() * newP.transMat;
         pieces.emplace_back(newP);
     }
-    FragmentUi *newFragment = new FragmentUi(pieces, Tool::MatToQImage(Tool::Mat8UC3To8UC4(jointImg)), f1->getFragmentName() + " " + f2->getFragmentName());
+    FragmentUi *newFragment = new FragmentUi(pieces, Tool::Mat8UC4ToQImage(resMat), f1->getFragmentName() + " " + f2->getFragmentName());
     float newX = f1->scenePos().x() - offsetMat.at<float>(0, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
     float newY = f1->scenePos().y() - offsetMat.at<float>(1, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
+    cv::Mat preRotateMat = Tool::getRotationMatrix(src.cols / 2.0, src.rows / 2.0, Tool::angToRad(f1->rotateAng));
+    cv::Mat afterRotateMat = Tool::getRotationMatrix(resMat.cols / 2.0, resMat.rows / 2.0, Tool::angToRad(f1->rotateAng));
+
+    cv::Mat newImgOffset;
+    cv::Mat nothing = resMat.clone();
+    Tool::rotateAndOffset(nothing, Tool::getFirst3RowsMat(afterRotateMat), newImgOffset);
+
+    cv::Mat preOffset;
+    cv::Mat preImg = src.clone();
+    Tool::rotateAndOffset(preImg, preRotateMat, preOffset);
+
+    float prePosX = preRotateMat.at<float>(0, 2) + preOffset.at<float>(0, 2);
+    float prePosY = preRotateMat.at<float>(1, 2) + preOffset.at<float>(1, 2);
+    float movePosX = offsetMat.at<float>(0, 2);
+    float movePosY = offsetMat.at<float>(1, 2);
+    float afterPosX = movePosX * afterRotateMat.at<float>(0, 0) + movePosY * afterRotateMat.at<float>(0, 1) + afterRotateMat.at<float>(0, 2);
+    float afterPosY = movePosX * afterRotateMat.at<float>(1, 0) + movePosY * afterRotateMat.at<float>(1, 1) + afterRotateMat.at<float>(1, 2);
+    afterPosX += newImgOffset.at<float>(0, 2);
+    afterPosY += newImgOffset.at<float>(1, 2);
+
+    prePosX *= MainWindow::mainWindow->getZoomSize() / 100.0;
+    prePosY *= MainWindow::mainWindow->getZoomSize() / 100.0;
+    afterPosX *= MainWindow::mainWindow->getZoomSize() / 100.0;
+    afterPosY *= MainWindow::mainWindow->getZoomSize() / 100.0;
+
+    newX = f1->scenePos().x() + (prePosX - afterPosX);
+    newY = f1->scenePos().y() + (prePosY - afterPosY);
+
     newFragment->setPos(newX, newY);
     newFragment->rotateAng = f1->rotateAng;
     newFragment->undoFragments.push_back(f1);

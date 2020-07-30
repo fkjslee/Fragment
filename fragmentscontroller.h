@@ -33,7 +33,6 @@ public slots:
 
 private:
     FragmentsController();
-    void initPython();
     void initBgColor(const QString& fragmentPath);
     void clearAllFrgments();
 

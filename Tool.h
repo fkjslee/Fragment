@@ -165,38 +165,9 @@ public:
         return dst;
     }
 
-    static QImage MatToQImage(const cv::Mat &mat)
+    static QImage Mat8UC4ToQImage(const cv::Mat &mat)
     {
-        // 8-bits unsigned, NO. OF CHANNELS = 1
-        if(mat.type() == CV_8UC1)
-        {
-            QImage image(mat.cols, mat.rows, QImage::Format_Indexed8);
-            // Set the color table (used to translate colour indexes to qRgb values)
-            image.setColorCount(256);
-            for(int i = 0; i < 256; i++)
-            {
-                image.setColor(i, qRgb(i, i, i));
-            }
-            // Copy input Mat
-            uchar *pSrc = mat.data;
-            for(int row = 0; row < mat.rows; row ++)
-            {
-                uchar *pDest = image.scanLine(row);
-                memcpy(pDest, pSrc, size_t(mat.cols));
-                pSrc += mat.step;
-            }
-            return image;
-        }
-        // 8-bits unsigned, NO. OF CHANNELS = 3
-        else if(mat.type() == CV_8UC3)
-        {
-            // Copy input Mat
-            const uchar *pSrc = static_cast<const uchar *>(mat.data);
-            // Create QImage with same dimensions as input Mat
-            QImage image(pSrc, mat.cols, mat.rows, int(mat.step), QImage::Format_RGB888);
-            return image.rgbSwapped();
-        }
-        else if(mat.type() == CV_8UC4)
+        if(mat.type() == CV_8UC4)
         {
             const uchar *pSrc = static_cast<const uchar *>(mat.data);
             // Create QImage with same dimensions as input Mat
@@ -273,16 +244,20 @@ public:
     static cv::Mat fusionImage(const cv::Mat& src, const cv::Mat& dst, const cv::Mat& transMat, cv::Mat& offset) {
         std::vector<cv::Point2i> colorIdx;
         for (int i = 0; i < src.rows; ++i)
-            for (int j = 0; j < src.cols; ++j)
-                if ((src.at<cv::Vec4b>(i, j)[0]) || src.at<cv::Vec4b>(i, j)[1] || src.at<cv::Vec4b>(i, j)[2] || src.at<cv::Vec4b>(i, j)[3])
+            for (int j = 0; j < src.cols; ++j) {
+                int sum = src.at<cv::Vec4b>(i, j)[0] + src.at<cv::Vec4b>(i, j)[1] + src.at<cv::Vec4b>(i, j)[2];
+                if (sum != 0)
                     colorIdx.push_back(cv::Point2i(j, i));
+            }
         for (int i = 0; i < dst.rows; ++i)
-            for (int j = 0; j < dst.cols; ++j)
-                if ((dst.at<cv::Vec4b>(i, j)[0]) || dst.at<cv::Vec4b>(i, j)[1] || dst.at<cv::Vec4b>(i, j)[2] || dst.at<cv::Vec4b>(i, j)[3]) {
+            for (int j = 0; j < dst.cols; ++j) {
+                int sum = dst.at<cv::Vec4b>(i, j)[0] + dst.at<cv::Vec4b>(i, j)[1] + dst.at<cv::Vec4b>(i, j)[2];
+                if (sum != 0) {
                     int x = transMat.at<float>(0, 0) * j + transMat.at<float>(0, 1) * i + transMat.at<float>(0, 2);
                     int y = transMat.at<float>(1, 0) * j + transMat.at<float>(1, 1) * i + transMat.at<float>(1, 2);
                     colorIdx.push_back(cv::Point2i(x, y));
                 }
+            }
 
         int minX = 0x3f3f3f3f;
         int maxX = -0x3f3f3f3f;
@@ -314,7 +289,39 @@ public:
                 }
             }
         }
-        return srcTransed;
+        return srcTransed.clone();
+    }
+
+
+    static void rotateAndOffset(cv::Mat& img, cv::Mat rotateMat, cv::Mat& offset) {
+        if (rotateMat.rows == 2)
+            rotateMat = Tool::getFirst3RowsMat(rotateMat);
+        std::vector<cv::Point2i> colorIdx;
+        for (int i = 0; i < img.rows; ++i)
+            for (int j = 0; j < img.cols; ++j) {
+                int sum = img.at<cv::Vec4b>(i, j)[0] + img.at<cv::Vec4b>(i, j)[1] + img.at<cv::Vec4b>(i, j)[2];
+                if (sum > 0 && sum < 255 * 4) {
+                    int x = rotateMat.at<float>(0, 0) * j + rotateMat.at<float>(0, 1) * i + rotateMat.at<float>(0, 2);
+                    int y = rotateMat.at<float>(1, 0) * j + rotateMat.at<float>(1, 1) * i + rotateMat.at<float>(1, 2);
+                    colorIdx.push_back(cv::Point2i(x, y));
+                }
+            }
+
+        int minX = 0x3f3f3f3f;
+        int maxX = -0x3f3f3f3f;
+        int minY = 0x3f3f3f3f;
+        int maxY = -0x3f3f3f3f;
+        for (int i = 0; i < (int)colorIdx.size(); ++i) {
+            minX = (std::min)(minX, colorIdx[i].x);
+            maxX = (std::max)(maxX, colorIdx[i].x);
+            minY = (std::min)(minY, colorIdx[i].y);
+            maxY = (std::max)(maxY, colorIdx[i].y);
+        }
+
+        offset = cv::Mat::eye(3, 3, CV_32FC1);
+        offset.at<float>(0, 2) = -minX;
+        offset.at<float>(1, 2) = -minY;
+        cv::warpAffine(img, img, Tool::getFirst2RowsMat(offset * rotateMat), cv::Size(maxX - minX, maxY - minY));
     }
 
     template<typename T>

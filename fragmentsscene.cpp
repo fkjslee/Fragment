@@ -21,3 +21,8 @@ void FragmentsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     connect(actRefreshHint, &QAction::triggered, HintWindow::getHintWindow(), &HintWindow::actSuggestTrigged);
     menu.exec(event->screenPos());
 }
+
+void FragmentsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsScene::mousePressEvent(event);
+}

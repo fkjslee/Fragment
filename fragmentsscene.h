@@ -11,6 +11,7 @@ public:
 
 protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
 };
 
