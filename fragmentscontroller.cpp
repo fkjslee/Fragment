@@ -8,7 +8,6 @@
 #pragma pop_macro("slots")
 #include <ctime>
 #include <complex>
-#include <numpy/arrayobject.h>
 #define NO_IMPOET_ARRAY
 #include <qrgb.h>
 #include <network.h>
@@ -23,9 +22,9 @@ FragmentsController::FragmentsController()
 {
 }
 
-void FragmentsController::initBgColor(const QString& fragmentPath)
+void FragmentsController::initBgColor(const QString &fragmentPath)
 {
-    const QString& path = fragmentPath + QDir::separator() + "bg_color.txt";
+    const QString &path = fragmentPath + QDir::separator() + "bg_color.txt";
     QFile bgColorFile(path);
     bgColorFile.open(QIODevice::ReadOnly);
 
@@ -39,7 +38,8 @@ void FragmentsController::initBgColor(const QString& fragmentPath)
     }
 
     bgColor.clear();
-    for (QString line : lines) {
+    for (QString line : lines)
+    {
         QStringList colors = line.split(" ");
         bgColor.emplace_back(qRgb(colors[0].toInt(), colors[1].toInt(), colors[2].toInt()));
     }
@@ -72,7 +72,8 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         std::vector<Piece> vec;
         vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
         QImage img(dir.absolutePath() + "/" + fileName);
-        for (auto bg_color : bgColor) {
+        for (auto bg_color : bgColor)
+        {
             auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
             img.setAlphaChannel(mask);
         }
@@ -104,7 +105,8 @@ bool FragmentsController::splitSelectedFragments()
             std::vector<Piece> vec;
             vec.push_back(newP);
             QImage img(newP.piecePath);
-            for (auto bg_color : bgColor) {
+            for (auto bg_color : bgColor)
+            {
                 auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
                 img.setAlphaChannel(mask);
             }
@@ -145,14 +147,15 @@ std::vector<FragmentUi *> &FragmentsController::getSortedFragments()
 
 FragmentUi *FragmentsController::findFragmentByName(const QString &name)
 {
-    for (FragmentUi* f : getUnsortedFragments()) {
+    for (FragmentUi *f : getUnsortedFragments())
+    {
         if (f->getFragmentName().split(" ").contains(name))
             return f;
     }
     return nullptr;
 }
 
-bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat& originTransMat)
+bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat &originTransMat)
 {
     const Piece p1 = f1->getPieces()[piece1ID];
     const Piece p2 = f2->getPieces()[piece2ID];
@@ -172,13 +175,15 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     qInfo() << "run FusionImage";
 
     std::vector<Piece> pieces;
-    for (Piece p : f1->getPieces()) {
+    for (Piece p : f1->getPieces())
+    {
         Piece newP = p;
         newP.transMat = p.transMat.clone();
         newP.transMat = offsetMat.clone() * newP.transMat;
         pieces.emplace_back(newP);
     }
-    for (Piece p : f2->getPieces()) {
+    for (Piece p : f2->getPieces())
+    {
         Piece newP = p;
         newP.transMat = p.transMat.clone();
         newP.transMat = offsetMat.clone() * finalTransMat.clone() * newP.transMat;
@@ -268,7 +273,7 @@ void FragmentsController::unSelectFragment()
     MainWindow::mainWindow->update();
 }
 
-void FragmentsController::getGroundTruth(const QString& path)
+void FragmentsController::getGroundTruth(const QString &path)
 {
     QFile gtFile(path + QDir::separator() + "groundTruth.txt");
     gtFile.open(QIODevice::ReadOnly);
@@ -282,12 +287,14 @@ void FragmentsController::getGroundTruth(const QString& path)
     }
 
     groundTruth.clear();
-    for (int i = 0; i < lines.length(); i += 2) {
+    for (int i = 0; i < lines.length(); i += 2)
+    {
         int fragID = lines[i].toInt();
-        if (fragID - 1 != i / 2) {
+        if (fragID - 1 != i / 2)
+        {
             qCritical() << "error groundTruth";
         }
-        QStringList nums = lines[i+1].replace("  ", " ").split(" ");
+        QStringList nums = lines[i + 1].replace("  ", " ").split(" ");
         cv::Mat transMat = cv::Mat::eye(3, 3, CV_32FC1);
         transMat.at<float>(0, 0) = nums[0].toFloat();
         transMat.at<float>(0, 1) = nums[1].toFloat();
@@ -302,9 +309,11 @@ void FragmentsController::getGroundTruth(const QString& path)
 float FragmentsController::calcScore()
 {
     float score = 0;
-    for (FragmentUi* f : getUnsortedFragments()) {
+    for (FragmentUi *f : getUnsortedFragments())
+    {
         auto pieces = f->getPieces();
-        for (int i = 1; i < (int)pieces.size(); ++i) {
+        for (int i = 1; i < (int)pieces.size(); ++i)
+        {
             cv::Mat trans = Tool::getInvMat(pieces[0].transMat) * pieces[i].transMat;
             int p1 = pieces[0].pieceID.toInt();
             int p2 = pieces[i].pieceID.toInt();
@@ -312,24 +321,30 @@ float FragmentsController::calcScore()
             float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
             float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));
             float x, y, xx, yy;
-            if (std::abs(len) > 1e-7) {
+            if (std::abs(len) > 1e-7)
+            {
                 x = trans.at<float>(0, 2) / len / 2.0;
                 y = trans.at<float>(1, 2) / len / 2.0;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 y = 0;
             }
-            if (std::abs(len2) > 1e-7) {
+            if (std::abs(len2) > 1e-7)
+            {
                 xx = gt.at<float>(0, 2) / len2 / 2.0;
                 yy = gt.at<float>(1, 2) / len2 / 2.0;
-            } else {
+            }
+            else
+            {
                 xx = 0;
                 yy = 0;
             }
             float eachScore = 1.0 / 4 * std::pow(trans.at<float>(0, 0) / 2 - gt.at<float>(0, 0) / 2, 2) +
                               1.0 / 4 * std::pow(trans.at<float>(0, 1) / 2 - gt.at<float>(0, 1) / 2, 2) +
-                    1.0 / 4 * std::pow(x - xx, 2) +
-                    1.0 / 4 * std::pow(y - yy, 2);
+                              1.0 / 4 * std::pow(x - xx, 2) +
+                              1.0 / 4 * std::pow(y - yy, 2);
             score += (1 - eachScore) * 100;
         }
     }

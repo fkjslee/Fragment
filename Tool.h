@@ -31,11 +31,72 @@ public:
         return QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
     }
 
-    static void showMat(const cv::Mat& src) {
+    template<typename T>
+    static T get_most_frequent(const std::vector<T> angs)
+    {
+        qInfo() << "size = " << angs.size();
+        std::map<T, int> mp;
+        for (T ang : angs)
+        {
+            if (mp.find(ang) == mp.end())
+            {
+                mp[ang] = 1;
+            }
+            else
+            {
+                mp[ang] += 1;
+            }
+        }
+        T val;
+        int times = -1;
+        for (std::map<T, int>::iterator it = mp.begin(); it != mp.end(); ++it)
+        {
+            if (times < it->second)
+            {
+                times = it->second;
+                val = it->first;
+            }
+        }
+        return val;
+    }
+
+    static double get_suggest_rotation(const cv::Mat &img)
+    {
+        cv::Mat m1_gauss;
+        cv::GaussianBlur(img, m1_gauss, cv::Size(3, 3), 0);
+        cv::Mat edges;
+        cv::Canny(m1_gauss, edges, 50, 150, 3);
+        cv::Mat lines;
+        cv::HoughLinesP(edges, lines, 1, CV_PI / 180, 50, 50, 10);
+        std::vector<int> angs;
+        for (int i = 0; i < lines.rows; ++i)
+        {
+            for (int j = 0; j < lines.cols; ++j)
+            {
+                cv::Vec4i line = lines.at<cv::Vec4i>(i, j);
+                if (line[2] - line[0] == 0) angs.push_back(180);
+                else
+                {
+                    double rad = std::atan(1.0 * (line[3] - line[1]) / (line[2] - line[0]));
+                    angs.push_back(rad * 180 / CV_PI);
+                }
+                cv::line(img, cv::Point(line[0], line[1]), cv::Point(line[2], line[3]), cv::Scalar(0, 255, 0), 2);
+            }
+        }
+//        cv::imshow("img", img);
+//        cv::waitKey(0);
+        if (angs.size() == 0) return 0;
+        return get_most_frequent(angs);
+    }
+
+    static void showMat(const cv::Mat &src)
+    {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) std::cout << "wrong type " << std::endl;
         else if (src.rows * src.cols != 9 && src.rows * src.cols != 6) std::cout << "wrong size" << std::endl;
-        else {
-            for (int i = 0; i < src.rows; ++i) {
+        else
+        {
+            for (int i = 0; i < src.rows; ++i)
+            {
                 QString res = "";
                 for (int j = 0; j < src.cols; ++j)
                     res += QString::number(double(src.at<float>(i, j))) + "    ";
@@ -44,24 +105,28 @@ public:
         }
     }
 
-    static cv::Mat getFirst2RowsMat(const cv::Mat& src) {
+    static cv::Mat getFirst2RowsMat(const cv::Mat &src)
+    {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
         if (src.size() != cv::Size(3, 3)) return cv::Mat(0, 0, CV_32FC1);
         if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1.0) > 1e-7)
             return cv::Mat(0, 0, CV_32FC1);
         cv::Mat dst(2, 3, CV_32FC1);
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 2; ++i)
+        {
             for (int j = 0; j < 3; ++j)
                 dst.at<float>(i, j) = src.at<float>(i, j);
         }
         return dst.clone();
     }
 
-    static cv::Mat getFirst3RowsMat(const cv::Mat& src) {
+    static cv::Mat getFirst3RowsMat(const cv::Mat &src)
+    {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
         if (src.size() != cv::Size(3, 2)) return cv::Mat(0, 0, CV_32FC1);
         cv::Mat dst(3, 3, CV_32FC1);
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 2; ++i)
+        {
             for (int j = 0; j < 3; ++j)
                 dst.at<float>(i, j) = src.at<float>(i, j);
         }
@@ -90,18 +155,22 @@ public:
         return reinterpret_cast<void *>(const_cast<uchar *>(c));
     }
 
-    static bool checkFragInFragmentArea(FragmentUi* frag) {
+    static bool checkFragInFragmentArea(FragmentUi *frag)
+    {
         bool exist = false;
-        for (FragmentUi* f : FragmentsController::getController()->getUnsortedFragments()) {
+        for (FragmentUi *f : FragmentsController::getController()->getUnsortedFragments())
+        {
             if (f == frag)
                 exist = true;
         }
         return exist;
     }
 
-    static cv::Mat str2TransMat(QString src) {
+    static cv::Mat str2TransMat(QString src)
+    {
         cv::Mat dst(3, 3, CV_32FC1);
-        if (src == "-1" || src == "These two fragments are not aligned.") {
+        if (src == "-1" || src == "These two fragments are not aligned.")
+        {
             return cv::Mat(0, 0, CV_32FC1);
         }
         src.replace("[", "");
@@ -115,7 +184,7 @@ public:
 
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
-                dst.at<float>(j, k) = msgList2[j*3+k].toFloat();
+                dst.at<float>(j, k) = msgList2[j * 3 + k].toFloat();
         return dst;
     }
 
@@ -132,7 +201,7 @@ public:
                 mat = cv::Mat(image.height(), image.width(), CV_8UC4, ucharToVoid(image.constBits()), size_t(image.bytesPerLine()));
                 break;
             case QImage::Format_RGB888:
-                mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
+                mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void *)image.constBits(), image.bytesPerLine());
                 cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
                 break;
             case QImage::Format_Indexed8:
@@ -144,20 +213,24 @@ public:
         return mat.clone();
     }
 
-    static cv::Mat Mat8UC4To8UC3(const cv::Mat& src) {
+    static cv::Mat Mat8UC4To8UC3(const cv::Mat &src)
+    {
         cv::Mat dst(src.size(), CV_8UC3);
         for (int i = 0; i < src.rows; ++i)
-            for (int j = 0; j < src.cols; ++j) {
+            for (int j = 0; j < src.cols; ++j)
+            {
                 for (int channel = 0; channel < 3; ++channel)
                     dst.at<cv::Vec3b>(i, j)[channel] = src.at<cv::Vec4b>(i, j)[channel];
             }
         return dst;
     }
 
-    static cv::Mat Mat8UC3To8UC4(const cv::Mat& src) {
+    static cv::Mat Mat8UC3To8UC4(const cv::Mat &src)
+    {
         cv::Mat dst(src.size(), CV_8UC4);
         for (int i = 0; i < src.rows; ++i)
-            for (int j = 0; j < src.cols; ++j) {
+            for (int j = 0; j < src.cols; ++j)
+            {
                 for (int channel = 0; channel < 3; ++channel)
                     dst.at<cv::Vec4b>(i, j)[channel] = src.at<cv::Vec3b>(i, j)[channel];
                 dst.at<cv::Vec4b>(i, j)[3] = 0xff;
@@ -183,12 +256,14 @@ public:
         }
     }
 
-    static float angToRad(int ang) {
+    static float angToRad(int ang)
+    {
         return 1.0 * ang / 180.0 * 3.141592653;
     }
 
     // cv::getRotationMatrix2D may get singular matrix
-    static cv::Mat getRotationMatrix(float x, float y, float rad) {
+    static cv::Mat getRotationMatrix(float x, float y, float rad)
+    {
         cv::Mat move = cv::Mat::eye(3, 3, CV_32FC1);
         move.at<float>(0, 2) = x;
         move.at<float>(1, 2) = y;
@@ -202,7 +277,8 @@ public:
         return getFirst2RowsMat(move * rotate * moveInv).clone();
     }
 
-    static cv::Mat normalToOpencvTransMat(const cv::Mat& src) {
+    static cv::Mat normalToOpencvTransMat(const cv::Mat &src)
+    {
         cv::Mat dst = cv::Mat::eye(3, 3, CV_32FC1);
         dst.at<float>(0, 0) = src.at<float>(0, 0);
         dst.at<float>(0, 1) = src.at<float>(1, 0);
@@ -213,7 +289,8 @@ public:
         return dst;
     }
 
-    static cv::Mat opencvToNormalTransMat(const cv::Mat& src) {
+    static cv::Mat opencvToNormalTransMat(const cv::Mat &src)
+    {
         cv::Mat dst = cv::Mat::eye(3, 3, CV_32FC1);
         dst.at<float>(0, 0) = src.at<float>(0, 0);
         dst.at<float>(0, 1) = src.at<float>(1, 0);
@@ -224,13 +301,15 @@ public:
         return dst;
     }
 
-    static cv::Mat getInvMat(const cv::Mat& src) {
+    static cv::Mat getInvMat(const cv::Mat &src)
+    {
         cv::Mat dst = src.clone();
         cv::invert(src, dst);
         return dst;
     }
 
-    static cv::Mat getOpencvMat(const cv::Mat src) {
+    static cv::Mat getOpencvMat(const cv::Mat src)
+    {
         cv::Mat dst = cv::Mat::eye(2, 3, CV_32FC1);
         dst.at<float>(0, 0) = src.at<float>(0, 0);
         dst.at<float>(0, 1) = src.at<float>(1, 0);
@@ -241,18 +320,22 @@ public:
         return dst.clone();
     }
 
-    static cv::Mat fusionImage(const cv::Mat& src, const cv::Mat& dst, const cv::Mat& transMat, cv::Mat& offset) {
+    static cv::Mat fusionImage(const cv::Mat &src, const cv::Mat &dst, const cv::Mat &transMat, cv::Mat &offset)
+    {
         std::vector<cv::Point2i> colorIdx;
         for (int i = 0; i < src.rows; ++i)
-            for (int j = 0; j < src.cols; ++j) {
+            for (int j = 0; j < src.cols; ++j)
+            {
                 int sum = src.at<cv::Vec4b>(i, j)[0] + src.at<cv::Vec4b>(i, j)[1] + src.at<cv::Vec4b>(i, j)[2];
                 if (sum != 0)
                     colorIdx.push_back(cv::Point2i(j, i));
             }
         for (int i = 0; i < dst.rows; ++i)
-            for (int j = 0; j < dst.cols; ++j) {
+            for (int j = 0; j < dst.cols; ++j)
+            {
                 int sum = dst.at<cv::Vec4b>(i, j)[0] + dst.at<cv::Vec4b>(i, j)[1] + dst.at<cv::Vec4b>(i, j)[2];
-                if (sum != 0) {
+                if (sum != 0)
+                {
                     int x = transMat.at<float>(0, 0) * j + transMat.at<float>(0, 1) * i + transMat.at<float>(0, 2);
                     int y = transMat.at<float>(1, 0) * j + transMat.at<float>(1, 1) * i + transMat.at<float>(1, 2);
                     colorIdx.push_back(cv::Point2i(x, y));
@@ -263,7 +346,8 @@ public:
         int maxX = -0x3f3f3f3f;
         int minY = 0x3f3f3f3f;
         int maxY = -0x3f3f3f3f;
-        for (int i = 0; i < (int)colorIdx.size(); ++i) {
+        for (int i = 0; i < (int)colorIdx.size(); ++i)
+        {
             int x = colorIdx[i].x;
             int y = colorIdx[i].y;
             minX = (std::min)(minX, x);
@@ -281,9 +365,12 @@ public:
         cv::warpAffine(src, srcTransed, Tool::getFirst2RowsMat(offset), cv::Size(maxX - minX, maxY - minY));
         cv::Mat dstTransed;
         cv::warpAffine(dst, dstTransed, Tool::getFirst2RowsMat(offset * transMat), cv::Size(maxX - minX, maxY - minY));
-        for (int i = 0; i < srcTransed.rows; ++i) {
-            for (int j = 0; j < srcTransed.cols; ++j) {
-                for (int k = 0; k < 4; ++k) {
+        for (int i = 0; i < srcTransed.rows; ++i)
+        {
+            for (int j = 0; j < srcTransed.cols; ++j)
+            {
+                for (int k = 0; k < 4; ++k)
+                {
                     if (dstTransed.at<cv::Vec4b>(i, j)[k] && !srcTransed.at<cv::Vec4b>(i, j)[k])
                         srcTransed.at<cv::Vec4b>(i, j)[k] = dstTransed.at<cv::Vec4b>(i, j)[k];
                 }
@@ -293,14 +380,17 @@ public:
     }
 
 
-    static void rotateAndOffset(cv::Mat& img, cv::Mat rotateMat, cv::Mat& offset) {
+    static void rotateAndOffset(cv::Mat &img, cv::Mat rotateMat, cv::Mat &offset)
+    {
         if (rotateMat.rows == 2)
             rotateMat = Tool::getFirst3RowsMat(rotateMat);
         std::vector<cv::Point2i> colorIdx;
         for (int i = 0; i < img.rows; ++i)
-            for (int j = 0; j < img.cols; ++j) {
+            for (int j = 0; j < img.cols; ++j)
+            {
                 int sum = img.at<cv::Vec4b>(i, j)[0] + img.at<cv::Vec4b>(i, j)[1] + img.at<cv::Vec4b>(i, j)[2];
-                if (sum > 0 && sum < 255 * 4) {
+                if (sum > 0 && sum < 255 * 4)
+                {
                     int x = rotateMat.at<float>(0, 0) * j + rotateMat.at<float>(0, 1) * i + rotateMat.at<float>(0, 2);
                     int y = rotateMat.at<float>(1, 0) * j + rotateMat.at<float>(1, 1) * i + rotateMat.at<float>(1, 2);
                     colorIdx.push_back(cv::Point2i(x, y));
@@ -311,7 +401,8 @@ public:
         int maxX = -0x3f3f3f3f;
         int minY = 0x3f3f3f3f;
         int maxY = -0x3f3f3f3f;
-        for (int i = 0; i < (int)colorIdx.size(); ++i) {
+        for (int i = 0; i < (int)colorIdx.size(); ++i)
+        {
             minX = (std::min)(minX, colorIdx[i].x);
             maxX = (std::max)(maxX, colorIdx[i].x);
             minY = (std::min)(minY, colorIdx[i].y);

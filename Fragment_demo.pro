@@ -69,14 +69,8 @@ FORMS += \
 #        -L/usr/lib/python2.7/config-x86_64-linux-gnu -L/usr/lib -lpython2.7 -lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 
 
-INCLUDEPATH += C:\opencv3\build\include \
-                C:\opencv3\build\include\opencv2 \
-                -I C:\Users\fkjslee\anaconda3\envs\python27\include \
-                C:\Users\fkjslee\anaconda3\envs\python27\Lib\site-packages\numpy\core\include
-
-LIBS += C:\opencv3\build\x64\vc15\lib\opencv_world430.lib \
-    -LC:\Users\fkjslee\anaconda3\envs\python27\libs -lpython27 \
-    -LC:\Users\fkjslee\anaconda3\envs\python27\Lib
+INCLUDEPATH += C:\out_lib\opencv2\build\include
+LIBS += C:\out_lib\opencv2\build\x64\vc15\lib\opencv_world430.lib
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

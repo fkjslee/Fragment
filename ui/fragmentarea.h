@@ -24,7 +24,8 @@ public:
     explicit FragmentArea(QWidget *parent = nullptr);
     ~FragmentArea();
     virtual void update();
-    static FragmentArea* getFragmentArea() {
+    static FragmentArea *getFragmentArea()
+    {
         return fragmentArea;
     }
 
@@ -40,6 +41,8 @@ private slots:
     void on_sldRotate_valueChanged(int value);
 
 
+    void on_btnReSort_clicked();
+
 private:
     bool jointCheck();
 
@@ -49,7 +52,7 @@ private:
     std::vector<FragmentUi *> fragmentItems;
     FragmentsController *fragCtrl;
     QUndoStack *undoStack;
-    static FragmentArea* fragmentArea;
+    static FragmentArea *fragmentArea;
 };
 
 #endif // FRAGMENTAREA_H
