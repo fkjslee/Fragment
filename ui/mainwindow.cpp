@@ -121,9 +121,6 @@ void MainWindow::createMenu()
     menuLanguage->addAction(actEnglish);
     connect(actEnglish, &QAction::triggered, this, &MainWindow::changeLanguageToEN);
     ui->menubar->addMenu(menuTool);
-
-    menuSetting = new QMenu(tr("设置"), this);
-    ui->menubar->addMenu(menuSetting);
 }
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
