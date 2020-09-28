@@ -7,7 +7,6 @@
 #include <ui/fragmentarea.h>
 #include <ui/mainwindow.h>
 #include <opencv2/opencv.hpp>
-#include <Python.h>
 
 class FragmentArea;
 class MainWindow;
@@ -22,10 +21,10 @@ public:
     const std::vector<FragmentUi *> getSelectedFragments();
     std::vector<FragmentUi *> &getUnsortedFragments();
     std::vector<FragmentUi *> &getSortedFragments();
-    FragmentUi* findFragmentByName(const QString& name);
-    bool jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat& transMat);
+    FragmentUi *findFragmentByName(const QString &name);
+    bool jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat &transMat);
     void selectFragment();
-    void getGroundTruth(const QString& path);
+    void getGroundTruth(const QString &path);
     float calcScore();
 
 public slots:
@@ -33,12 +32,11 @@ public slots:
 
 private:
     FragmentsController();
-    void initBgColor(const QString& fragmentPath);
+    void initBgColor(const QString &fragmentPath);
     void clearAllFrgments();
 
 private:
     static FragmentsController *controller;
-    PyObject* funcFusionImage;
 
     std::vector<FragmentUi *> sortedFragments;
     std::vector<FragmentUi *> unsortedFragments;

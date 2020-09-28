@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./fragment3/");
+    FragmentsController::getController()->createAllFragments("./mixed2/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();
@@ -43,25 +43,32 @@ int MainWindow::getZoomSize()
 
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
-    if (event->delta() > 0 && ctrlPress) {
+    if (event->delta() > 0 && ctrlPress)
+    {
         ui->imageSizeController->setValue(ui->imageSizeController->value() + ui->imageSizeController->singleStep());
-    } else if (event->delta() < 0 && ctrlPress) {
+    }
+    else if (event->delta() < 0 && ctrlPress)
+    {
         ui->imageSizeController->setValue(ui->imageSizeController->value() - ui->imageSizeController->singleStep());
-    } else {
+    }
+    else
+    {
         QMainWindow::wheelEvent(event);
     }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Control) {
+    if (event->key() == Qt::Key_Control)
+    {
         ctrlPress = true;
     }
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Control) {
+    if (event->key() == Qt::Key_Control)
+    {
         ctrlPress = false;
     }
 }
