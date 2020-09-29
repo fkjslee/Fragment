@@ -31,6 +31,63 @@ public:
         return QString(QJsonDocument(json).toJson(QJsonDocument::Compact));
     }
 
+    template<typename T>
+    static T get_most_frequent(const std::vector<T> angs)
+    {
+        std::map<T, int> mp;
+        for (T ang : angs)
+        {
+            if (mp.find(ang) == mp.end())
+            {
+                mp[ang] = 1;
+            }
+            else
+            {
+                mp[ang] += 1;
+            }
+        }
+        T val;
+        int times = -1;
+        for (std::map<T, int>::iterator it = mp.begin(); it != mp.end(); ++it)
+        {
+            if (times < it->second)
+            {
+                times = it->second;
+                val = it->first;
+            }
+        }
+        return val;
+    }
+
+    static double get_suggest_rotation(const cv::Mat &img)
+    {
+        cv::Mat m1_gauss;
+        cv::GaussianBlur(img, m1_gauss, cv::Size(3, 3), 0);
+        cv::Mat edges;
+        cv::Canny(m1_gauss, edges, 50, 150, 3);
+        cv::Mat lines;
+        cv::HoughLinesP(edges, lines, 1, CV_PI / 180, 50, 50, 10);
+        std::vector<int> angs;
+        for (int i = 0; i < lines.rows; ++i)
+        {
+            for (int j = 0; j < lines.cols; ++j)
+            {
+                cv::Vec4i line = lines.at<cv::Vec4i>(i, j);
+                if (line[2] - line[0] == 0) angs.push_back(180);
+                else
+                {
+                    double rad = std::atan(1.0 * (line[3] - line[1]) / (line[2] - line[0]));
+                    angs.push_back(rad * 180 / CV_PI);
+                }
+                cv::line(img, cv::Point(line[0], line[1]), cv::Point(line[2], line[3]), cv::Scalar(0, 255, 0), 2);
+            }
+        }
+//        cv::imshow("img", img);
+//        cv::waitKey(0);
+        if (angs.size() == 0) return 0;
+        return get_most_frequent(angs);
+    }
+
     static void showMat(const cv::Mat &src)
     {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) std::cout << "wrong type " << std::endl;
@@ -42,7 +99,6 @@ public:
                 QString res = "";
                 for (int j = 0; j < src.cols; ++j)
                     res += QString::number(double(src.at<float>(i, j))) + "    ";
-                qInfo() << res;
             }
         }
     }
@@ -317,7 +373,7 @@ public:
         int fit_off_x = off_x;
         int fit_off_y = off_y;
         int fit_value = -1;
-        for (int poss_ang = ang - 5; poss_ang <= ang + 5; ++poss_ang)
+        for (int poss_ang = ang - 2; poss_ang <= ang + 2; ++poss_ang)
             for (int poss_x = off_x - 2; poss_x <= off_x + 2; ++poss_x)
                 for (int poss_y = off_y - 2; poss_y <= off_y + 2; ++poss_y)
                 {
@@ -346,6 +402,8 @@ public:
                         after_src_2.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(255, 0, 255);
                     }
 
+                    qInfo() << "check" << poss_ang << poss_x << poss_y << "value = " << colorIdx.size();
+
                     if (int(colorIdx.size()) > fit_value)
                     {
                         fit_value = int(colorIdx.size());
@@ -357,6 +415,7 @@ public:
         ang = fit_ang;
         off_x = fit_off_x;
         off_y = fit_off_y;
+        qInfo() << "final = " << ang << off_x << off_y;
     }
 
     static cv::Mat fusionImage(const cv::Mat &src, const cv::Mat &dst, const cv::Mat &transMat, cv::Mat &offset)

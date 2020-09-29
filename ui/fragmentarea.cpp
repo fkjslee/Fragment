@@ -9,14 +9,16 @@
 #include <QMessageBox>
 #include <network.h>
 
-FragmentArea* FragmentArea::fragmentArea = nullptr;
-namespace {
-int getPieceID(std::vector<Piece> pieces, QString name) {
-    for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceID == name)
-            return i;
-    return -1;
-}
+FragmentArea *FragmentArea::fragmentArea = nullptr;
+namespace
+{
+    int getPieceID(std::vector<Piece> pieces, QString name)
+    {
+        for (int i = 0; i < (int)pieces.size(); ++i)
+            if (pieces[i].pieceID == name)
+                return i;
+        return -1;
+    }
 }
 
 FragmentArea::FragmentArea(QWidget *parent) :
@@ -86,9 +88,11 @@ void FragmentArea::on_btnSplit_clicked()
 
 void FragmentArea::on_sldRotate_valueChanged(int value)
 {
-    FragmentsController* ctrller = FragmentsController::getController();
-    for (FragmentUi* f : ctrller->getUnsortedFragments()) {
-        if (f->isSelected()) {
+    FragmentsController *ctrller = FragmentsController::getController();
+    for (FragmentUi *f : ctrller->getUnsortedFragments())
+    {
+        if (f->isSelected())
+        {
             f->rotate(value);
         }
     }
@@ -104,10 +108,10 @@ void FragmentArea::on_btnJointForce_clicked()
     FragmentUi *f2 = jointFragments[1];
 
     cv::Mat img1 = Tool::QImageToMat(f1->getOriginalImage()).clone();
-    cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.cols/2.0, img1.rows/2.0, Tool::angToRad(f1->rotateAng));
+    cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.cols / 2.0, img1.rows / 2.0, Tool::angToRad(f1->rotateAng));
 
     cv::Mat img2 = Tool::QImageToMat(f2->getOriginalImage()).clone();
-    cv::Mat rotateMat2 = Tool::getRotationMatrix(img2.cols/2.0, img2.rows/2.0, Tool::angToRad(f2->rotateAng));
+    cv::Mat rotateMat2 = Tool::getRotationMatrix(img2.cols / 2.0, img2.rows / 2.0, Tool::angToRad(f2->rotateAng));
 
     float moveX = (f2->scenePos().x()) - (f1->scenePos().x());
     float moveY = (f2->scenePos().y()) - (f1->scenePos().y());
@@ -139,4 +143,16 @@ bool FragmentArea::jointCheck()
         }
     }
     return true;
+}
+
+void FragmentArea::on_btnReSort_clicked()
+{
+    for (FragmentUi *fragment : FragmentsController::getController()->getUnsortedFragments())
+    {
+        fragment->rotateAng = Tool::get_suggest_rotation(Tool::QImageToMat(fragment->getOriginalImage()));
+        qInfo() << "ang = " << fragment->rotateAng << fragment->getFragmentName();
+        fragment->rotateAng *= -1;
+        fragment->update();
+    }
+    update();
 }

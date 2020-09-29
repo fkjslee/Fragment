@@ -166,7 +166,6 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
 
     cv::Mat src = Tool::QImageToMat(f1->getOriginalImage()); // 8UC4
     cv::Mat dst = Tool::QImageToMat(f2->getOriginalImage());
-    qInfo() << "type = " << src.type() << CV_8UC4;
 
     Mat finalTransMat =  p1transMat * originTransMat * p2transInv;
 
