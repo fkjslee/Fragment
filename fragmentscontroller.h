@@ -7,6 +7,7 @@
 #include <ui/fragmentarea.h>
 #include <ui/mainwindow.h>
 #include <opencv2/opencv.hpp>
+#include <areafragment.h>
 
 class FragmentArea;
 class MainWindow;
@@ -18,17 +19,18 @@ public:
     void createAllFragments(const QString &fragmentsPath);
     static FragmentsController *getController();
     bool splitSelectedFragments();
-    const std::vector<FragmentUi *> getSelectedFragments();
-    std::vector<FragmentUi *> &getUnsortedFragments();
-    std::vector<FragmentUi *> &getSortedFragments();
-    FragmentUi *findFragmentByName(const QString &name);
-    bool jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat &transMat);
+    const std::vector<AreaFragment *> getSelectedFragments();
+    std::vector<AreaFragment *> &getUnsortedFragments();
+    std::vector<AreaFragment *> &getSortedFragments();
+    AreaFragment *findFragmentById(const int &id);
+    bool jointFragment(AreaFragment *f1, const int piece1ID, AreaFragment *f2, const int piece2ID, const cv::Mat &transMat);
     void selectFragment();
     void getGroundTruth(const QString &path);
     float calcScore();
 
 public slots:
     void unSelectFragment();
+    bool checkFragInFragmentArea(AreaFragment *frag);
 
 private:
     FragmentsController();
@@ -38,8 +40,8 @@ private:
 private:
     static FragmentsController *controller;
 
-    std::vector<FragmentUi *> sortedFragments;
-    std::vector<FragmentUi *> unsortedFragments;
+    std::vector<AreaFragment *> sortedFragments;
+    std::vector<AreaFragment *> unsortedFragments;
     std::vector<cv::Mat> groundTruth;
 
     std::vector<unsigned int> bgColor;

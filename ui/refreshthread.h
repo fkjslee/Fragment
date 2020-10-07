@@ -8,27 +8,30 @@
 #include <ui/fragmentarea.h>
 #include <QtDebug>
 #include <QMutex>
+#include <areafragment.h>
 
 
 class HintWindow;
-struct HintFragment;
+class HintFragment;
 
-class GetResThread : public QThread {
+class GetResThread : public QThread
+{
 public:
-    GetResThread(std::vector<TransMatAndConfi>* confiMat, const QString& pieceName);
+    GetResThread(std::vector<TransMatAndConfi> *confiMat, const int &pieceID);
     virtual void run() override;
 
 private:
 
-    QString pieceName;
-    std::vector<TransMatAndConfi>* confiMats;
+    int pieceID;
+    std::vector<TransMatAndConfi> *confiMats;
 };
 
-class RefreshThread : public QThread {
+class RefreshThread : public QThread
+{
     Q_OBJECT
 
 public:
-    RefreshThread(FragmentUi* const fragment);
+    RefreshThread(AreaFragment *const fragment);
 
     void stopThread();
 
@@ -39,17 +42,17 @@ signals:
     void setNewFragments();
 
 private:
-    int getPieceID(std::vector<Piece> pieces, QString name);
-    void setHint(const std::vector<TransMatAndConfi>& resConfiMat);
+    int getPieceIDX(std::vector<Piece> pieces, const int &id);
+    void setHint(const std::vector<TransMatAndConfi> &resConfiMat);
 
 public:
     static int confidence;
 
 private:
-    FragmentUi* fragment;
-    FragmentsController* fragCtrl;
+    AreaFragment *fragment;
+    FragmentsController *fragCtrl;
     static QMutex setFragmentLocker;
-    std::vector<GetResThread*> allThreads;
+    std::vector<GetResThread *> allThreads;
     bool stoped;
 };
 

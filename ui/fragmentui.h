@@ -11,17 +11,26 @@
 class Piece
 {
 public:
-    Piece(const QString &piecePath, const QString &pieceName, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1))
-        : piecePath(piecePath), pieceID(pieceName) {
+    Piece(const QString &piecePath, const int &pieceId, const cv::Mat &transMat = cv::Mat::eye(3, 3, CV_32FC1))
+        : piecePath(piecePath), pieceID(pieceId)
+    {
         this->transMat = transMat.clone();
     }
 public:
     QString piecePath;
-    QString pieceID;
+    int pieceID;
     cv::Mat transMat;
 };
 
-enum Platfrom {WorkArea, HintArea};
+struct SuggAng
+{
+    int ang;
+    int cnt;
+    bool operator < (const SuggAng &rhs) const
+    {
+        return cnt > rhs.cnt;
+    }
+};
 
 class FragmentUi : public QObject, public QGraphicsPixmapItem
 {
@@ -32,7 +41,7 @@ signals:
     void refreshHintWindow();
 
 public:
-    FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname", Platfrom platform=Platfrom::WorkArea);
+    FragmentUi(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
     const QImage &getOriginalImage() const
     {
         return originalImage;
@@ -41,33 +50,13 @@ public:
     {
         return fragmentName;
     }
-    const cv::Mat getOffsetMat() const {
-        return offset.clone();
-    }
-    void scaledToWidth(const double scale);
     const std::vector<Piece> &getPieces() const
     {
         return pieces;
     }
-    void setPiece(const std::vector<Piece>& pieces) {
+    void setPiece(const std::vector<Piece> &pieces)
+    {
         this->pieces = pieces;
-    }
-    void rotate(int ang);
-    void update(const QRectF &rect = QRectF());
-    void startToCalc() {
-        calcing = true;
-        locker.lock();
-        calcCnt++;
-        locker.unlock();
-    }
-    void endToCalc() {
-        calcing = false;
-        locker.lock();
-        calcCnt--;
-        locker.unlock();
-    }
-    bool getCacl() {
-        return calcing;
     }
 
 protected:
@@ -76,24 +65,19 @@ protected:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 public:
-    std::vector<const FragmentUi*> undoFragments;
-    int rotateAng = 0;
-    Platfrom platform;
+    std::vector<const FragmentUi *> undoFragments;
+
+protected:
+    const QImage originalImage;
 
 private:
     static FragmentUi *draggingItem;
 
     std::vector<Piece> pieces;
-    const QImage originalImage;
     QImage showImage;
     QString fragmentName;
     QPoint undoPos;
     QPointF pressPos;
-    cv::Mat offset;
-    double scale = 1.0;
-    bool calcing = false;
-    static int calcCnt;
-    QMutex locker;
 };
 
 #endif // FRAGMENTUI_H

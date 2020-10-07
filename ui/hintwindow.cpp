@@ -4,15 +4,17 @@
 #include <QMessageBox>
 #include <ui/fragmentui.h>
 
-HintWindow* HintWindow::hintWindow = nullptr;
+HintWindow *HintWindow::hintWindow = nullptr;
 unsigned int HintWindow::maxHintSize = 5;
-namespace {
-int getPieceID(std::vector<Piece> pieces, QString name) {
-    for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceID == name)
-            return i;
-    return -1;
-}
+namespace
+{
+    int getPieceID(std::vector<Piece> pieces, QString name)
+    {
+        for (int i = 0; i < (int)pieces.size(); ++i)
+            if (pieces[i].pieceID == name)
+                return i;
+        return -1;
+    }
 }
 
 HintWindow::HintWindow(QWidget *parent) :
@@ -29,7 +31,8 @@ HintWindow::HintWindow(QWidget *parent) :
 
 HintWindow::~HintWindow()
 {
-    for (int i = 0; i < (int)this->threads.size(); ++i) {
+    for (int i = 0; i < (int)this->threads.size(); ++i)
+    {
         if (threads[i]->isFinished() == false) threads[i]->stopThread();
         threads[i]->wait();
         delete threads[i];
@@ -40,16 +43,20 @@ HintWindow::~HintWindow()
 
 void HintWindow::deleteOldFragments()
 {
-    FragmentsController* fragCtrl = FragmentsController::getController();
-    for (QGraphicsItem* item : scene->items()) {
+    FragmentsController *fragCtrl = FragmentsController::getController();
+    for (QGraphicsItem *item : scene->items())
+    {
         bool fragMirrorInHint = false;
-        for (HintFragment hintFrag : hintFragments) {
-            if (hintFrag.fragInHintWindow == item) {
+        for (SuggestFragment hintFrag : suggestFragments)
+        {
+            if (hintFrag.fragInHintWindow == item)
+            {
                 fragMirrorInHint = true;
                 break;
             }
         }
-        if (!fragMirrorInHint) {
+        if (!fragMirrorInHint)
+        {
             scene->removeItem(item);
             delete item;
         }
@@ -57,25 +64,32 @@ void HintWindow::deleteOldFragments()
     update();
 
     bool fragUpdate = true;
-    while(fragUpdate) {
+    while(fragUpdate)
+    {
         fragUpdate = false;
-        for (const HintFragment& hintFrag : hintFragments) {
+        for (const SuggestFragment &suggFrag : suggestFragments)
+        {
             bool fragJointInFragArea = false;
             bool fragBeJointInFragArea = false;
-            for (FragmentUi* f : fragCtrl->getUnsortedFragments()) {
-                if (hintFrag.fragJoint == f) {
+            for (FragmentUi *f : fragCtrl->getUnsortedFragments())
+            {
+                if (suggFrag.fragJoint == f)
+                {
                     fragJointInFragArea = true;
                 }
-                if (hintFrag.fragBeJointed == f) {
+                if (suggFrag.fragBeJointed == f)
+                {
                     fragBeJointInFragArea = true;
                 }
             }
-            if (!fragJointInFragArea || !fragBeJointInFragArea) {
-                if (scene->items().contains(hintFrag.fragInHintWindow)) {
-                    scene->removeItem(hintFrag.fragInHintWindow);
+            if (!fragJointInFragArea || !fragBeJointInFragArea)
+            {
+                if (scene->items().contains(suggFrag.fragInHintWindow))
+                {
+                    scene->removeItem(suggFrag.fragInHintWindow);
                 }
                 fragUpdate = true;
-                Tool::eraseInVector(hintFragments, hintFrag);
+                Tool::eraseInVector(suggestFragments, suggFrag);
                 break;
             }
         }
@@ -86,15 +100,17 @@ void HintWindow::deleteOldFragments()
 void HintWindow::setNewFragments()
 {
     QRect windowRect = this->rect();
-    int N = int(hintFragments.size());
+    int N = int(suggestFragments.size());
     for (int i = 0; i < N; ++i)
     {
-        HintFragment hintFrag = hintFragments[unsigned(i)];
-        FragmentUi* fragment = hintFrag.fragInHintWindow;
+        SuggestFragment hintFrag = suggestFragments[unsigned(i)];
+        FragmentUi *fragment = hintFrag.fragInHintWindow;
         fragment->setPos(0, windowRect.top() + windowRect.height() * i / N);
         bool has = false;
-        for (QGraphicsItem* item : scene->items()) {
-            if (item == fragment) {
+        for (QGraphicsItem *item : scene->items())
+        {
+            if (item == fragment)
+            {
                 has = true;
                 break;
             }
@@ -107,18 +123,21 @@ void HintWindow::setNewFragments()
 
 void HintWindow::actSuggestTrigged()
 {
-    FragmentsController* fragCtrl = FragmentsController::getController();
-    std::vector<FragmentUi*> refreshFragments;
-    for (FragmentUi* f : fragCtrl->getUnsortedFragments()) {
-        if (f->isSelected()) {
+    FragmentsController *fragCtrl = FragmentsController::getController();
+    std::vector<AreaFragment *> refreshFragments;
+    for (AreaFragment *f : fragCtrl->getUnsortedFragments())
+    {
+        if (f->isSelected())
+        {
             refreshFragments.emplace_back(f);
         }
     }
 
-    for (FragmentUi* f : refreshFragments) {
+    for (AreaFragment *f : refreshFragments)
+    {
         f->startToCalc();
         MainWindow::mainWindow->update();
-        RefreshThread* thread = new RefreshThread(f);
+        RefreshThread *thread = new RefreshThread(f);
         thread->start();
         this->threads.push_back(thread);
     }
@@ -127,32 +146,36 @@ void HintWindow::actSuggestTrigged()
 void HintWindow::on_btnAutoJoint_clicked()
 {
     qInfo() << "click btn auto joint";
-    FragmentsController* fragCtrl = FragmentsController::getController();
+    FragmentsController *fragCtrl = FragmentsController::getController();
 
-    auto selectHintFrags = getSelecetHintFrags();
-    if (selectHintFrags.size() != 1) {
+    auto selectHintFrags = getSelecetSuggestFrags();
+    if (selectHintFrags.size() != 1)
+    {
         QMessageBox::critical(nullptr, QObject::tr("auto joint error"), QObject::tr("please choose one fragments to auto joint"),
                               QMessageBox::Cancel);
         return;
     }
-    HintFragment selectFrag = selectHintFrags[0];
-    bool exist = Tool::checkFragInFragmentArea(selectFrag.fragJoint);
-    if (Tool::checkFragInFragmentArea(selectFrag.fragBeJointed) == false) exist = false;
+    SuggestFragment selectFrag = selectHintFrags[0];
+    bool exist = FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragJoint);
+    if (FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragBeJointed) == false) exist = false;
     if (selectFrag.fragJoint == selectFrag.fragBeJointed) exist = false;
-    if (!exist) {
+    if (!exist)
+    {
         QMessageBox::information(nullptr, QObject::tr("joint error"), QObject::tr("选中的碎片已经不存在，可能已经被拼接?"),
-                              QMessageBox::Cancel);
+                                 QMessageBox::Cancel);
         return;
     }
     fragCtrl->jointFragment(selectFrag.fragJoint, selectFrag.p1ID, selectFrag.fragBeJointed, selectFrag.p2ID, selectFrag.transMat);
     deleteOldFragments();
 }
 
-std::vector<HintFragment> HintWindow::getSelecetHintFrags()
+std::vector<SuggestFragment> HintWindow::getSelecetSuggestFrags()
 {
-    std::vector<HintFragment> res;
-    for (HintFragment hintFrag : hintFragments) {
-        if (hintFrag.fragInHintWindow->isSelected()) {
+    std::vector<SuggestFragment> res;
+    for (SuggestFragment hintFrag : suggestFragments)
+    {
+        if (hintFrag.fragInHintWindow->isSelected())
+        {
             res.emplace_back(hintFrag);
         }
     }
@@ -161,11 +184,12 @@ std::vector<HintFragment> HintWindow::getSelecetHintFrags()
 
 void HintWindow::on_btnClearAI_clicked()
 {
-    for (int i = 0; i < (int)this->threads.size(); ++i) {
+    for (int i = 0; i < (int)this->threads.size(); ++i)
+    {
         if (threads[i]->isFinished() == false) threads[i]->stopThread();
     }
     threads.clear();
-    hintFragments.clear();
+    suggestFragments.clear();
     deleteOldFragments();
     update();
 }

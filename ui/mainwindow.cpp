@@ -15,11 +15,12 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./mixed2/");
+    FragmentsController::getController()->createAllFragments("./fragment9/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();
     mainWindow = this;
+    ui->storeArea->hide();
     update();
 }
 
@@ -125,8 +126,8 @@ void MainWindow::createMenu()
 
 void MainWindow::on_imageSizeController_valueChanged(int value)
 {
-    std::vector<FragmentUi *> unsortedFragments = fragCtrl->getUnsortedFragments();
-    for (FragmentUi *fragment : unsortedFragments)
+    std::vector<AreaFragment *> unsortedFragments = fragCtrl->getUnsortedFragments();
+    for (AreaFragment *fragment : unsortedFragments)
     {
         fragment->scaledToWidth(1.0 * value / 100);
     }

@@ -2,12 +2,12 @@
 #define FRAGMENTAREA_H
 
 #include <QWidget>
-#include <ui/fragmentui.h>
 #include <QHBoxLayout>
 #include <QGraphicsView>
 #include <fragmentscontroller.h>
 #include <QUndoStack>
 #include <fragmentsscene.h>
+#include <areafragment.h>
 
 namespace Ui
 {
@@ -49,7 +49,7 @@ private:
 private:
     Ui::FragmentArea *ui;
     FragmentsScene *scene;
-    std::vector<FragmentUi *> fragmentItems;
+    std::vector<AreaFragment *> fragmentItems;
     FragmentsController *fragCtrl;
     QUndoStack *undoStack;
     static FragmentArea *fragmentArea;

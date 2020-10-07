@@ -7,13 +7,15 @@
 
 const int MAX_FRAGMENT_NUM = 500;
 
-class TransMatAndConfi {
+class TransMatAndConfi
+{
 public:
     int thisFrag;
     int otherFrag;
     cv::Mat transMat;
     float confidence;
-    bool operator < (const TransMatAndConfi& rhs) const {
+    bool operator < (const TransMatAndConfi &rhs) const
+    {
         return this->confidence > rhs.confidence;
     }
 };
@@ -22,16 +24,19 @@ class Network
 {
 public:
     static QString sendMsg(const QString &msg);
-    static void loadTransMat(const QString& path);
+    static void loadTransMat(const QString &path);
+    static void loadGtMat(const QString &path);
     std::vector<TransMatAndConfi> allTransMat[MAX_FRAGMENT_NUM];
-    static Network* network;
+    std::vector<cv::Mat> gtMat;
+    static Network *network;
 
     static int fragSuggesNum;
     static float fragSuggesConfi;
     static int delay;
 
 private:
-    Network() {
+    Network()
+    {
     }
 };
 

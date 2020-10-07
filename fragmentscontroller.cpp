@@ -60,6 +60,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     initBgColor(fragmentsPath);
     getGroundTruth(fragmentsPath);
     Network::loadTransMat(fragmentsPath);
+    Network::loadGtMat(fragmentsPath);
 
     qInfo() << "createAllFragments " << fragmentsPath;
     QDir dir(fragmentsPath);
@@ -70,14 +71,14 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
     for (const QString &fileName : nameList)
     {
         std::vector<Piece> vec;
-        vec.push_back(Piece(dir.absolutePath() + "/" + fileName, QString("%1").arg(i)));
+        vec.push_back(Piece(dir.absolutePath() + "/" + fileName, i));
         QImage img(dir.absolutePath() + "/" + fileName);
         for (auto bg_color : bgColor)
         {
             auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
             img.setAlphaChannel(mask);
         }
-        unsortedFragments.emplace_back(new FragmentUi(vec, img, QString("%1").arg(i)));
+        unsortedFragments.emplace_back(new AreaFragment(vec, img, QString("%1").arg(i)));
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();
@@ -94,9 +95,9 @@ FragmentsController *FragmentsController::getController()
 
 bool FragmentsController::splitSelectedFragments()
 {
-    std::vector<FragmentUi *> redoFragments;
-    std::vector<FragmentUi *> undoFragments;
-    for (FragmentUi *splitFragment : getSelectedFragments())
+    std::vector<AreaFragment *> redoFragments;
+    std::vector<AreaFragment *> undoFragments;
+    for (AreaFragment *splitFragment : getSelectedFragments())
     {
         for (Piece oldP : splitFragment->getPieces())
         {
@@ -110,7 +111,7 @@ bool FragmentsController::splitSelectedFragments()
                 auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
                 img.setAlphaChannel(mask);
             }
-            FragmentUi *newSplitFragment = new FragmentUi(vec, img, newP.pieceID);
+            AreaFragment *newSplitFragment = new AreaFragment(vec, img, QString("id = %1").arg(newP.pieceID));
             redoFragments.emplace_back(newSplitFragment);
         }
         undoFragments.emplace_back(splitFragment);
@@ -119,15 +120,15 @@ bool FragmentsController::splitSelectedFragments()
     return true;
 }
 
-const std::vector<FragmentUi *> FragmentsController::getSelectedFragments()
+const std::vector<AreaFragment *> FragmentsController::getSelectedFragments()
 {
-    std::vector<FragmentUi *> selectedFragments;
-    for (FragmentUi *f : unsortedFragments)
+    std::vector<AreaFragment *> selectedFragments;
+    for (AreaFragment *f : unsortedFragments)
     {
         if (f->isSelected())
             selectedFragments.emplace_back(f);
     }
-    for (FragmentUi *f : sortedFragments)
+    for (AreaFragment *f : sortedFragments)
     {
         if (f->isSelected())
             selectedFragments.emplace_back(f);
@@ -135,27 +136,29 @@ const std::vector<FragmentUi *> FragmentsController::getSelectedFragments()
     return selectedFragments;
 }
 
-std::vector<FragmentUi *> &FragmentsController::getUnsortedFragments()
+std::vector<AreaFragment *> &FragmentsController::getUnsortedFragments()
 {
     return unsortedFragments;
 }
 
-std::vector<FragmentUi *> &FragmentsController::getSortedFragments()
+std::vector<AreaFragment *> &FragmentsController::getSortedFragments()
 {
     return sortedFragments;
 }
 
-FragmentUi *FragmentsController::findFragmentByName(const QString &name)
+AreaFragment *FragmentsController::findFragmentById(const int &id)
 {
-    for (FragmentUi *f : getUnsortedFragments())
+    for (AreaFragment *f : getUnsortedFragments())
     {
-        if (f->getFragmentName().split(" ").contains(name))
-            return f;
+        for (const Piece &p : f->getPieces())
+        {
+            if (p.pieceID == id) return f;
+        }
     }
     return nullptr;
 }
 
-bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, FragmentUi *f2, const int piece2ID, const cv::Mat &originTransMat)
+bool FragmentsController::jointFragment(AreaFragment *f1, const int piece1ID, AreaFragment *f2, const int piece2ID, const cv::Mat &originTransMat)
 {
     const Piece p1 = f1->getPieces()[piece1ID];
     const Piece p2 = f2->getPieces()[piece2ID];
@@ -177,9 +180,9 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
         fit_3 = int(360.0 - fit_3);
     }
     int fit_off_x = int(finalTransMat.at<float>(0, 2));
-    int fit_off_y = int(finalTransMat.at<float>(1, 2)) - 2;
-    Tool::possFusionImage(src, dst, fit_3, fit_off_x, fit_off_y);
-    finalTransMat = Tool::getMatFromAngleAndOffset(fit_3, fit_off_x, fit_off_y);
+    int fit_off_y = int(finalTransMat.at<float>(1, 2));
+    //Tool::possFusionImage(src, dst, fit_3, fit_off_x, fit_off_y);
+//    finalTransMat = Tool::getMatFromAngleAndOffset(fit_3, fit_off_x, fit_off_y);
     cv::Mat resMat = Tool::fusionImage(src, dst, finalTransMat, offsetMat);
 
     qInfo() << "run FusionImage";
@@ -199,7 +202,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
         newP.transMat = offsetMat.clone() * finalTransMat.clone() * newP.transMat;
         pieces.emplace_back(newP);
     }
-    FragmentUi *newFragment = new FragmentUi(pieces, Tool::Mat8UC4ToQImage(resMat), f1->getFragmentName() + " " + f2->getFragmentName());
+    AreaFragment *newFragment = new AreaFragment(pieces, Tool::Mat8UC4ToQImage(resMat), f1->getFragmentName() + " " + f2->getFragmentName());
     float newX = f1->scenePos().x() - offsetMat.at<float>(0, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
     float newY = f1->scenePos().y() - offsetMat.at<float>(1, 2) / (100.0 / MainWindow::mainWindow->getZoomSize());
     cv::Mat preRotateMat = Tool::getRotationMatrix(src.cols / 2.0, src.rows / 2.0, Tool::angToRad(f1->rotateAng));
@@ -222,10 +225,10 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     afterPosX += newImgOffset.at<float>(0, 2);
     afterPosY += newImgOffset.at<float>(1, 2);
 
-    prePosX *= MainWindow::mainWindow->getZoomSize() / 100.0;
-    prePosY *= MainWindow::mainWindow->getZoomSize() / 100.0;
-    afterPosX *= MainWindow::mainWindow->getZoomSize() / 100.0;
-    afterPosY *= MainWindow::mainWindow->getZoomSize() / 100.0;
+    prePosX *= MainWindow::mainWindow->getZoomSize() / 100.0f;
+    prePosY *= MainWindow::mainWindow->getZoomSize() / 100.0f;
+    afterPosX *= MainWindow::mainWindow->getZoomSize() / 100.0f;
+    afterPosY *= MainWindow::mainWindow->getZoomSize() / 100.0f;
 
     newX = f1->scenePos().x() + (prePosX - afterPosX);
     newY = f1->scenePos().y() + (prePosY - afterPosY);
@@ -234,7 +237,7 @@ bool FragmentsController::jointFragment(FragmentUi *f1, const int piece1ID, Frag
     newFragment->rotateAng = f1->rotateAng;
     newFragment->undoFragments.push_back(f1);
     newFragment->undoFragments.push_back(f2);
-    std::vector<FragmentUi *> undoFragments;
+    std::vector<AreaFragment *> undoFragments;
     undoFragments.push_back(f1);
     undoFragments.push_back(f2);
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
@@ -249,7 +252,7 @@ void FragmentsController::selectFragment()
     while (changed)
     {
         changed = false;
-        for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
+        for (AreaFragment *f : FragmentsController::getController()->getSortedFragments())
         {
             if (f->isSelected())
             {
@@ -269,7 +272,7 @@ void FragmentsController::unSelectFragment()
     while (changed)
     {
         changed = false;
-        for (FragmentUi *f : FragmentsController::getController()->getUnsortedFragments())
+        for (AreaFragment *f : FragmentsController::getController()->getUnsortedFragments())
         {
             if (f->isSelected())
             {
@@ -281,6 +284,17 @@ void FragmentsController::unSelectFragment()
         }
     }
     MainWindow::mainWindow->update();
+}
+
+bool FragmentsController::checkFragInFragmentArea(AreaFragment *frag)
+{
+    bool exist = false;
+    for (AreaFragment *f : FragmentsController::getController()->getUnsortedFragments())
+    {
+        if (f == frag)
+            exist = true;
+    }
+    return exist;
 }
 
 void FragmentsController::getGroundTruth(const QString &path)
@@ -325,8 +339,8 @@ float FragmentsController::calcScore()
         for (int i = 1; i < (int)pieces.size(); ++i)
         {
             cv::Mat trans = Tool::getInvMat(pieces[0].transMat) * pieces[i].transMat;
-            int p1 = pieces[0].pieceID.toInt();
-            int p2 = pieces[i].pieceID.toInt();
+            int p1 = pieces[0].pieceID;
+            int p2 = pieces[i].pieceID;
             cv::Mat gt = Tool::getInvMat(groundTruth[p1]) * groundTruth[p2];
             float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
             float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));

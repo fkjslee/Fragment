@@ -1,7 +1,6 @@
 #include <Tool.h>
 #include "fragmentarea.h"
 #include "ui_fragmentarea.h"
-#include <ui/fragmentui.h>
 #include <QtDebug>
 #include <QGraphicsScene>
 #include <opencv2/opencv.hpp>
@@ -42,13 +41,13 @@ FragmentArea::~FragmentArea()
 
 void FragmentArea::update()
 {
-    for (FragmentUi *fragment : fragmentItems)
+    for (AreaFragment *fragment : fragmentItems)
     {
         scene->removeItem(fragment);
     }
     fragmentItems.clear();
 
-    for (FragmentUi *fragment : fragCtrl->getUnsortedFragments())
+    for (AreaFragment *fragment : fragCtrl->getUnsortedFragments())
     {
         fragmentItems.emplace_back(fragment);
         scene->addItem(fragment);
@@ -64,7 +63,7 @@ void FragmentArea::updateFragmentsPos()
     QRect windowRect = this->rect();
     int i = 0;
     int N = (int)fragCtrl->getUnsortedFragments().size();
-    for (FragmentUi *fragment : fragCtrl->getUnsortedFragments())
+    for (AreaFragment *fragment : fragCtrl->getUnsortedFragments())
     {
         fragmentItems.emplace_back(fragment);
         fragment->setPos(::sin((i * 6.28) / N) * windowRect.width() / 5,
@@ -89,7 +88,7 @@ void FragmentArea::on_btnSplit_clicked()
 void FragmentArea::on_sldRotate_valueChanged(int value)
 {
     FragmentsController *ctrller = FragmentsController::getController();
-    for (FragmentUi *f : ctrller->getUnsortedFragments())
+    for (AreaFragment *f : ctrller->getUnsortedFragments())
     {
         if (f->isSelected())
         {
@@ -103,9 +102,9 @@ void FragmentArea::on_btnJointForce_clicked()
 {
     qInfo() << "click btn joint force";
     if (jointCheck() == false) return;
-    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
-    FragmentUi *f1 = jointFragments[0];
-    FragmentUi *f2 = jointFragments[1];
+    std::vector<AreaFragment *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    AreaFragment *f1 = jointFragments[0];
+    AreaFragment *f2 = jointFragments[1];
 
     cv::Mat img1 = Tool::QImageToMat(f1->getOriginalImage()).clone();
     cv::Mat rotateMat1 = Tool::getRotationMatrix(img1.cols / 2.0, img1.rows / 2.0, Tool::angToRad(f1->rotateAng));
@@ -126,14 +125,14 @@ void FragmentArea::on_btnJointForce_clicked()
 
 bool FragmentArea::jointCheck()
 {
-    std::vector<FragmentUi *> jointFragments = FragmentsController::getController()->getSelectedFragments();
+    std::vector<AreaFragment *> jointFragments = FragmentsController::getController()->getSelectedFragments();
     if (jointFragments.size() != 2)
     {
         QMessageBox::critical(nullptr, QObject::tr("joint error"), QObject::tr("please choose two fragments to joint"),
                               QMessageBox::Cancel);
         return false;
     }
-    for (FragmentUi *f : FragmentsController::getController()->getSortedFragments())
+    for (AreaFragment *f : FragmentsController::getController()->getSortedFragments())
     {
         if (f == jointFragments[0] || f == jointFragments[1])
         {
@@ -147,10 +146,9 @@ bool FragmentArea::jointCheck()
 
 void FragmentArea::on_btnReSort_clicked()
 {
-    for (FragmentUi *fragment : FragmentsController::getController()->getUnsortedFragments())
+    for (AreaFragment *fragment : FragmentsController::getController()->getUnsortedFragments())
     {
         fragment->rotateAng = Tool::get_suggest_rotation(Tool::QImageToMat(fragment->getOriginalImage()));
-        qInfo() << "ang = " << fragment->rotateAng << fragment->getFragmentName();
         fragment->rotateAng *= -1;
         fragment->update();
     }

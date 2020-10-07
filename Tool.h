@@ -32,7 +32,7 @@ public:
     }
 
     template<typename T>
-    static T get_most_frequent(const std::vector<T> angs)
+    static T get_most_frequent(const std::vector<T> &angs)
     {
         std::map<T, int> mp;
         for (T ang : angs)
@@ -79,7 +79,6 @@ public:
                     double rad = std::atan(1.0 * (line[3] - line[1]) / (line[2] - line[0]));
                     angs.push_back(rad * 180 / CV_PI);
                 }
-                cv::line(img, cv::Point(line[0], line[1]), cv::Point(line[2], line[3]), cv::Scalar(0, 255, 0), 2);
             }
         }
 //        cv::imshow("img", img);
@@ -151,17 +150,6 @@ public:
     static void *ucharToVoid(const uchar *c)
     {
         return reinterpret_cast<void *>(const_cast<uchar *>(c));
-    }
-
-    static bool checkFragInFragmentArea(FragmentUi *frag)
-    {
-        bool exist = false;
-        for (FragmentUi *f : FragmentsController::getController()->getUnsortedFragments())
-        {
-            if (f == frag)
-                exist = true;
-        }
-        return exist;
     }
 
     static cv::Mat str2TransMat(QString src)
@@ -318,7 +306,7 @@ public:
         return dst.clone();
     }
 
-    static cv::Mat getMatFromAngleAndOffset(int ang, int off_x, int off_y)
+    static cv::Mat getMatFromAngleAndOffset(double ang, double off_x, double off_y)
     {
         double rad = ang * CV_PI / 180;
         cv::Mat res = cv::Mat::eye(3, 3, CV_32FC1);
@@ -366,6 +354,15 @@ public:
         return boundIdx;
     }
 
+    static cv::Mat getMatFromString(QString src)
+    {
+        cv::Mat dst(1, 9, CV_32FC1);
+        QStringList trans_str = QString(src).replace("  ", " ").split(" ");
+        for (int i = 0; i < 9; ++i)
+            dst.at<float>(0, i) = trans_str[i].toFloat();
+        return normalToOpencvTransMat(dst.reshape(1, 3));
+    }
+
     static void possFusionImage(const cv::Mat &src1, const cv::Mat &src2, int &ang, int &off_x, int &off_y)
     {
         cv::Mat offset;
@@ -401,8 +398,6 @@ public:
                     {
                         after_src_2.at<cv::Vec3b>(pt.y, pt.x) = cv::Vec3b(255, 0, 255);
                     }
-
-                    qInfo() << "check" << poss_ang << poss_x << poss_y << "value = " << colorIdx.size();
 
                     if (int(colorIdx.size()) > fit_value)
                     {

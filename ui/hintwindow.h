@@ -10,6 +10,7 @@
 #include <QtDebug>
 #include <fragmentscontroller.h>
 #include <ui/refreshthread.h>
+#include <hintfragment.h>
 
 namespace Ui
 {
@@ -18,17 +19,19 @@ namespace Ui
 
 class RefreshThread;
 
-struct HintFragment {
+struct SuggestFragment
+{
 public:
-    HintFragment() {}
-    FragmentUi* fragJoint;
-    FragmentUi* fragBeJointed;
-    FragmentUi* fragInHintWindow;
+    SuggestFragment() {}
+    AreaFragment *fragJoint;
+    AreaFragment *fragBeJointed;
+    HintFragment *fragInHintWindow;
     int p1ID;
     int p2ID;
     cv::Mat transMat;
 
-    bool operator == (const HintFragment& rhs) const {
+    bool operator == (const SuggestFragment &rhs) const
+    {
         return this == &rhs;
     }
 };
@@ -40,7 +43,8 @@ class HintWindow : public QWidget
 public:
     explicit HintWindow(QWidget *parent = nullptr);
     ~HintWindow();
-    static HintWindow* getHintWindow() {
+    static HintWindow *getHintWindow()
+    {
         return hintWindow;
     }
 
@@ -54,7 +58,7 @@ public slots:
     void setNewFragments();
 
 public:
-    std::vector<HintFragment> hintFragments;
+    std::vector<SuggestFragment> suggestFragments;
     static unsigned int maxHintSize;
 
 
@@ -66,9 +70,9 @@ private slots:
 private:
     Ui::HintWindow *ui;
     HintScene *scene;
-    std::vector<HintFragment> getSelecetHintFrags();
-    std::vector<RefreshThread*> threads;
-    static HintWindow* hintWindow;
+    std::vector<SuggestFragment> getSelecetSuggestFrags();
+    std::vector<RefreshThread *> threads;
+    static HintWindow *hintWindow;
 };
 
 #endif // HINTWINDOW_H

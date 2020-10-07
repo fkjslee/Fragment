@@ -17,9 +17,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     CommonHeader.cpp \
+    areafragment.cpp \
     commands.cpp \
     configure.cpp \
     fragmentsscene.cpp \
+    hintfragment.cpp \
     hintscene.cpp \
     network.cpp \
     storescene.cpp \
@@ -35,9 +37,11 @@ SOURCES += \
 HEADERS += \
     CommonHeader.h \
     Tool.h \
+    areafragment.h \
     commands.h \
     configure.h \
     fragmentsscene.h \
+    hintfragment.h \
     hintscene.h \
     network.h \
     storescene.h \

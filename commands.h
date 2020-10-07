@@ -10,7 +10,7 @@
 class MoveUndo : public QUndoCommand
 {
 public:
-    MoveUndo(QGraphicsItem *item, QPoint undoPos, QPoint redoPos, QUndoCommand *parent=nullptr);
+    MoveUndo(QGraphicsItem *item, QPoint undoPos, QPoint redoPos, QUndoCommand *parent = nullptr);
     ~MoveUndo();
 
     void undo();
@@ -25,27 +25,27 @@ private:
 class JointUndo : public QUndoCommand
 {
 public:
-    JointUndo(std::vector<FragmentUi*> undoFragments, FragmentUi* redoFragments, QUndoCommand *parent = nullptr);
+    JointUndo(std::vector<AreaFragment *> undoFragments, AreaFragment *redoFragments, QUndoCommand *parent = nullptr);
 
     void undo();
     void redo();
 
 private:
-    std::vector<FragmentUi*> undoFragments;
-    FragmentUi* redoFragments;
-    FragmentsController* fragCtller;
+    std::vector<AreaFragment *> undoFragments;
+    AreaFragment *redoFragments;
+    FragmentsController *fragCtller;
 };
 
 class SplitUndo : public QUndoCommand
 {
 public:
-    SplitUndo(std::vector<FragmentUi*> undoFragments, std::vector<FragmentUi*> redoFragments, QUndoCommand *parent = nullptr);
+    SplitUndo(std::vector<AreaFragment *> undoFragments, std::vector<AreaFragment *> redoFragments, QUndoCommand *parent = nullptr);
 
     void undo();
     void redo();
 
 private:
-    std::vector<FragmentUi*> undoFragments;
-    std::vector<FragmentUi*> redoFragments;
-    FragmentsController* fragCtller;
+    std::vector<AreaFragment *> undoFragments;
+    std::vector<AreaFragment *> redoFragments;
+    FragmentsController *fragCtller;
 };

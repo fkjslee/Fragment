@@ -1,14 +1,16 @@
 #include "refreshthread.h"
 #include <cstdlib>
+#include <hintfragment.h>
 
 
 int RefreshThread::confidence = int(100 * 0.6 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
-RefreshThread::RefreshThread(FragmentUi* const fragment) {
+RefreshThread::RefreshThread(AreaFragment *const fragment)
+{
     this->fragment = fragment;
     fragCtrl = FragmentsController::getController();
     stoped = false;
-    HintWindow* hintWindow = HintWindow::getHintWindow();
+    HintWindow *hintWindow = HintWindow::getHintWindow();
     connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &RefreshThread::finished, this, &RefreshThread::stopThread);
@@ -21,9 +23,10 @@ void RefreshThread::stopThread()
     MainWindow::mainWindow->update();
 }
 
-int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
+int RefreshThread::getPieceIDX(std::vector<Piece> pieces, const int &id)
+{
     for (int i = 0; i < (int)pieces.size(); ++i)
-        if (pieces[i].pieceID == name)
+        if (pieces[i].pieceID == id)
             return i;
     return -1;
 }
@@ -31,13 +34,15 @@ int RefreshThread::getPieceID(std::vector<Piece> pieces, QString name){
 void RefreshThread::run()
 {
     std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
-    for (Piece p : fragment->getPieces()) {
-        GetResThread* thread = new GetResThread(&allConfiMats[p.pieceID.toInt()], p.pieceID);
+    for (Piece p : fragment->getPieces())
+    {
+        GetResThread *thread = new GetResThread(&allConfiMats[p.pieceID], p.pieceID);
         thread->start();
         allThreads.emplace_back(thread);
     }
 
-    for (GetResThread* thread : allThreads) {
+    for (GetResThread *thread : allThreads)
+    {
         thread->wait();
     }
 
@@ -53,7 +58,8 @@ void RefreshThread::run()
     else
         sort(resConfiMat.rbegin(), resConfiMat.rend());
 
-    if(!stoped) {
+    if(!stoped)
+    {
         setFragmentLocker.lock();
         setHint(resConfiMat);
         emit deleteOldFragments();
@@ -62,56 +68,62 @@ void RefreshThread::run()
     }
 }
 
-void RefreshThread::setHint(const std::vector<TransMatAndConfi>& resConfiMat)
+void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
 {
-    HintWindow* hintWindow = HintWindow::getHintWindow();
-    for (const TransMatAndConfi& confiMat : resConfiMat) {
-        FragmentUi* anotherFragment = fragCtrl->findFragmentByName(QString::number(confiMat.otherFrag));
-        if (anotherFragment == nullptr) {
+    HintWindow *hintWindow = HintWindow::getHintWindow();
+    for (const TransMatAndConfi &confiMat : resConfiMat)
+    {
+        AreaFragment *anotherFragment = fragCtrl->findFragmentById(confiMat.otherFrag);
+        if (anotherFragment == nullptr)
+        {
             qInfo() << "another fragment " + QString::number(confiMat.otherFrag) << " not in the work area";
             continue;
         }
 
-        const int p1 = getPieceID(fragment->getPieces(), QString::number(confiMat.thisFrag));
-        const int p2 = getPieceID(anotherFragment->getPieces(), QString::number(confiMat.otherFrag));
+        const int p1 = getPieceIDX(fragment->getPieces(), confiMat.thisFrag);
+        const int p2 = getPieceIDX(anotherFragment->getPieces(), confiMat.otherFrag);
 
-        struct HintFragment hintFrag;
-        hintFrag.fragJoint = fragment;
-        hintFrag.fragBeJointed = anotherFragment;
-        hintFrag.fragInHintWindow = new FragmentUi(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName(), Platfrom::HintArea);
-        hintFrag.p1ID = p1;
-        hintFrag.p2ID = p2;
-        hintFrag.transMat = confiMat.transMat.clone();
-        std::vector<HintFragment> vec = hintWindow->hintFragments;
+        qInfo() << "p1 p2 = " << fragment->getFragmentName() << anotherFragment->getFragmentName() << confiMat.thisFrag << confiMat.otherFrag << p1 << p2;
+
+        struct SuggestFragment suggFrag;
+        suggFrag.fragJoint = fragment;
+        suggFrag.fragBeJointed = anotherFragment;
+        suggFrag.fragInHintWindow = new HintFragment(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName());
+        suggFrag.p1ID = p1;
+        suggFrag.p2ID = p2;
+        suggFrag.transMat = confiMat.transMat.clone();
+        std::vector<SuggestFragment> vec = hintWindow->suggestFragments;
         bool fragInHint = false;
-        for (HintFragment f : vec) {
-            if (f.fragBeJointed == hintFrag.fragBeJointed && f.fragJoint == hintFrag.fragJoint) {
+        for (SuggestFragment f : vec)
+        {
+            if (f.fragBeJointed == suggFrag.fragBeJointed && f.fragJoint == suggFrag.fragJoint)
+            {
                 fragInHint = true;
             }
         }
         if (fragInHint) continue;
 
-        bool fragInFragmentArea = Tool::checkFragInFragmentArea(hintFrag.fragJoint);
-        if (Tool::checkFragInFragmentArea(hintFrag.fragBeJointed) == false) fragInFragmentArea = false;
-        if (hintFrag.fragJoint == hintFrag.fragBeJointed) fragInFragmentArea = false;
+        bool fragInFragmentArea = FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragJoint);
+        if (FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragBeJointed) == false) fragInFragmentArea = false;
+        if (suggFrag.fragJoint == suggFrag.fragBeJointed) fragInFragmentArea = false;
         if (!fragInFragmentArea) continue;
 
-        if (hintWindow->hintFragments.size() >= HintWindow::maxHintSize)
-            hintWindow->hintFragments.erase(hintWindow->hintFragments.begin());
-        hintWindow->hintFragments.emplace_back(hintFrag);
+        if (hintWindow->suggestFragments.size() >= HintWindow::maxHintSize)
+            hintWindow->suggestFragments.erase(hintWindow->suggestFragments.begin());
+        hintWindow->suggestFragments.emplace_back(suggFrag);
         break;
     }
 }
 
-GetResThread::GetResThread(std::vector<TransMatAndConfi>* confiMats, const QString& pieceName)
+GetResThread::GetResThread(std::vector<TransMatAndConfi> *confiMats, const int &pieceID)
 {
-    this->pieceName = pieceName;
+    this->pieceID = pieceID;
     this->confiMats = confiMats;
 }
 
 void GetResThread::run()
 {
-    QString res = Network::sendMsg("a " + pieceName);
+    QString res = Network::sendMsg(QString("a %1").arg(pieceID));
     res.replace("[", "");
     res.replace("]", "");
     res.replace("\n", "");
@@ -120,17 +132,18 @@ void GetResThread::run()
     for (QString s : msgList)
         if (s != "")
             msgList2.append(s);
-    for (int i = 0; i < msgList2.length(); i += 11) {
+    for (int i = 0; i < msgList2.length(); i += 11)
+    {
         cv::Mat transMat(3, 3, CV_32FC1);
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
-                transMat.at<float>(j, k) = msgList2[i+2+(j*3+k)].toFloat();
+                transMat.at<float>(j, k) = msgList2[i + 2 + (j * 3 + k)].toFloat();
         transMat = Tool::normalToOpencvTransMat(transMat);
 
         TransMatAndConfi confiMat;
-        confiMat.thisFrag = pieceName.toInt();
+        confiMat.thisFrag = pieceID;
         confiMat.otherFrag = msgList[i].toInt();
-        confiMat.confidence = msgList[i+1].toFloat();
+        confiMat.confidence = msgList[i + 1].toFloat();
         confiMat.transMat = transMat.clone();
         confiMats->emplace_back(confiMat);
     }
