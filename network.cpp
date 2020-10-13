@@ -57,14 +57,14 @@ QString Network::sendMsg(const QString &msg)
     }
     else if (command == 'b')
     {
-        double confidence = 0.8;
+        double confidence = 1.0;
         int id1 = msgs[1].toInt();
         int id2 = msgs[2].toInt();
         cv::Mat transMat = network->gtMat[id1].inv() * network->gtMat[id2];
         if ((rand() % 100) > confidence * 100)
         {
             double alpha = std::acos(transMat.at<float>(0, 0));
-            if (transMat.at<float>(1, 0) < 0) alpha += CV_PI;
+            if (transMat.at<float>(0, 1) < 0) alpha = 2 * CV_PI - alpha;
             float off_x = transMat.at<float>(0, 2);
             float off_y = transMat.at<float>(1, 2);
             alpha += (rand() % 20 - 10) * CV_PI / 180;
@@ -131,7 +131,7 @@ void Network::loadTransMat(const QString &path)
             network->allTransMat[id1].emplace_back(matAndConfi);
 
         matAndConfi.otherFrag = id1;
-        matAndConfi.transMat = Tool::getInvMat(mat.clone());
+        matAndConfi.transMat = mat.clone().inv();
         matAndConfi.confidence = confidence;
         has = false;
         for (TransMatAndConfi m : network->allTransMat[id2])

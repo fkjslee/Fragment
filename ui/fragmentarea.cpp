@@ -119,7 +119,7 @@ void FragmentArea::on_btnJointForce_clicked()
     transMat.at<float>(1, 2) = moveY * (100.0 / MainWindow::mainWindow->getZoomSize());
     cv::Mat f1Changed = f1->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat1) * f1->getPieces()[0].transMat;
     cv::Mat f2Changed = f2->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat2) * f2->getPieces()[0].transMat;
-    transMat = Tool::getInvMat(f1Changed) * transMat * f2Changed.clone();
+    transMat = f1Changed.inv() * transMat * f2Changed.clone();
     fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
 }
 

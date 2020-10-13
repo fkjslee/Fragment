@@ -2,7 +2,6 @@
 #define REFRESHTHREAD_H
 
 #include <QThread>
-#include <ui/fragmentui.h>
 #include <fragmentscontroller.h>
 #include <ui/hintwindow.h>
 #include <ui/fragmentarea.h>

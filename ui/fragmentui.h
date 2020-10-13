@@ -59,10 +59,6 @@ public:
         this->pieces = pieces;
     }
 
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 public:
     std::vector<const FragmentUi *> undoFragments;
@@ -71,13 +67,9 @@ protected:
     const QImage originalImage;
 
 private:
-    static FragmentUi *draggingItem;
-
     std::vector<Piece> pieces;
     QImage showImage;
     QString fragmentName;
-    QPoint undoPos;
-    QPointF pressPos;
 };
 
 #endif // FRAGMENTUI_H

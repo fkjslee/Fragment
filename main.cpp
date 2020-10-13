@@ -2,7 +2,6 @@
 
 #include <QtDebug>
 #include <QApplication>
-#include <ui/fragmentui.h>
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QGraphicsScene>

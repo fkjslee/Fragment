@@ -2,7 +2,6 @@
 #define HINTWINDOW_H
 
 #include <QWidget>
-#include "fragmentui.h"
 #include <hintscene.h>
 #include <QThread>
 #include <Tool.h>
@@ -23,9 +22,9 @@ struct SuggestFragment
 {
 public:
     SuggestFragment() {}
-    AreaFragment *fragJoint;
-    AreaFragment *fragBeJointed;
-    HintFragment *fragInHintWindow;
+    AreaFragment *fragCorrToArea;
+    AreaFragment *fragCorrToHint;
+    HintFragment *selectedFragment;
     int p1ID;
     int p2ID;
     cv::Mat transMat;
@@ -48,8 +47,6 @@ public:
         return hintWindow;
     }
 
-private:
-
 public slots:
     void on_btnAutoJoint_clicked();
 
@@ -60,6 +57,9 @@ public slots:
 public:
     std::vector<SuggestFragment> suggestFragments;
     static unsigned int maxHintSize;
+
+public slots:
+    void mousePressFragment(const HintFragment *fragment);
 
 
 private slots:

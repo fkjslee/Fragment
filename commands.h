@@ -4,7 +4,6 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <fragmentscontroller.h>
-#include <ui/fragmentui.h>
 #include <ui/mainwindow.h>
 
 class MoveUndo : public QUndoCommand

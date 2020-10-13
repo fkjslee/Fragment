@@ -242,7 +242,7 @@ public:
         }
     }
 
-    static float angToRad(int ang)
+    static float angToRad(double ang)
     {
         return 1.0 * ang / 180.0 * 3.141592653;
     }
@@ -250,13 +250,14 @@ public:
     // cv::getRotationMatrix2D may get singular matrix
     static cv::Mat getRotationMatrix(float x, float y, float rad)
     {
+        x = y = 0;
         cv::Mat move = cv::Mat::eye(3, 3, CV_32FC1);
         move.at<float>(0, 2) = x;
         move.at<float>(1, 2) = y;
         cv::Mat rotate = cv::Mat::eye(3, 3, CV_32FC1);
         rotate.at<float>(0, 0) = std::cos(rad);
-        rotate.at<float>(0, 1) = -std::sin(rad);
-        rotate.at<float>(1, 0) = std::sin(rad);
+        rotate.at<float>(0, 1) = std::sin(rad);
+        rotate.at<float>(1, 0) = -std::sin(rad);
         rotate.at<float>(1, 1) = std::cos(rad);
         cv::Mat moveInv = move.clone();
         cv::invert(moveInv, moveInv);
@@ -410,18 +411,21 @@ public:
         ang = fit_ang;
         off_x = fit_off_x;
         off_y = fit_off_y;
-        qInfo() << "final = " << ang << off_x << off_y;
     }
 
     static cv::Mat fusionImage(const cv::Mat &src, const cv::Mat &dst, const cv::Mat &transMat, cv::Mat &offset)
     {
-        std::vector<cv::Point2i> colorIdx;
+        std::vector<double> colorIDXx;
+        std::vector<double> colorIDXy;
         for (int i = 0; i < src.rows; ++i)
             for (int j = 0; j < src.cols; ++j)
             {
                 int sum = src.at<cv::Vec4b>(i, j)[0] + src.at<cv::Vec4b>(i, j)[1] + src.at<cv::Vec4b>(i, j)[2];
                 if (sum != 0)
-                    colorIdx.push_back(cv::Point2i(j, i));
+                {
+                    colorIDXx.push_back(j);
+                    colorIDXy.push_back(i);
+                }
             }
         for (int i = 0; i < dst.rows; ++i)
             for (int j = 0; j < dst.cols; ++j)
@@ -429,25 +433,18 @@ public:
                 int sum = dst.at<cv::Vec4b>(i, j)[0] + dst.at<cv::Vec4b>(i, j)[1] + dst.at<cv::Vec4b>(i, j)[2];
                 if (sum != 0)
                 {
-                    int x = transMat.at<float>(0, 0) * j + transMat.at<float>(0, 1) * i + transMat.at<float>(0, 2);
-                    int y = transMat.at<float>(1, 0) * j + transMat.at<float>(1, 1) * i + transMat.at<float>(1, 2);
-                    colorIdx.push_back(cv::Point2i(x, y));
+                    double x = transMat.at<float>(0, 0) * j + transMat.at<float>(0, 1) * i + transMat.at<float>(0, 2);
+                    double y = transMat.at<float>(1, 0) * j + transMat.at<float>(1, 1) * i + transMat.at<float>(1, 2);
+                    colorIDXx.push_back(x);
+                    colorIDXy.push_back(y);
                 }
             }
 
-        int minX = 0x3f3f3f3f;
-        int maxX = -0x3f3f3f3f;
-        int minY = 0x3f3f3f3f;
-        int maxY = -0x3f3f3f3f;
-        for (int i = 0; i < (int)colorIdx.size(); ++i)
-        {
-            int x = colorIdx[i].x;
-            int y = colorIdx[i].y;
-            minX = (std::min)(minX, x);
-            maxX = (std::max)(maxX, x);
-            minY = (std::min)(minY, y);
-            maxY = (std::max)(maxY, y);
-        }
+
+        double minX = *std::min_element(colorIDXx.begin(), colorIDXx.end());
+        double maxX = *std::max_element(colorIDXx.begin(), colorIDXx.end());
+        double minY = *std::min_element(colorIDXy.begin(), colorIDXy.end());
+        double maxY = *std::max_element(colorIDXy.begin(), colorIDXy.end());
 
 
         offset = cv::Mat::eye(3, 3, CV_32FC1);
@@ -477,30 +474,25 @@ public:
     {
         if (rotateMat.rows == 2)
             rotateMat = Tool::getFirst3RowsMat(rotateMat);
-        std::vector<cv::Point2i> colorIdx;
+        std::vector<double> colorIDXx;
+        std::vector<double> colorIDXy;
         for (int i = 0; i < img.rows; ++i)
             for (int j = 0; j < img.cols; ++j)
             {
                 int sum = img.at<cv::Vec4b>(i, j)[0] + img.at<cv::Vec4b>(i, j)[1] + img.at<cv::Vec4b>(i, j)[2];
                 if (sum > 0 && sum < 255 * 4)
                 {
-                    int x = rotateMat.at<float>(0, 0) * j + rotateMat.at<float>(0, 1) * i + rotateMat.at<float>(0, 2);
-                    int y = rotateMat.at<float>(1, 0) * j + rotateMat.at<float>(1, 1) * i + rotateMat.at<float>(1, 2);
-                    colorIdx.push_back(cv::Point2i(x, y));
+                    double x = rotateMat.at<float>(0, 0) * j + rotateMat.at<float>(0, 1) * i + rotateMat.at<float>(0, 2);
+                    double y = rotateMat.at<float>(1, 0) * j + rotateMat.at<float>(1, 1) * i + rotateMat.at<float>(1, 2);
+                    colorIDXx.push_back(x);
+                    colorIDXy.push_back(y);
                 }
             }
 
-        int minX = 0x3f3f3f3f;
-        int maxX = -0x3f3f3f3f;
-        int minY = 0x3f3f3f3f;
-        int maxY = -0x3f3f3f3f;
-        for (int i = 0; i < (int)colorIdx.size(); ++i)
-        {
-            minX = (std::min)(minX, colorIdx[i].x);
-            maxX = (std::max)(maxX, colorIdx[i].x);
-            minY = (std::min)(minY, colorIdx[i].y);
-            maxY = (std::max)(maxY, colorIdx[i].y);
-        }
+        double minX = *std::min_element(colorIDXx.begin(), colorIDXx.end());
+        double maxX = *std::max_element(colorIDXx.begin(), colorIDXx.end());
+        double minY = *std::min_element(colorIDXy.begin(), colorIDXy.end());
+        double maxY = *std::max_element(colorIDXy.begin(), colorIDXy.end());
 
         offset = cv::Mat::eye(3, 3, CV_32FC1);
         offset.at<float>(0, 2) = -minX;

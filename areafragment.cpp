@@ -1,14 +1,18 @@
 #include "areafragment.h"
 #include <Tool.h>
+#include <commands.h>
+#include <CommonHeader.h>
 
 int AreaFragment::calcCnt = 0;
 AreaFragment::AreaFragment(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName): FragmentUi(pieces, originalImage, fragmentName)
 {
+    this->offset = cv::Mat::eye(3, 3, CV_32FC1);
     setToolTip(fragmentName);
     initSuggestAng();
+    undoPos = QPoint(0, 0);
 }
 
-void AreaFragment::rotate(int ang)
+void AreaFragment::rotate(double ang)
 {
     int suggAng = -1000;
     for (int i = 0; i < suggAngs.size(); ++i)
@@ -37,6 +41,7 @@ void AreaFragment::update(const QRectF &rect)
     cv::Mat img = Tool::QImageToMat(removeBgColorImg);
     cv::Mat rotateMat = Tool::getRotationMatrix(img.cols / 2.0, img.rows / 2.0, Tool::angToRad(this->rotateAng));
     rotateMat = Tool::getFirst3RowsMat(rotateMat);
+//    cv::warpAffine(img, img, rotateMat(cv::Rect(0, 0, 3, 2)), img.size());
     Tool::rotateAndOffset(img, rotateMat, this->offset);
 
     QImage showImage = Tool::Mat8UC4ToQImage(img);
@@ -104,4 +109,21 @@ void AreaFragment::initSuggestAng()
         }
     }
     std::sort(suggAngs.begin(), suggAngs.end());
+}
+
+void AreaFragment::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    pressPos = pos();
+    undoPos = pos().toPoint();
+    setCursor(Qt::ClosedHandCursor);
+    QGraphicsPixmapItem::mousePressEvent(event);
+}
+
+void AreaFragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    if ((pos() - pressPos).manhattanLength() > 1e-7)
+        CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
+    setCursor(Qt::OpenHandCursor);
+    QGraphicsPixmapItem::mouseReleaseEvent(event);
+    FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
 }

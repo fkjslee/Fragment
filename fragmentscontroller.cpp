@@ -179,8 +179,6 @@ bool FragmentsController::jointFragment(AreaFragment *f1, const int piece1ID, Ar
     {
         fit_3 = int(360.0 - fit_3);
     }
-    int fit_off_x = int(finalTransMat.at<float>(0, 2));
-    int fit_off_y = int(finalTransMat.at<float>(1, 2));
     //Tool::possFusionImage(src, dst, fit_3, fit_off_x, fit_off_y);
 //    finalTransMat = Tool::getMatFromAngleAndOffset(fit_3, fit_off_x, fit_off_y);
     cv::Mat resMat = Tool::fusionImage(src, dst, finalTransMat, offsetMat);
@@ -212,9 +210,7 @@ bool FragmentsController::jointFragment(AreaFragment *f1, const int piece1ID, Ar
     cv::Mat nothing = resMat.clone();
     Tool::rotateAndOffset(nothing, Tool::getFirst3RowsMat(afterRotateMat), newImgOffset);
 
-    cv::Mat preOffset;
-    cv::Mat preImg = src.clone();
-    Tool::rotateAndOffset(preImg, preRotateMat, preOffset);
+    cv::Mat preOffset = f1->getOffsetMat().clone();
 
     float prePosX = preRotateMat.at<float>(0, 2) + preOffset.at<float>(0, 2);
     float prePosY = preRotateMat.at<float>(1, 2) + preOffset.at<float>(1, 2);
@@ -333,15 +329,15 @@ void FragmentsController::getGroundTruth(const QString &path)
 float FragmentsController::calcScore()
 {
     float score = 0;
-    for (FragmentUi *f : getUnsortedFragments())
+    for (AreaFragment *f : getUnsortedFragments())
     {
         auto pieces = f->getPieces();
         for (int i = 1; i < (int)pieces.size(); ++i)
         {
-            cv::Mat trans = Tool::getInvMat(pieces[0].transMat) * pieces[i].transMat;
+            cv::Mat trans = pieces[0].transMat.inv() * pieces[i].transMat;
             int p1 = pieces[0].pieceID;
             int p2 = pieces[i].pieceID;
-            cv::Mat gt = Tool::getInvMat(groundTruth[p1]) * groundTruth[p2];
+            cv::Mat gt = groundTruth[p1].inv() * groundTruth[p2];
             float len = std::sqrt(std::pow(trans.at<float>(0, 2), 2) + std::pow(trans.at<float>(1, 2), 2));
             float len2 = std::sqrt(std::pow(gt.at<float>(0, 2), 2) + std::pow(gt.at<float>(1, 2), 2));
             float x, y, xx, yy;

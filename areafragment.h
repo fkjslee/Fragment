@@ -31,12 +31,18 @@ public:
     {
         return offset.clone();
     }
-    void rotate(int ang);
+    void rotate(double ang);
     void update(const QRectF &rect = QRectF());
     void scaledToWidth(const double scale);
-    int rotateAng = 0;
+    double rotateAng = 0;
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 private:
 
+    QPoint undoPos;
+    QPointF pressPos;
     void initSuggestAng();
     std::vector<SuggAng> suggAngs;
     bool calcing = false;
@@ -44,6 +50,9 @@ private:
     QMutex locker;
     double scale = 1.0;
     cv::Mat offset;
+    double suggAng = -1.0;
+    double suggX;
+    double suggY;
 };
 
 #endif // AREAFRAGMENT_H

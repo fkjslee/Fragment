@@ -83,29 +83,27 @@ void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
         const int p1 = getPieceIDX(fragment->getPieces(), confiMat.thisFrag);
         const int p2 = getPieceIDX(anotherFragment->getPieces(), confiMat.otherFrag);
 
-        qInfo() << "p1 p2 = " << fragment->getFragmentName() << anotherFragment->getFragmentName() << confiMat.thisFrag << confiMat.otherFrag << p1 << p2;
-
         struct SuggestFragment suggFrag;
-        suggFrag.fragJoint = fragment;
-        suggFrag.fragBeJointed = anotherFragment;
-        suggFrag.fragInHintWindow = new HintFragment(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName());
+        suggFrag.fragCorrToArea = fragment;
+        suggFrag.fragCorrToHint = anotherFragment;
+        suggFrag.selectedFragment = new HintFragment(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName());
         suggFrag.p1ID = p1;
         suggFrag.p2ID = p2;
         suggFrag.transMat = confiMat.transMat.clone();
-        std::vector<SuggestFragment> vec = hintWindow->suggestFragments;
+        std::vector<SuggestFragment> suggInHintWindow = hintWindow->suggestFragments;
         bool fragInHint = false;
-        for (SuggestFragment f : vec)
+        for (SuggestFragment f : suggInHintWindow)
         {
-            if (f.fragBeJointed == suggFrag.fragBeJointed && f.fragJoint == suggFrag.fragJoint)
+            if (f.fragCorrToHint == suggFrag.fragCorrToHint && f.fragCorrToArea == suggFrag.fragCorrToArea)
             {
                 fragInHint = true;
             }
         }
         if (fragInHint) continue;
 
-        bool fragInFragmentArea = FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragJoint);
-        if (FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragBeJointed) == false) fragInFragmentArea = false;
-        if (suggFrag.fragJoint == suggFrag.fragBeJointed) fragInFragmentArea = false;
+        bool fragInFragmentArea = FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragCorrToArea);
+        if (FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragCorrToHint) == false) fragInFragmentArea = false;
+        if (suggFrag.fragCorrToArea == suggFrag.fragCorrToHint) fragInFragmentArea = false;
         if (!fragInFragmentArea) continue;
 
         if (hintWindow->suggestFragments.size() >= HintWindow::maxHintSize)

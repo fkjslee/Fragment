@@ -2,7 +2,6 @@
 #include "ui_hintwindow.h"
 #include <set>
 #include <QMessageBox>
-#include <ui/fragmentui.h>
 
 HintWindow *HintWindow::hintWindow = nullptr;
 unsigned int HintWindow::maxHintSize = 5;
@@ -49,7 +48,7 @@ void HintWindow::deleteOldFragments()
         bool fragMirrorInHint = false;
         for (SuggestFragment hintFrag : suggestFragments)
         {
-            if (hintFrag.fragInHintWindow == item)
+            if (hintFrag.selectedFragment == item)
             {
                 fragMirrorInHint = true;
                 break;
@@ -71,22 +70,22 @@ void HintWindow::deleteOldFragments()
         {
             bool fragJointInFragArea = false;
             bool fragBeJointInFragArea = false;
-            for (FragmentUi *f : fragCtrl->getUnsortedFragments())
+            for (AreaFragment *f : fragCtrl->getUnsortedFragments())
             {
-                if (suggFrag.fragJoint == f)
+                if (suggFrag.fragCorrToArea == f)
                 {
                     fragJointInFragArea = true;
                 }
-                if (suggFrag.fragBeJointed == f)
+                if (suggFrag.fragCorrToHint == f)
                 {
                     fragBeJointInFragArea = true;
                 }
             }
             if (!fragJointInFragArea || !fragBeJointInFragArea)
             {
-                if (scene->items().contains(suggFrag.fragInHintWindow))
+                if (scene->items().contains(suggFrag.selectedFragment))
                 {
-                    scene->removeItem(suggFrag.fragInHintWindow);
+                    scene->removeItem(suggFrag.selectedFragment);
                 }
                 fragUpdate = true;
                 Tool::eraseInVector(suggestFragments, suggFrag);
@@ -104,7 +103,7 @@ void HintWindow::setNewFragments()
     for (int i = 0; i < N; ++i)
     {
         SuggestFragment hintFrag = suggestFragments[unsigned(i)];
-        FragmentUi *fragment = hintFrag.fragInHintWindow;
+        HintFragment *fragment = hintFrag.selectedFragment;
         fragment->setPos(0, windowRect.top() + windowRect.height() * i / N);
         bool has = false;
         for (QGraphicsItem *item : scene->items())
@@ -119,6 +118,38 @@ void HintWindow::setNewFragments()
         scene->addItem(fragment);
     }
     update();
+}
+
+void HintWindow::mousePressFragment(const HintFragment *fragment)
+{
+    SuggestFragment pressedFragment;
+    pressedFragment.p1ID = -1;
+    for (const SuggestFragment &f : suggestFragments)
+    {
+        if (f.selectedFragment == fragment)
+            pressedFragment = f;
+    }
+    if (pressedFragment.p1ID == -1) return;
+    cv::Mat trans = pressedFragment.fragCorrToHint->getPieces()[pressedFragment.p2ID].transMat.inv(); // jointed fragent back to start position
+    trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
+    trans = pressedFragment.fragCorrToArea->getPieces()[pressedFragment.p1ID].transMat * trans; // joing fragment back to start position
+
+    cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
+    cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
+
+    trans = Tool::getFirst3RowsMat(hadRotated) * trans; // jointed fragment move with jointing fragment
+    trans = pressedFragment.fragCorrToArea->getOffsetMat() * trans; // add jointing fragment offset
+    cv::Mat img = Tool::QImageToMat(pressedFragment.fragCorrToHint->getOriginalImage());
+    double ang = std::acos(trans.at<float>(0, 0)) * 180.0 / CV_PI;
+    if (trans.at<float>(0, 1) < 0) ang = 360.0 - ang;
+
+    pressedFragment.fragCorrToHint->rotate(ang);
+    trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
+
+    cv::Mat rotateMat = Tool::getRotationMatrix(img.cols / 2.0, img.rows / 2.0, ang * CV_PI / 180.0);
+
+    pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
+    pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
 }
 
 void HintWindow::actSuggestTrigged()
@@ -156,16 +187,16 @@ void HintWindow::on_btnAutoJoint_clicked()
         return;
     }
     SuggestFragment selectFrag = selectHintFrags[0];
-    bool exist = FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragJoint);
-    if (FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragBeJointed) == false) exist = false;
-    if (selectFrag.fragJoint == selectFrag.fragBeJointed) exist = false;
+    bool exist = FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragCorrToArea);
+    if (FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragCorrToHint) == false) exist = false;
+    if (selectFrag.fragCorrToArea == selectFrag.fragCorrToHint) exist = false;
     if (!exist)
     {
         QMessageBox::information(nullptr, QObject::tr("joint error"), QObject::tr("选中的碎片已经不存在，可能已经被拼接?"),
                                  QMessageBox::Cancel);
         return;
     }
-    fragCtrl->jointFragment(selectFrag.fragJoint, selectFrag.p1ID, selectFrag.fragBeJointed, selectFrag.p2ID, selectFrag.transMat);
+    fragCtrl->jointFragment(selectFrag.fragCorrToArea, selectFrag.p1ID, selectFrag.fragCorrToHint, selectFrag.p2ID, selectFrag.transMat);
     deleteOldFragments();
 }
 
@@ -174,7 +205,7 @@ std::vector<SuggestFragment> HintWindow::getSelecetSuggestFrags()
     std::vector<SuggestFragment> res;
     for (SuggestFragment hintFrag : suggestFragments)
     {
-        if (hintFrag.fragInHintWindow->isSelected())
+        if (hintFrag.selectedFragment->isSelected())
         {
             res.emplace_back(hintFrag);
         }
