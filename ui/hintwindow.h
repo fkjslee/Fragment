@@ -47,6 +47,8 @@ public:
         return hintWindow;
     }
 
+    SuggestFragment getSuggestFragmentByHintFragment(const HintFragment *const hintFragment);
+
 public slots:
     void on_btnAutoJoint_clicked();
 
@@ -58,14 +60,13 @@ public:
     std::vector<SuggestFragment> suggestFragments;
     static unsigned int maxHintSize;
 
-public slots:
-    void mousePressFragment(const HintFragment *fragment);
-
 
 private slots:
     void on_btnClearAI_clicked();
 
     void on_refreshBtn_clicked();
+
+    void on_btnFixedPosition_clicked();
 
 private:
     Ui::HintWindow *ui;

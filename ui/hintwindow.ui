@@ -21,6 +21,20 @@
     <widget class="QGraphicsView" name="view"/>
    </item>
    <item>
+    <widget class="QPushButton" name="btnAutoJoint">
+     <property name="text">
+      <string>自动拼接</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnFixedPosition">
+     <property name="text">
+      <string>固定位置</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="btnClearAI">
      <property name="text">
       <string>取消推荐</string>

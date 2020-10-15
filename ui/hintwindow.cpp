@@ -5,16 +5,6 @@
 
 HintWindow *HintWindow::hintWindow = nullptr;
 unsigned int HintWindow::maxHintSize = 5;
-namespace
-{
-    int getPieceID(std::vector<Piece> pieces, QString name)
-    {
-        for (int i = 0; i < (int)pieces.size(); ++i)
-            if (pieces[i].pieceID == name)
-                return i;
-        return -1;
-    }
-}
 
 HintWindow::HintWindow(QWidget *parent) :
     QWidget(parent),
@@ -38,6 +28,18 @@ HintWindow::~HintWindow()
     }
     delete scene;
     delete ui;
+}
+
+SuggestFragment HintWindow::getSuggestFragmentByHintFragment(const HintFragment *const hintFragment)
+{
+    SuggestFragment pressedFragment;
+    pressedFragment.p1ID = -1;
+    for (const SuggestFragment &f : HintWindow::getHintWindow()->suggestFragments)
+    {
+        if (f.selectedFragment == hintFragment)
+            pressedFragment = f;
+    }
+    return pressedFragment;
 }
 
 void HintWindow::deleteOldFragments()
@@ -120,38 +122,6 @@ void HintWindow::setNewFragments()
     update();
 }
 
-void HintWindow::mousePressFragment(const HintFragment *fragment)
-{
-    SuggestFragment pressedFragment;
-    pressedFragment.p1ID = -1;
-    for (const SuggestFragment &f : suggestFragments)
-    {
-        if (f.selectedFragment == fragment)
-            pressedFragment = f;
-    }
-    if (pressedFragment.p1ID == -1) return;
-    cv::Mat trans = pressedFragment.fragCorrToHint->getPieces()[pressedFragment.p2ID].transMat.inv(); // jointed fragent back to start position
-    trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
-    trans = pressedFragment.fragCorrToArea->getPieces()[pressedFragment.p1ID].transMat * trans; // joing fragment back to start position
-
-    cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
-    cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
-
-    trans = Tool::getFirst3RowsMat(hadRotated) * trans; // jointed fragment move with jointing fragment
-    trans = pressedFragment.fragCorrToArea->getOffsetMat() * trans; // add jointing fragment offset
-    cv::Mat img = Tool::QImageToMat(pressedFragment.fragCorrToHint->getOriginalImage());
-    double ang = std::acos(trans.at<float>(0, 0)) * 180.0 / CV_PI;
-    if (trans.at<float>(0, 1) < 0) ang = 360.0 - ang;
-
-    pressedFragment.fragCorrToHint->rotate(ang);
-    trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
-
-    cv::Mat rotateMat = Tool::getRotationMatrix(img.cols / 2.0, img.rows / 2.0, ang * CV_PI / 180.0);
-
-    pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
-    pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
-}
-
 void HintWindow::actSuggestTrigged()
 {
     FragmentsController *fragCtrl = FragmentsController::getController();
@@ -228,4 +198,38 @@ void HintWindow::on_btnClearAI_clicked()
 void HintWindow::on_refreshBtn_clicked()
 {
     update();
+}
+
+void HintWindow::on_btnFixedPosition_clicked()
+{
+    for (SuggestFragment pressedFragment : getSelecetSuggestFrags())
+    {
+        bool exist = FragmentsController::getController()->checkFragInFragmentArea(pressedFragment.fragCorrToArea);
+        if (FragmentsController::getController()->checkFragInFragmentArea(pressedFragment.fragCorrToHint) == false) exist = false;
+        if (pressedFragment.fragCorrToArea == pressedFragment.fragCorrToHint) exist = false;
+        if (!exist)
+        {
+            continue;
+        }
+
+        cv::Mat trans = pressedFragment.fragCorrToHint->getPieces()[pressedFragment.p2ID].transMat.inv(); // jointed fragent back to start position
+
+        trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
+        trans = pressedFragment.fragCorrToArea->getPieces()[pressedFragment.p1ID].transMat * trans; // joing fragment back to start position
+
+        cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
+        cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
+
+        trans = Tool::getFirst3RowsMat(hadRotated) * trans; // jointed fragment move with jointing fragment
+        trans = pressedFragment.fragCorrToArea->getOffsetMat() * trans; // add jointing fragment offset
+        cv::Mat img = Tool::QImageToMat(pressedFragment.fragCorrToHint->getOriginalImage());
+        double ang = std::acos(trans.at<float>(0, 0)) * 180.0 / CV_PI;
+        if (trans.at<float>(0, 1) < 0) ang = 360.0 - ang;
+
+        pressedFragment.fragCorrToHint->rotate(ang);
+        trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
+
+        pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
+        pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
+    }
 }

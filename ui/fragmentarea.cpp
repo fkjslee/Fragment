@@ -9,16 +9,6 @@
 #include <network.h>
 
 FragmentArea *FragmentArea::fragmentArea = nullptr;
-namespace
-{
-    int getPieceID(std::vector<Piece> pieces, QString name)
-    {
-        for (int i = 0; i < (int)pieces.size(); ++i)
-            if (pieces[i].pieceID == name)
-                return i;
-        return -1;
-    }
-}
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),

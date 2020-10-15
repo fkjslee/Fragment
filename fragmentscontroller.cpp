@@ -78,7 +78,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
             auto mask = img.createMaskFromColor(bg_color, Qt::MaskMode::MaskOutColor);
             img.setAlphaChannel(mask);
         }
-        unsortedFragments.emplace_back(new AreaFragment(vec, img, QString("%1").arg(i)));
+        unsortedFragments.emplace_back(new AreaFragment(vec, img, QString("id = %1").arg(i)));
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();

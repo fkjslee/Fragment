@@ -15,9 +15,12 @@ public:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
 
-signals:
-    void mousePressFragment(const HintFragment *fragment);
+private:
+    QPointF hoverPrePos;
+    double hoverPreAng;
 };
 
 #endif // HINTFRAGMENT_H

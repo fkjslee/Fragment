@@ -127,3 +127,4 @@ void AreaFragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QGraphicsPixmapItem::mouseReleaseEvent(event);
     FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
 }
+
