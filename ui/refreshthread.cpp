@@ -5,22 +5,30 @@
 
 int RefreshThread::confidence = int(100 * 0.6 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
-RefreshThread::RefreshThread(AreaFragment *const fragment)
+std::vector<TransMatAndConfi> RefreshThread::allConfiMats[MAX_FRAGMENT_NUM];
+RefreshThread::RefreshThread(AreaFragment *fragment): fragment(fragment)
 {
-    this->fragment = fragment;
     fragCtrl = FragmentsController::getController();
     stoped = false;
     HintWindow *hintWindow = HintWindow::getHintWindow();
     connect(this, &RefreshThread::deleteOldFragments, hintWindow, &HintWindow::deleteOldFragments, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &RefreshThread::setNewFragments, hintWindow, &HintWindow::setNewFragments, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &RefreshThread::finished, this, &RefreshThread::stopThread);
+    connect(this, &RefreshThread::updateFragment, fragment, &AreaFragment::updateFragment);
+}
+
+void RefreshThread::startThread()
+{
+    stoped = false;
+    fragment->startToCalc();
+    emit updateFragment();
 }
 
 void RefreshThread::stopThread()
 {
     stoped = true;
     fragment->endToCalc();
-    MainWindow::mainWindow->update();
+    emit updateFragment();
 }
 
 int RefreshThread::getPieceIDX(std::vector<Piece> pieces, const int &id)
@@ -33,30 +41,44 @@ int RefreshThread::getPieceIDX(std::vector<Piece> pieces, const int &id)
 
 void RefreshThread::run()
 {
-    std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
-    for (Piece p : fragment->getPieces())
+    startThread();
+    int minSuggestSize = 1e9;
+    const Piece *minSuggPiece;
+    for (const Piece &p : fragment->getPieces())
     {
-        GetResThread *thread = new GetResThread(&allConfiMats[p.pieceID], p.pieceID);
-        thread->start();
-        allThreads.emplace_back(thread);
-    }
-
-    for (GetResThread *thread : allThreads)
-    {
-        thread->wait();
+        if (minSuggestSize > allConfiMats[p.pieceID].size())
+        {
+            minSuggestSize = allConfiMats[p.pieceID].size();
+            minSuggPiece = &p;
+        }
     }
 
     std::vector<TransMatAndConfi> resConfiMat;
-    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
-        for (int j = 0; j < (int)allConfiMats[i].size(); ++j)
-            resConfiMat.emplace_back(allConfiMats[i][j]);
+    for (const Piece &p : fragment->getPieces())
+    {
+        for (int j = 0; j < allConfiMats[minSuggPiece->pieceID].size(); ++j)
+            resConfiMat.emplace_back(allConfiMats[p.pieceID][j]);
+    }
 
+    if(!stoped)
+    {
+        setFragmentLocker.lock();
+        setHint(resConfiMat);
+        emit deleteOldFragments();
+        emit setNewFragments();
+        setFragmentLocker.unlock();
+    }
 
-    int random = rand() % 100;
-    if (random < confidence)
-        sort(resConfiMat.begin(), resConfiMat.end());
-    else
-        sort(resConfiMat.rbegin(), resConfiMat.rend());
+    GetResThread *thread = new GetResThread(&allConfiMats[minSuggPiece->pieceID], minSuggPiece->pieceID);
+    thread->start();
+    thread->wait();
+
+    resConfiMat.clear();
+    for (const Piece &p : fragment->getPieces())
+    {
+        for (int j = 0; j < allConfiMats[p.pieceID].size(); ++j)
+            resConfiMat.emplace_back(allConfiMats[p.pieceID][j]);
+    }
 
     if(!stoped)
     {
@@ -71,6 +93,7 @@ void RefreshThread::run()
 void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
 {
     HintWindow *hintWindow = HintWindow::getHintWindow();
+    hintWindow->suggestFragments.clear();
     for (const TransMatAndConfi &confiMat : resConfiMat)
     {
         AreaFragment *anotherFragment = fragCtrl->findFragmentById(confiMat.otherFrag);
@@ -90,16 +113,6 @@ void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
         suggFrag.p1ID = p1;
         suggFrag.p2ID = p2;
         suggFrag.transMat = confiMat.transMat.clone();
-        std::vector<SuggestFragment> suggInHintWindow = hintWindow->suggestFragments;
-        bool fragInHint = false;
-        for (SuggestFragment f : suggInHintWindow)
-        {
-            if (f.fragCorrToHint == suggFrag.fragCorrToHint && f.fragCorrToArea == suggFrag.fragCorrToArea)
-            {
-                fragInHint = true;
-            }
-        }
-        if (fragInHint) continue;
 
         bool fragInFragmentArea = FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragCorrToArea);
         if (FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragCorrToHint) == false) fragInFragmentArea = false;
@@ -107,9 +120,9 @@ void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
         if (!fragInFragmentArea) continue;
 
         if (hintWindow->suggestFragments.size() >= HintWindow::maxHintSize)
-            hintWindow->suggestFragments.erase(hintWindow->suggestFragments.begin());
+            break;
+
         hintWindow->suggestFragments.emplace_back(suggFrag);
-        break;
     }
 }
 
@@ -143,6 +156,16 @@ void GetResThread::run()
         confiMat.otherFrag = msgList[i].toInt();
         confiMat.confidence = msgList[i + 1].toFloat();
         confiMat.transMat = transMat.clone();
-        confiMats->emplace_back(confiMat);
+        bool find = false;
+        for (int j = 0; j < confiMats->size(); ++j)
+        {
+            if (confiMats->at(j).otherFrag == confiMat.otherFrag)
+                find = true;
+        }
+        if (!find)
+        {
+            confiMats->emplace_back(confiMat);
+            break;
+        }
     }
 }

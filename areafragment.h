@@ -3,7 +3,6 @@
 
 #include <ui/fragmentui.h>
 
-
 class AreaFragment: public FragmentUi
 {
 public:
@@ -12,16 +11,10 @@ public:
     void startToCalc()
     {
         calcing = true;
-        locker.lock();
-        calcCnt++;
-        locker.unlock();
     }
     void endToCalc()
     {
         calcing = false;
-        locker.lock();
-        calcCnt--;
-        locker.unlock();
     }
     bool getCacl()
     {
@@ -36,6 +29,12 @@ public:
     void scaledToWidth(const double scale);
     double rotateAng = 0;
 
+public slots:
+    void updateFragment()
+    {
+        update();
+    }
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
@@ -46,8 +45,6 @@ private:
     void initSuggestAng();
     std::vector<SuggAng> suggAngs;
     bool calcing = false;
-    static int calcCnt;
-    QMutex locker;
     double scale = 1.0;
     cv::Mat offset;
     double suggAng = -1.0;

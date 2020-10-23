@@ -125,23 +125,27 @@ void HintWindow::setNewFragments()
 void HintWindow::actSuggestTrigged()
 {
     FragmentsController *fragCtrl = FragmentsController::getController();
-    std::vector<AreaFragment *> refreshFragments;
+    AreaFragment *refreshFragment = nullptr;
     for (AreaFragment *f : fragCtrl->getUnsortedFragments())
     {
         if (f->isSelected())
         {
-            refreshFragments.emplace_back(f);
+            refreshFragment = f;
+            break;
         }
     }
 
-    for (AreaFragment *f : refreshFragments)
+    if (refreshFragment == nullptr)
+        return;
+
+    for (RefreshThread *thread : this->threads)
     {
-        f->startToCalc();
-        MainWindow::mainWindow->update();
-        RefreshThread *thread = new RefreshThread(f);
-        thread->start();
-        this->threads.push_back(thread);
+        thread->stopThread();
     }
+
+    RefreshThread *thread = new RefreshThread(refreshFragment);
+    thread->start();
+    this->threads.push_back(thread);
 }
 
 void HintWindow::on_btnAutoJoint_clicked()

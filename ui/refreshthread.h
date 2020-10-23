@@ -30,7 +30,9 @@ class RefreshThread : public QThread
     Q_OBJECT
 
 public:
-    RefreshThread(AreaFragment *const fragment);
+    RefreshThread(AreaFragment *fragment);
+
+    void startThread();
 
     void stopThread();
 
@@ -39,6 +41,7 @@ public:
 signals:
     void deleteOldFragments();
     void setNewFragments();
+    void updateFragment();
 
 private:
     int getPieceIDX(std::vector<Piece> pieces, const int &id);
@@ -51,8 +54,8 @@ private:
     AreaFragment *fragment;
     FragmentsController *fragCtrl;
     static QMutex setFragmentLocker;
-    std::vector<GetResThread *> allThreads;
     bool stoped;
+    static std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
 };
 
 

@@ -3,7 +3,6 @@
 #include <commands.h>
 #include <CommonHeader.h>
 
-int AreaFragment::calcCnt = 0;
 AreaFragment::AreaFragment(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName): FragmentUi(pieces, originalImage, fragmentName)
 {
     this->offset = cv::Mat::eye(3, 3, CV_32FC1);
