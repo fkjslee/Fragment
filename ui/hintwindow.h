@@ -18,10 +18,10 @@ namespace Ui
 
 class RefreshThread;
 
-struct SuggestFragment
+struct SuggestedFragment
 {
 public:
-    SuggestFragment() {}
+    SuggestedFragment() {}
     AreaFragment *fragCorrToArea;
     AreaFragment *fragCorrToHint;
     HintFragment *selectedFragment;
@@ -29,7 +29,7 @@ public:
     int p2ID;
     cv::Mat transMat;
 
-    bool operator == (const SuggestFragment &rhs) const
+    bool operator == (const SuggestedFragment &rhs) const
     {
         return this == &rhs;
     }
@@ -47,7 +47,8 @@ public:
         return hintWindow;
     }
 
-    SuggestFragment getSuggestFragmentByHintFragment(const HintFragment *const hintFragment);
+    SuggestedFragment getSuggestedFragmentByHintFragment(const HintFragment *const hintFragment);
+    void randomSuggestFragment();
 
 public slots:
     void on_btnAutoJoint_clicked();
@@ -57,7 +58,7 @@ public slots:
     void setNewFragments();
 
 public:
-    std::vector<SuggestFragment> suggestFragments;
+    std::vector<SuggestedFragment> suggestedFragments;
     static unsigned int maxHintSize;
 
 
@@ -68,10 +69,12 @@ private slots:
 
     void on_btnFixedPosition_clicked();
 
+    void suggestFragment(AreaFragment *areaFragment, bool needShow = true);
+
 private:
     Ui::HintWindow *ui;
     HintScene *scene;
-    std::vector<SuggestFragment> getSelecetSuggestFrags();
+    std::vector<SuggestedFragment> getSelecetSuggestFrags();
     std::vector<RefreshThread *> threads;
     static HintWindow *hintWindow;
 };

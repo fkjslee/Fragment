@@ -39,7 +39,6 @@ QString Network::sendMsg(const QString &msg)
     QString command = msgs[0];
     if (command == 'a')
     {
-        Sleep(delay);
         int id1 = msgs[1].toInt();
         for (int i = 0; i < minElement(fragSuggesNum, (int)network->allTransMat[id1].size()); ++i)
         {

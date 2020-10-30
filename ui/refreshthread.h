@@ -13,28 +13,25 @@
 class HintWindow;
 class HintFragment;
 
-class GetResThread : public QThread
-{
-public:
-    GetResThread(std::vector<TransMatAndConfi> *confiMat, const int &pieceID);
-    virtual void run() override;
-
-private:
-
-    int pieceID;
-    std::vector<TransMatAndConfi> *confiMats;
-};
-
 class RefreshThread : public QThread
 {
     Q_OBJECT
 
 public:
-    RefreshThread(AreaFragment *fragment);
+    RefreshThread(AreaFragment *fragment, bool needShow);
 
     void startThread();
 
-    void stopThread();
+    void completeThread();
+
+    void cancelThread();
+
+    void getRes(std::vector<TransMatAndConfi> *confiMats, const int &pieceID);
+
+    static const std::vector<TransMatAndConfi> *getAllConfiMat()
+    {
+        return allConfiMats;
+    }
 
     virtual void run() override;
 
@@ -56,6 +53,8 @@ private:
     static QMutex setFragmentLocker;
     bool stoped;
     static std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
+    bool needShow;
+    int startTime = -1;
 };
 
 

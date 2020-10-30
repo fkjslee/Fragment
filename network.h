@@ -4,6 +4,7 @@
 #include <QString>
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <QMutex>
 
 const int MAX_FRAGMENT_NUM = 500;
 

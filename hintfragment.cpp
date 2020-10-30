@@ -27,7 +27,7 @@ void HintFragment::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     Q_UNUSED(event)
-    SuggestFragment pressedFragment = HintWindow::getHintWindow()->getSuggestFragmentByHintFragment(this);
+    SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
     hoverPrePos = pressedFragment.fragCorrToHint->pos();
     hoverPreAng = pressedFragment.fragCorrToHint->rotateAng;
     if (pressedFragment.p1ID == -1) return;
@@ -56,7 +56,7 @@ void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void HintFragment::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    SuggestFragment pressedFragment = HintWindow::getHintWindow()->getSuggestFragmentByHintFragment(this);
+    SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
     if (pressedFragment.p1ID == -1) return;
     if (hoverPrePos != QPointF(-1, -1))
     {

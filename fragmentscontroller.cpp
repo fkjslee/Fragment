@@ -10,6 +10,7 @@
 #include <complex>
 #define NO_IMPOET_ARRAY
 #include <qrgb.h>
+#include <ui/hintwindow.h>
 #include <network.h>
 
 namespace
@@ -82,6 +83,7 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         ++i;
     }
     FragmentArea::getFragmentArea()->updateFragmentsPos();
+    HintWindow::getHintWindow()->randomSuggestFragment();
     if (MainWindow::mainWindow) MainWindow::mainWindow->update();
 }
 

@@ -15,14 +15,13 @@ HintWindow::HintWindow(QWidget *parent) :
     scene = new HintScene;
     ui->view->setScene(scene);
     scene->setBackgroundBrush(QColor(128, 128, 128));
-    actSuggestTrigged();
 }
 
 HintWindow::~HintWindow()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i)
     {
-        if (threads[i]->isFinished() == false) threads[i]->stopThread();
+        if (threads[i]->isFinished() == false) threads[i]->cancelThread();
         threads[i]->wait();
         delete threads[i];
     }
@@ -30,16 +29,44 @@ HintWindow::~HintWindow()
     delete ui;
 }
 
-SuggestFragment HintWindow::getSuggestFragmentByHintFragment(const HintFragment *const hintFragment)
+SuggestedFragment HintWindow::getSuggestedFragmentByHintFragment(const HintFragment *const hintFragment)
 {
-    SuggestFragment pressedFragment;
+    SuggestedFragment pressedFragment;
     pressedFragment.p1ID = -1;
-    for (const SuggestFragment &f : HintWindow::getHintWindow()->suggestFragments)
+    for (const SuggestedFragment &f : HintWindow::getHintWindow()->suggestedFragments)
     {
         if (f.selectedFragment == hintFragment)
             pressedFragment = f;
     }
     return pressedFragment;
+}
+
+void HintWindow::randomSuggestFragment()
+{
+    int minSuggestSize = 1e9;
+    AreaFragment *minSuggFragment = nullptr;
+    for (AreaFragment *areaFragment : FragmentsController::getController()->getUnsortedFragments())
+    {
+        int fragmentSuggNum = 0;
+        for (const Piece &p : areaFragment->getPieces())
+        {
+            fragmentSuggNum += RefreshThread::getAllConfiMat()[p.pieceID].size();
+        }
+        if (minSuggestSize > fragmentSuggNum)
+        {
+            minSuggestSize = fragmentSuggNum;
+            minSuggFragment = areaFragment;
+        }
+    }
+
+    for (RefreshThread *thread : this->threads)
+    {
+        thread->cancelThread();
+        thread->wait();
+    }
+    threads.clear();
+
+    suggestFragment(minSuggFragment, false);
 }
 
 void HintWindow::deleteOldFragments()
@@ -48,7 +75,7 @@ void HintWindow::deleteOldFragments()
     for (QGraphicsItem *item : scene->items())
     {
         bool fragMirrorInHint = false;
-        for (SuggestFragment hintFrag : suggestFragments)
+        for (SuggestedFragment hintFrag : suggestedFragments)
         {
             if (hintFrag.selectedFragment == item)
             {
@@ -68,7 +95,7 @@ void HintWindow::deleteOldFragments()
     while(fragUpdate)
     {
         fragUpdate = false;
-        for (const SuggestFragment &suggFrag : suggestFragments)
+        for (const SuggestedFragment &suggFrag : suggestedFragments)
         {
             bool fragJointInFragArea = false;
             bool fragBeJointInFragArea = false;
@@ -90,7 +117,7 @@ void HintWindow::deleteOldFragments()
                     scene->removeItem(suggFrag.selectedFragment);
                 }
                 fragUpdate = true;
-                Tool::eraseInVector(suggestFragments, suggFrag);
+                Tool::eraseInVector(suggestedFragments, suggFrag);
                 break;
             }
         }
@@ -101,10 +128,10 @@ void HintWindow::deleteOldFragments()
 void HintWindow::setNewFragments()
 {
     QRect windowRect = this->rect();
-    int N = int(suggestFragments.size());
+    int N = int(suggestedFragments.size());
     for (int i = 0; i < N; ++i)
     {
-        SuggestFragment hintFrag = suggestFragments[unsigned(i)];
+        SuggestedFragment hintFrag = suggestedFragments[unsigned(i)];
         HintFragment *fragment = hintFrag.selectedFragment;
         fragment->setPos(0, windowRect.top() + windowRect.height() * i / N);
         bool has = false;
@@ -135,17 +162,14 @@ void HintWindow::actSuggestTrigged()
         }
     }
 
-    if (refreshFragment == nullptr)
-        return;
-
     for (RefreshThread *thread : this->threads)
     {
-        thread->stopThread();
+        thread->cancelThread();
+        thread->wait();
     }
+    threads.clear();
 
-    RefreshThread *thread = new RefreshThread(refreshFragment);
-    thread->start();
-    this->threads.push_back(thread);
+    suggestFragment(refreshFragment, true);
 }
 
 void HintWindow::on_btnAutoJoint_clicked()
@@ -160,7 +184,7 @@ void HintWindow::on_btnAutoJoint_clicked()
                               QMessageBox::Cancel);
         return;
     }
-    SuggestFragment selectFrag = selectHintFrags[0];
+    SuggestedFragment selectFrag = selectHintFrags[0];
     bool exist = FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragCorrToArea);
     if (FragmentsController::getController()->checkFragInFragmentArea(selectFrag.fragCorrToHint) == false) exist = false;
     if (selectFrag.fragCorrToArea == selectFrag.fragCorrToHint) exist = false;
@@ -174,10 +198,10 @@ void HintWindow::on_btnAutoJoint_clicked()
     deleteOldFragments();
 }
 
-std::vector<SuggestFragment> HintWindow::getSelecetSuggestFrags()
+std::vector<SuggestedFragment> HintWindow::getSelecetSuggestFrags()
 {
-    std::vector<SuggestFragment> res;
-    for (SuggestFragment hintFrag : suggestFragments)
+    std::vector<SuggestedFragment> res;
+    for (SuggestedFragment hintFrag : suggestedFragments)
     {
         if (hintFrag.selectedFragment->isSelected())
         {
@@ -191,10 +215,10 @@ void HintWindow::on_btnClearAI_clicked()
 {
     for (int i = 0; i < (int)this->threads.size(); ++i)
     {
-        if (threads[i]->isFinished() == false) threads[i]->stopThread();
+        if (threads[i]->isFinished() == false) threads[i]->cancelThread();
     }
     threads.clear();
-    suggestFragments.clear();
+    suggestedFragments.clear();
     deleteOldFragments();
     update();
 }
@@ -206,7 +230,7 @@ void HintWindow::on_refreshBtn_clicked()
 
 void HintWindow::on_btnFixedPosition_clicked()
 {
-    for (SuggestFragment pressedFragment : getSelecetSuggestFrags())
+    for (SuggestedFragment pressedFragment : getSelecetSuggestFrags())
     {
         bool exist = FragmentsController::getController()->checkFragInFragmentArea(pressedFragment.fragCorrToArea);
         if (FragmentsController::getController()->checkFragInFragmentArea(pressedFragment.fragCorrToHint) == false) exist = false;
@@ -236,4 +260,12 @@ void HintWindow::on_btnFixedPosition_clicked()
         pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
         pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
     }
+}
+
+void HintWindow::suggestFragment(AreaFragment *areaFragment, bool needShow)
+{
+    if (areaFragment == nullptr) return;
+    RefreshThread *thread = new RefreshThread(areaFragment, needShow);
+    thread->start();
+    this->threads.push_back(thread);
 }
