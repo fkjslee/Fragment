@@ -160,10 +160,10 @@ AreaFragment *FragmentsController::findFragmentById(const int &id)
     return nullptr;
 }
 
-bool FragmentsController::jointFragment(AreaFragment *f1, const int piece1ID, AreaFragment *f2, const int piece2ID, const cv::Mat &originTransMat)
+bool FragmentsController::jointFragment(AreaFragment *f1, const Piece *ptr_p1, AreaFragment *f2, const Piece *ptr_p2, const cv::Mat &originTransMat)
 {
-    const Piece p1 = f1->getPieces()[piece1ID];
-    const Piece p2 = f2->getPieces()[piece2ID];
+    const Piece p1 = *ptr_p1;
+    const Piece p2 = *ptr_p2;
     const cv::Mat p1transMat = p1.transMat.clone();
     const cv::Mat p2transMat = p2.transMat.clone();
     cv::Mat p2transInv = p2.transMat.clone();

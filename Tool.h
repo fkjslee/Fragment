@@ -102,21 +102,6 @@ public:
         }
     }
 
-    static cv::Mat getFirst2RowsMat(const cv::Mat &src)
-    {
-        if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
-        if (src.size() != cv::Size(3, 3)) return cv::Mat(0, 0, CV_32FC1);
-        if (abs(src.at<float>(2, 0)) > 1e-7 || abs(src.at<float>(2, 1)) > 1e-7 || abs(src.at<float>(2, 2) - 1.0) > 1e-7)
-            return cv::Mat(0, 0, CV_32FC1);
-        cv::Mat dst(2, 3, CV_32FC1);
-        for (int i = 0; i < 2; ++i)
-        {
-            for (int j = 0; j < 3; ++j)
-                dst.at<float>(i, j) = src.at<float>(i, j);
-        }
-        return dst.clone();
-    }
-
     static cv::Mat getFirst3RowsMat(const cv::Mat &src)
     {
         if (src.type() != CV_32FC1 && src.type() != CV_64FC1) return cv::Mat(0, 0, CV_32FC1);
@@ -261,7 +246,7 @@ public:
         rotate.at<float>(1, 1) = std::cos(rad);
         cv::Mat moveInv = move.clone();
         cv::invert(moveInv, moveInv);
-        return getFirst2RowsMat(move * rotate * moveInv).clone();
+        return (move * rotate * moveInv)(cv::Rect(0, 0, 3, 2));
     }
 
     static cv::Mat normalToOpencvTransMat(const cv::Mat &src)
@@ -452,9 +437,9 @@ public:
         offset.at<float>(1, 2) = -minY;
 
         cv::Mat srcTransed;
-        cv::warpAffine(src, srcTransed, Tool::getFirst2RowsMat(offset), cv::Size(maxX - minX, maxY - minY));
+        cv::warpAffine(src, srcTransed, offset(cv::Rect(0, 0, 3, 2)), cv::Size(maxX - minX, maxY - minY));
         cv::Mat dstTransed;
-        cv::warpAffine(dst, dstTransed, Tool::getFirst2RowsMat(offset * transMat), cv::Size(maxX - minX, maxY - minY));
+        cv::warpAffine(dst, dstTransed, (offset * transMat)(cv::Rect(0, 0, 3, 2)), cv::Size(maxX - minX, maxY - minY));
         for (int i = 0; i < srcTransed.rows; ++i)
         {
             for (int j = 0; j < srcTransed.cols; ++j)
@@ -497,7 +482,7 @@ public:
         offset = cv::Mat::eye(3, 3, CV_32FC1);
         offset.at<float>(0, 2) = -minX;
         offset.at<float>(1, 2) = -minY;
-        cv::warpAffine(img, img, Tool::getFirst2RowsMat(offset * rotateMat), cv::Size(maxX - minX, maxY - minY));
+        cv::warpAffine(img, img, (offset * rotateMat)(cv::Rect(0, 0, 3, 2)), cv::Size(maxX - minX, maxY - minY));
     }
 
     template<typename T>

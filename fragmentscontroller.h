@@ -23,7 +23,7 @@ public:
     std::vector<AreaFragment *> &getUnsortedFragments();
     std::vector<AreaFragment *> &getSortedFragments();
     AreaFragment *findFragmentById(const int &id);
-    bool jointFragment(AreaFragment *f1, const int piece1ID, AreaFragment *f2, const int piece2ID, const cv::Mat &transMat);
+    bool jointFragment(AreaFragment *f1, const Piece *ptr_p1, AreaFragment *f2, const Piece *ptr_p2, const cv::Mat &transMat);
     void selectFragment();
     void getGroundTruth(const QString &path);
     float calcScore();

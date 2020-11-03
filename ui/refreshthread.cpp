@@ -3,6 +3,18 @@
 #include <hintfragment.h>
 #include <WinSock2.h>
 
+namespace
+{
+    const Piece *findPieceById(const std::vector<Piece> &pieces, int pieceID)
+    {
+        for (const Piece &p : pieces)
+        {
+            if (p.pieceID == pieceID) return &p;
+        }
+        return nullptr;
+    }
+}
+
 int RefreshThread::confidence = int(100 * 0.6 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
 std::vector<TransMatAndConfi> RefreshThread::allConfiMats[MAX_FRAGMENT_NUM];
@@ -57,7 +69,6 @@ void RefreshThread::getRes(std::vector<TransMatAndConfi> *confiMats, const int &
         }
         if (stoped)
         {
-            qInfo() << "return -1";
             startTime = -1;
             return;
         }
@@ -169,15 +180,12 @@ void RefreshThread::setHint(const std::vector<TransMatAndConfi> &resConfiMat)
             continue;
         }
 
-        const int p1 = getPieceIDX(fragment->getPieces(), confiMat.thisFrag);
-        const int p2 = getPieceIDX(anotherFragment->getPieces(), confiMat.otherFrag);
-
         struct SuggestedFragment suggFrag;
         suggFrag.fragCorrToArea = fragment;
         suggFrag.fragCorrToHint = anotherFragment;
         suggFrag.selectedFragment = new HintFragment(anotherFragment->getPieces(), anotherFragment->getOriginalImage(), "mirror " + anotherFragment->getFragmentName() + " to " + fragment->getFragmentName());
-        suggFrag.p1ID = p1;
-        suggFrag.p2ID = p2;
+        suggFrag.p1 = findPieceById(fragment->getPieces(), confiMat.thisFrag);
+        suggFrag.p2 = findPieceById(anotherFragment->getPieces(), confiMat.otherFrag);
         suggFrag.transMat = confiMat.transMat.clone();
 
         bool fragInFragmentArea = FragmentsController::getController()->checkFragInFragmentArea(suggFrag.fragCorrToArea);

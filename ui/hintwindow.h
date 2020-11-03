@@ -25,8 +25,8 @@ public:
     AreaFragment *fragCorrToArea;
     AreaFragment *fragCorrToHint;
     HintFragment *selectedFragment;
-    int p1ID;
-    int p2ID;
+    const Piece *p1 = nullptr;
+    const Piece *p2 = nullptr;
     cv::Mat transMat;
 
     bool operator == (const SuggestedFragment &rhs) const

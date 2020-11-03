@@ -31,6 +31,7 @@ public:
 
     void updateFragmentsPos();
     void setRotateAng(int value);
+    void resortPosition();
 
 public slots:
     void on_btnSplit_clicked();

@@ -32,7 +32,6 @@ HintWindow::~HintWindow()
 SuggestedFragment HintWindow::getSuggestedFragmentByHintFragment(const HintFragment *const hintFragment)
 {
     SuggestedFragment pressedFragment;
-    pressedFragment.p1ID = -1;
     for (const SuggestedFragment &f : HintWindow::getHintWindow()->suggestedFragments)
     {
         if (f.selectedFragment == hintFragment)
@@ -194,7 +193,7 @@ void HintWindow::on_btnAutoJoint_clicked()
                                  QMessageBox::Cancel);
         return;
     }
-    fragCtrl->jointFragment(selectFrag.fragCorrToArea, selectFrag.p1ID, selectFrag.fragCorrToHint, selectFrag.p2ID, selectFrag.transMat);
+    fragCtrl->jointFragment(selectFrag.fragCorrToArea, selectFrag.p1, selectFrag.fragCorrToHint, selectFrag.p2, selectFrag.transMat);
     deleteOldFragments();
 }
 
@@ -240,10 +239,10 @@ void HintWindow::on_btnFixedPosition_clicked()
             continue;
         }
 
-        cv::Mat trans = pressedFragment.fragCorrToHint->getPieces()[pressedFragment.p2ID].transMat.inv(); // jointed fragent back to start position
+        cv::Mat trans = pressedFragment.p2->transMat.inv(); // jointed fragent back to start position
 
         trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
-        trans = pressedFragment.fragCorrToArea->getPieces()[pressedFragment.p1ID].transMat * trans; // joing fragment back to start position
+        trans = pressedFragment.p2->transMat * trans; // joing fragment back to start position
 
         cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
         cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));

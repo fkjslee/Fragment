@@ -30,11 +30,11 @@ void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
     hoverPrePos = pressedFragment.fragCorrToHint->pos();
     hoverPreAng = pressedFragment.fragCorrToHint->rotateAng;
-    if (pressedFragment.p1ID == -1) return;
-    cv::Mat trans = pressedFragment.fragCorrToHint->getPieces()[pressedFragment.p2ID].transMat.inv(); // jointed fragent back to start position
+    if (pressedFragment.p1 == nullptr) return;
+    cv::Mat trans = pressedFragment.p2->transMat.inv(); // jointed fragent back to start position
 
     trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
-    trans = pressedFragment.fragCorrToArea->getPieces()[pressedFragment.p1ID].transMat * trans; // joing fragment back to start position
+    trans = pressedFragment.p1->transMat * trans; // joing fragment back to start position
 
     cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
     cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
@@ -57,7 +57,7 @@ void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 void HintFragment::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
-    if (pressedFragment.p1ID == -1) return;
+    if (pressedFragment.p1 == nullptr) return;
     if (hoverPrePos != QPointF(-1, -1))
     {
         pressedFragment.fragCorrToHint->setPos(hoverPrePos);

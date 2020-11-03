@@ -46,20 +46,20 @@ void AreaFragment::update(const QRectF &rect)
     QImage showImage = Tool::Mat8UC4ToQImage(img);
     showImage = showImage.scaledToWidth(int(showImage.width() * scale));
     cv::Mat fusionImg = Tool::QImageToMat(showImage);
-    if (calcing)
-    {
-        QImage thinkingImg(":/new/pre/resources/thinking.png");
-        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
-        cv::Mat smallerMat = cv::getRotationMatrix2D(cv::Point(0, 0), 0, 0.5);
-        cv::warpAffine(thinkMat, thinkMat, smallerMat, cv::Size(thinkMat.rows / 2, thinkMat.cols / 2));
-        int moveX = showImage.width() / 2 - thinkMat.cols / 2;
-        int moveY = showImage.height();
-        cv::Mat trans = cv::Mat::eye(3, 3, CV_32FC1);
-        trans.at<float>(0, 2) = moveX;
-        trans.at<float>(1, 2) = moveY;
-        cv::Mat offset = cv::Mat::eye(3, 3, CV_32FC1);
-        fusionImg = Tool::fusionImage(Tool::QImageToMat(showImage), thinkMat, trans, offset);
-    }
+//    if (calcing)
+//    {
+//        QImage thinkingImg(":/new/pre/resources/thinking.png");
+//        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
+//        cv::Mat smallerMat = cv::getRotationMatrix2D(cv::Point(0, 0), 0, 0.5);
+//        cv::warpAffine(thinkMat, thinkMat, smallerMat, cv::Size(thinkMat.rows / 2, thinkMat.cols / 2));
+//        int moveX = showImage.width() / 2 - thinkMat.cols / 2;
+//        int moveY = showImage.height();
+//        cv::Mat trans = cv::Mat::eye(3, 3, CV_32FC1);
+//        trans.at<float>(0, 2) = moveX;
+//        trans.at<float>(1, 2) = moveY;
+//        cv::Mat offset = cv::Mat::eye(3, 3, CV_32FC1);
+//        fusionImg = Tool::fusionImage(Tool::QImageToMat(showImage), thinkMat, trans, offset);
+//    }
     showImage = Tool::Mat8UC4ToQImage(fusionImg);
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);

@@ -136,11 +136,38 @@ bool FragmentArea::jointCheck()
 
 void FragmentArea::on_btnReSort_clicked()
 {
-    for (AreaFragment *fragment : FragmentsController::getController()->getUnsortedFragments())
+//    for (AreaFragment *fragment : FragmentsController::getController()->getUnsortedFragments())
+//    {
+//        fragment->rotateAng = Tool::get_suggest_rotation(Tool::QImageToMat(fragment->getOriginalImage()));
+//        fragment->rotateAng *= -1;
+//        fragment->update();
+//    }
+//    update();
+    resortPosition();
+}
+
+void FragmentArea::resortPosition()
+{
+    std::vector<AreaFragment *> fragments = FragmentsController::getController()->getUnsortedFragments();
+    int maxWidth = 0;
+    int maxHeight = 0;
+    for (AreaFragment *fragment : fragments)
     {
-        fragment->rotateAng = Tool::get_suggest_rotation(Tool::QImageToMat(fragment->getOriginalImage()));
-        fragment->rotateAng *= -1;
-        fragment->update();
+        cv::Mat mat = Tool::QImageToMat(fragment->getOriginalImage());
+        cv::Mat offset;
+        Tool::rotateAndOffset(mat, Tool::getRotationMatrix(mat.cols / 2.0, mat.rows / 2.0, Tool::angToRad(fragment->rotateAng)), offset);
+        maxWidth = std::max(maxWidth, mat.cols);
+        maxHeight = std::max(maxHeight, mat.rows);
+    }
+    maxWidth /= 2;
+    maxHeight /= 2;
+    int side = std::ceil(std::sqrt(fragments.size()));
+    for (int i = 0; i < fragments.size(); ++i)
+    {
+        int x = maxWidth * 1.0 * (i % side);
+        int y = maxHeight * 1.0 * (i / side);
+        AreaFragment *fragment = fragments[i];
+        fragment->setPos(x, y);
     }
     update();
 }
