@@ -49,8 +49,8 @@ void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
 
 
-    pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
-    pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
+    pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
+    pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
     FragmentUi::hoverEnterEvent(event);
 }
 

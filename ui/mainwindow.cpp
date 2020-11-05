@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
     createMenu();
     mainWindow = this;
     ui->storeArea->hide();
-    ui->imageSizeController->hide();
     update();
 }
 
