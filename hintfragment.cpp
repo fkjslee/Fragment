@@ -30,27 +30,7 @@ void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
     hoverPrePos = pressedFragment.fragCorrToHint->pos();
     hoverPreAng = pressedFragment.fragCorrToHint->rotateAng;
-    if (pressedFragment.p1 == nullptr) return;
-    cv::Mat trans = pressedFragment.p2->transMat.inv(); // jointed fragent back to start position
-
-    trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
-    trans = pressedFragment.p1->transMat * trans; // joing fragment back to start position
-
-    cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
-    cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
-
-    trans = Tool::getFirst3RowsMat(hadRotated) * trans; // jointed fragment move with jointing fragment
-    trans = pressedFragment.fragCorrToArea->getOffsetMat() * trans; // add jointing fragment offset
-    cv::Mat img = Tool::QImageToMat(pressedFragment.fragCorrToHint->getOriginalImage());
-    double ang = std::acos(trans.at<float>(0, 0)) * 180.0 / CV_PI;
-    if (trans.at<float>(0, 1) < 0) ang = 360.0 - ang;
-
-    pressedFragment.fragCorrToHint->rotate(ang);
-    trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
-
-
-    pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
-    pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
+    moveRelatedPieceToPos(pressedFragment.p1, pressedFragment.p2, pressedFragment.transMat);
     FragmentUi::hoverEnterEvent(event);
 }
 
@@ -65,4 +45,32 @@ void HintFragment::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
     hoverPrePos = QPointF(-1, -1);
     FragmentUi::hoverLeaveEvent(event);
+}
+
+void HintFragment::moveRelatedPieceToPos(const Piece *p1, const Piece *p2, cv::Mat transMat)
+{
+    if (p1 == nullptr) return;
+    cv::Mat trans = p2->transMat.inv(); // jointed fragent back to start position
+
+    trans = transMat * trans; // jointed fragment fusion with jointing fragment
+    trans = p1->transMat * trans; // joing fragment back to start position
+
+    AreaFragment *fragCorrToArea = FragmentsController::getController()->getFragmentByPiece(p1);
+    AreaFragment *fragCorrToHint = FragmentsController::getController()->getFragmentByPiece(p2);
+
+    cv::Mat areaImg = Tool::QImageToMat(fragCorrToArea->getOriginalImage());
+    cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(fragCorrToArea->rotateAng));
+
+    trans = Tool::getFirst3RowsMat(hadRotated) * trans; // jointed fragment move with jointing fragment
+    trans = fragCorrToArea->getOffsetMat() * trans; // add jointing fragment offset
+    cv::Mat img = Tool::QImageToMat(fragCorrToHint->getOriginalImage());
+    double ang = std::acos(trans.at<float>(0, 0)) * 180.0 / CV_PI;
+    if (trans.at<float>(0, 1) < 0) ang = 360.0 - ang;
+
+    fragCorrToHint->rotate(ang);
+    trans = fragCorrToHint->getOffsetMat().inv() * trans;
+
+
+    fragCorrToHint->setX(fragCorrToArea->x() + trans.at<float>(0, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
+    fragCorrToHint->setY(fragCorrToArea->y() + trans.at<float>(1, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
 }

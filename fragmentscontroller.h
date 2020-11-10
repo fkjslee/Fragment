@@ -27,6 +27,7 @@ public:
     void selectFragment();
     void getGroundTruth(const QString &path);
     float calcScore();
+    AreaFragment *getFragmentByPiece(const Piece *p);
 
 public slots:
     void unSelectFragment();

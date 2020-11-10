@@ -54,6 +54,7 @@ private:
     FragmentsController *fragCtrl;
     QUndoStack *undoStack;
     static FragmentArea *fragmentArea;
+    static QMutex lock;
 };
 
 #endif // FRAGMENTAREA_H

@@ -42,16 +42,21 @@ SuggestedFragment HintWindow::getSuggestedFragmentByHintFragment(const HintFragm
 
 void HintWindow::randomSuggestFragment()
 {
-    int minSuggestSize = 1e9;
     AreaFragment *minSuggFragment = nullptr;
+    int minSuggestSize = 1e9;
     for (AreaFragment *areaFragment : FragmentsController::getController()->getUnsortedFragments())
     {
+        bool needSuggest = false;
         int fragmentSuggNum = 0;
         for (const Piece &p : areaFragment->getPieces())
         {
-            fragmentSuggNum += RefreshThread::getAllConfiMat()[p.pieceID].size();
+            if (RefreshThread::judgePieceNeedSuggest(p.pieceID))
+            {
+                fragmentSuggNum += RefreshThread::getAllConfiMat()[p.pieceID].size();
+                needSuggest = true;
+            }
         }
-        if (minSuggestSize > fragmentSuggNum)
+        if (minSuggestSize > fragmentSuggNum && needSuggest)
         {
             minSuggestSize = fragmentSuggNum;
             minSuggFragment = areaFragment;
@@ -65,7 +70,8 @@ void HintWindow::randomSuggestFragment()
     }
     threads.clear();
 
-    suggestFragment(minSuggFragment, false);
+    if (minSuggFragment)
+        suggestFragment(minSuggFragment, false);
 }
 
 void HintWindow::deleteOldFragments()

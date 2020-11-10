@@ -14,7 +14,7 @@ const QString endMsg = "bye";
 
 int Network::fragSuggesNum = 200;
 float Network::fragSuggesConfi = 0.8f;
-int Network::delay = 5 * 1000;
+int Network::delay = 0 * 1000;
 Network *Network::network = new Network;
 namespace
 {
@@ -101,6 +101,7 @@ void Network::loadTransMat(const QString &path)
     }
     for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
         network->allTransMat[i].clear();
+
     for (int i = 0; i < lines.length(); i += 4)
     {
         QStringList ids = lines[i].split(' ');
@@ -117,6 +118,7 @@ void Network::loadTransMat(const QString &path)
         mat.at<float>(1, 1) = m2[1].toFloat();
         mat.at<float>(1, 2) = m2[2].toFloat();
         TransMatAndConfi matAndConfi;
+        matAndConfi.thisFrag = id1;
         matAndConfi.otherFrag = id2;
         matAndConfi.transMat = mat.clone();
         matAndConfi.confidence = confidence;
@@ -129,8 +131,10 @@ void Network::loadTransMat(const QString &path)
         if (!has)
             network->allTransMat[id1].emplace_back(matAndConfi);
 
+        matAndConfi.thisFrag = id2;
         matAndConfi.otherFrag = id1;
-        matAndConfi.transMat = mat.clone().inv();
+        cv::Mat m = mat.inv();
+        matAndConfi.transMat = m.clone();
         matAndConfi.confidence = confidence;
         has = false;
         for (TransMatAndConfi m : network->allTransMat[id2])
@@ -140,28 +144,7 @@ void Network::loadTransMat(const QString &path)
         }
         if (!has)
             network->allTransMat[id2].emplace_back(matAndConfi);
-    }
 
-    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
-        std::sort(network->allTransMat[i].begin(), network->allTransMat[i].end());
-
-    float minConfi = 1000000.0;
-    float maxConfi = -1000000.0;
-    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
-    {
-        for (int j = 0; j < int(network->allTransMat[i].size()); ++j)
-        {
-            minConfi = minElement(minConfi, network->allTransMat[i][j].confidence);
-            maxConfi = maxElement(maxConfi, network->allTransMat[i][j].confidence);
-        }
-    }
-    for (int i = 0; i < MAX_FRAGMENT_NUM; ++i)
-    {
-        for (int j = 0; j < int(network->allTransMat[i].size()); ++j)
-        {
-            network->allTransMat[i][j].confidence = (network->allTransMat[i][j].confidence - minConfi) / (maxConfi - minConfi);
-//            qInfo() << i << network->allTransMat[i][j].otherFrag << " = " << network->allTransMat[i][j].confidence;
-        }
     }
 }
 

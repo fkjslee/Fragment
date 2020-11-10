@@ -176,13 +176,6 @@ bool FragmentsController::jointFragment(AreaFragment *f1, const Piece *ptr_p1, A
 
     cv::Mat offsetMat;
 
-    int fit_3 = int(std::acos(finalTransMat.at<float>(0, 0)) * 180 / CV_PI);
-    if (finalTransMat.at<float>(1, 0) < 0)
-    {
-        fit_3 = int(360.0 - fit_3);
-    }
-    //Tool::possFusionImage(src, dst, fit_3, fit_off_x, fit_off_y);
-//    finalTransMat = Tool::getMatFromAngleAndOffset(fit_3, fit_off_x, fit_off_y);
     cv::Mat resMat = Tool::fusionImage(src, dst, finalTransMat, offsetMat);
 
     qInfo() << "run FusionImage";
@@ -371,4 +364,18 @@ float FragmentsController::calcScore()
         }
     }
     return score;
+}
+
+AreaFragment *FragmentsController::getFragmentByPiece(const Piece *p)
+{
+    if (p == nullptr) return nullptr;
+    for (AreaFragment *areaFragment : getUnsortedFragments())
+    {
+        for (const Piece &eachPiece : areaFragment->getPieces())
+        {
+            if (eachPiece.pieceID == p->pieceID)
+                return areaFragment;
+        }
+    }
+    return nullptr;
 }

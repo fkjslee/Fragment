@@ -27,6 +27,7 @@ public:
     static MainWindow *mainWindow;
     void update();
     int getZoomSize();
+    void setImageSize(double scall);
 
 protected:
     void wheelEvent(QWheelEvent *event) override;

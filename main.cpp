@@ -17,6 +17,7 @@
 #include <ui/refreshthread.h>
 #include <QMutex>
 #include <configure.h>
+#include <opencv2/opencv.hpp>
 
 void setStyle()
 {
@@ -88,7 +89,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[])
 {
     qInstallMessageHandler(myMessageOutput);
-    qInfo() << "launch application. delay =" << Network::delay << "ms confidence =" << RefreshThread::confidence << "%";
+    qInfo() << "launch application. delay =" << Network::delay << "ms confidence =" << RefreshThread::getConfidence() << "%";
     QApplication a(argc, argv);
     setStyle();
     loadLanguage();

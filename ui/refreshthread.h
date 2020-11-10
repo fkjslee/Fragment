@@ -7,6 +7,7 @@
 #include <ui/fragmentarea.h>
 #include <QtDebug>
 #include <QMutex>
+#include <map>
 #include <areafragment.h>
 
 
@@ -28,12 +29,24 @@ public:
 
     void getRes(std::vector<TransMatAndConfi> *confiMats, const int &pieceID);
 
+    static const std::vector<TransMatAndConfi> getRelatedPieces();
+
     static const std::vector<TransMatAndConfi> *getAllConfiMat()
     {
         return allConfiMats;
     }
 
+    static bool judgePieceNeedSuggest(int pieceID)
+    {
+        return !suggestAllPieces[pieceID];
+    }
+
     virtual void run() override;
+
+    static int getConfidence()
+    {
+        return confidence;
+    }
 
 signals:
     void deleteOldFragments();
@@ -44,13 +57,12 @@ private:
     int getPieceIDX(std::vector<Piece> pieces, const int &id);
     void setHint(const std::vector<TransMatAndConfi> &resConfiMat);
 
-public:
-    static int confidence;
-
 private:
+    static int confidence;
     AreaFragment *fragment;
     FragmentsController *fragCtrl;
     static QMutex setFragmentLocker;
+    static std::map<int, bool> suggestAllPieces;
     bool stoped;
     static std::vector<TransMatAndConfi> allConfiMats[MAX_FRAGMENT_NUM];
     bool needShow;

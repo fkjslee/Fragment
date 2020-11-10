@@ -98,6 +98,7 @@ public:
                 QString res = "";
                 for (int j = 0; j < src.cols; ++j)
                     res += QString::number(double(src.at<float>(i, j))) + "    ";
+                qInfo() << res;
             }
         }
     }

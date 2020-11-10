@@ -18,6 +18,7 @@ namespace
 int RefreshThread::confidence = int(100 * 0.6 + 0.5);
 QMutex RefreshThread::setFragmentLocker;
 std::vector<TransMatAndConfi> RefreshThread::allConfiMats[MAX_FRAGMENT_NUM];
+std::map<int, bool> RefreshThread::suggestAllPieces;
 RefreshThread::RefreshThread(AreaFragment *fragment, bool needShow): fragment(fragment), needShow(needShow)
 {
     fragCtrl = FragmentsController::getController();
@@ -61,12 +62,12 @@ void RefreshThread::getRes(std::vector<TransMatAndConfi> *confiMats, const int &
     // loop delay mseconds or quit if needed
     while (true)
     {
-        Sleep(100);
-        if (GetTickCount() - startTime > Network::delay)
+        if (int(GetTickCount() - startTime) > Network::delay)
         {
             startTime = -1;
             break;
         }
+        Sleep(100);
         if (stoped)
         {
             startTime = -1;
@@ -84,6 +85,8 @@ void RefreshThread::getRes(std::vector<TransMatAndConfi> *confiMats, const int &
     for (QString s : msgList)
         if (s != "")
             msgList2.append(s);
+
+    std::vector<TransMatAndConfi> suggMatsByID;
     for (int i = 0; i < msgList2.length(); i += 11)
     {
         cv::Mat transMat(3, 3, CV_32FC1);
@@ -97,6 +100,13 @@ void RefreshThread::getRes(std::vector<TransMatAndConfi> *confiMats, const int &
         confiMat.otherFrag = msgList[i].toInt();
         confiMat.confidence = msgList[i + 1].toFloat();
         confiMat.transMat = transMat.clone();
+        suggMatsByID.push_back(confiMat);
+    }
+
+    bool suggMore = false;
+    for (int i = 0; i < suggMatsByID.size(); ++i)
+    {
+        TransMatAndConfi confiMat = suggMatsByID[i];
         bool find = false;
         for (int j = 0; j < confiMats->size(); ++j)
         {
@@ -105,10 +115,26 @@ void RefreshThread::getRes(std::vector<TransMatAndConfi> *confiMats, const int &
         }
         if (!find)
         {
+            if (i != int(suggMatsByID.size() - 1)) suggMore = true;
             confiMats->emplace_back(confiMat);
             break;
         }
     }
+    if (!suggMore)
+    {
+        suggestAllPieces[pieceID] = true;
+    }
+}
+
+const std::vector<TransMatAndConfi> RefreshThread::getRelatedPieces()
+{
+    std::vector<TransMatAndConfi> relatedPieces;
+    for (const std::vector<TransMatAndConfi> &eachIDXTransMat : allConfiMats)
+    {
+        for (const TransMatAndConfi &eachPair : eachIDXTransMat)
+            relatedPieces.push_back(eachPair);
+    }
+    return relatedPieces;
 }
 
 int RefreshThread::getPieceIDX(std::vector<Piece> pieces, const int &id)
@@ -122,21 +148,11 @@ int RefreshThread::getPieceIDX(std::vector<Piece> pieces, const int &id)
 void RefreshThread::run()
 {
     startThread();
-    int minSuggestSize = 1e9;
-    const Piece *minSuggPiece;
-    for (const Piece &p : fragment->getPieces())
-    {
-        if (minSuggestSize > allConfiMats[p.pieceID].size())
-        {
-            minSuggestSize = allConfiMats[p.pieceID].size();
-            minSuggPiece = &p;
-        }
-    }
 
     std::vector<TransMatAndConfi> resConfiMat;
     for (const Piece &p : fragment->getPieces())
     {
-        for (int j = 0; j < allConfiMats[minSuggPiece->pieceID].size(); ++j)
+        for (int j = 0; j < allConfiMats[p.pieceID].size(); ++j)
             resConfiMat.emplace_back(allConfiMats[p.pieceID][j]);
     }
 
@@ -149,12 +165,24 @@ void RefreshThread::run()
         setFragmentLocker.unlock();
     }
 
+    int minSuggestSize = 1e9;
+    const Piece *minSuggPiece = nullptr;
+    for (const Piece &p : fragment->getPieces())
+    {
+        if (suggestAllPieces[p.pieceID]) continue;
+        if (minSuggestSize > allConfiMats[p.pieceID].size())
+        {
+            minSuggestSize = int(allConfiMats[p.pieceID].size());
+            minSuggPiece = &p;
+        }
+    }
+    if (minSuggPiece == nullptr) return;
     getRes(&allConfiMats[minSuggPiece->pieceID], minSuggPiece->pieceID);
 
     resConfiMat.clear();
     for (const Piece &p : fragment->getPieces())
     {
-        for (int j = 0; j < allConfiMats[minSuggPiece->pieceID].size(); ++j)
+        for (int j = 0; j < allConfiMats[p.pieceID].size(); ++j)
             resConfiMat.emplace_back(allConfiMats[p.pieceID][j]);
     }
     if(!stoped && needShow)

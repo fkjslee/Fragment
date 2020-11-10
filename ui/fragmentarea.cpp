@@ -7,8 +7,23 @@
 #include <fragmentscontroller.h>
 #include <QMessageBox>
 #include <network.h>
+#include "refreshthread.h"
+#include <QMutex>
 
 FragmentArea *FragmentArea::fragmentArea = nullptr;
+QMutex FragmentArea::lock;
+
+namespace
+{
+    const Piece *findPieceById(const std::vector<Piece> &pieces, int pieceID)
+    {
+        for (const Piece &p : pieces)
+        {
+            if (p.pieceID == pieceID) return &p;
+        }
+        return nullptr;
+    }
+}
 
 FragmentArea::FragmentArea(QWidget *parent) :
     QWidget(parent),
@@ -110,7 +125,7 @@ void FragmentArea::on_btnJointForce_clicked()
     cv::Mat f1Changed = f1->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat1) * f1->getPieces()[0].transMat;
     cv::Mat f2Changed = f2->getOffsetMat() * Tool::getFirst3RowsMat(rotateMat2) * f2->getPieces()[0].transMat;
     transMat = f1Changed.inv() * transMat * f2Changed.clone();
-    fragCtrl->jointFragment(f1, 0, f2, 0, transMat);
+    fragCtrl->jointFragment(f1, &f1->getPieces()[0], f2, &f2->getPieces()[0], transMat);
 }
 
 bool FragmentArea::jointCheck()
@@ -143,7 +158,9 @@ void FragmentArea::on_btnReSort_clicked()
 //        fragment->update();
 //    }
 //    update();
+    lock.lock();
     resortPosition();
+    lock.unlock();
 }
 
 void FragmentArea::resortPosition()
@@ -159,15 +176,64 @@ void FragmentArea::resortPosition()
         maxWidth = std::max(maxWidth, mat.cols);
         maxHeight = std::max(maxHeight, mat.rows);
     }
-    maxWidth /= 2;
-    maxHeight /= 2;
+    maxWidth /= 1.5;
+    maxHeight /= 1.5;
     int side = std::ceil(std::sqrt(fragments.size()));
+    double scall = (std::max)(ui->view->width() / (1.0 * maxWidth * (side + 1)), ui->view->height() / (1.0 * maxHeight * (side + 1)));
     for (int i = 0; i < fragments.size(); ++i)
     {
-        int x = maxWidth * 1.0 * (i % side);
-        int y = maxHeight * 1.0 * (i / side);
+        int x = maxWidth * 1.0 * (i % side) * scall;
+        int y = maxHeight * 1.0 * (i / side) * scall;
         AreaFragment *fragment = fragments[i];
+        fragment->rotateAng = 0;
         fragment->setPos(x, y);
     }
+    MainWindow::mainWindow->setImageSize(scall);
     update();
+    std::vector<TransMatAndConfi> relatedPieces = RefreshThread::getRelatedPieces();
+    vector<int> stillPieces;
+    stillPieces.push_back(0);
+    while (true)
+    {
+        TransMatAndConfi maxConfiTransMat;
+        maxConfiTransMat.confidence = -1.0;
+        for (int stillP : stillPieces)
+        {
+            for (const TransMatAndConfi &relatedPiece : relatedPieces)
+            {
+                auto iterOther = std::find(stillPieces.begin(), stillPieces.end(), relatedPiece.otherFrag);
+                if (stillP == relatedPiece.thisFrag && iterOther == stillPieces.end())
+                {
+                    maxConfiTransMat = relatedPiece;
+                }
+            }
+        }
+        if (maxConfiTransMat.confidence <= -1.0)
+            for (const TransMatAndConfi &relatedPiece : relatedPieces)
+            {
+                auto iterOther = std::find(stillPieces.begin(), stillPieces.end(), relatedPiece.otherFrag);
+                if (iterOther == stillPieces.end())
+                {
+                    maxConfiTransMat = relatedPiece;
+                    break;
+                }
+            }
+        if (maxConfiTransMat.confidence <= -1.0) break;
+        qInfo() << "check" << maxConfiTransMat.thisFrag << maxConfiTransMat.otherFrag << maxConfiTransMat.confidence;
+        AreaFragment *fragment1 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.thisFrag);
+        AreaFragment *fragment2 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.otherFrag);
+        const Piece *p1 = findPieceById(fragment1->getPieces(), maxConfiTransMat.thisFrag);
+        const Piece *p2 = findPieceById(fragment2->getPieces(), maxConfiTransMat.otherFrag);
+        HintFragment::moveRelatedPieceToPos(p1, p2, maxConfiTransMat.transMat);
+        stillPieces.push_back(maxConfiTransMat.otherFrag);
+    }
+
+    int rightCnt = 0, wrongCnt = 0;
+    for (TransMatAndConfi relatedPiece : relatedPieces)
+    {
+        if (relatedPiece.confidence >= 1.0)
+            rightCnt++;
+        else wrongCnt++;
+    }
+    qInfo() << "resort right number =" << rightCnt << "wrong cnt = " << wrongCnt;
 }

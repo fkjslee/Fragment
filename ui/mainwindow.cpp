@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./fragment9/");
+    FragmentsController::getController()->createAllFragments("./mixed2/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();
@@ -40,6 +40,11 @@ void MainWindow::update()
 int MainWindow::getZoomSize()
 {
     return ui->imageSizeController->value();
+}
+
+void MainWindow::setImageSize(double scall)
+{
+    ui->imageSizeController->setValue(scall * 100);
 }
 
 void MainWindow::wheelEvent(QWheelEvent *event)

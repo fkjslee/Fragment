@@ -12,6 +12,7 @@ public:
     HintFragment(const std::vector<Piece> &pieces, const QImage &originalImage, const QString &fragmentName = "unname");
 
     void update(const QRectF &rect = QRectF());
+    static void moveRelatedPieceToPos(const Piece *p1, const Piece *p2, cv::Mat transMat);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
