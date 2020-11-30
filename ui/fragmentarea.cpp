@@ -219,7 +219,6 @@ void FragmentArea::resortPosition()
                 }
             }
         if (maxConfiTransMat.confidence <= -1.0) break;
-        qInfo() << "check" << maxConfiTransMat.thisFrag << maxConfiTransMat.otherFrag << maxConfiTransMat.confidence;
         AreaFragment *fragment1 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.thisFrag);
         AreaFragment *fragment2 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.otherFrag);
         const Piece *p1 = findPieceById(fragment1->getPieces(), maxConfiTransMat.thisFrag);
@@ -227,13 +226,4 @@ void FragmentArea::resortPosition()
         HintFragment::moveRelatedPieceToPos(p1, p2, maxConfiTransMat.transMat);
         stillPieces.push_back(maxConfiTransMat.otherFrag);
     }
-
-    int rightCnt = 0, wrongCnt = 0;
-    for (TransMatAndConfi relatedPiece : relatedPieces)
-    {
-        if (relatedPiece.confidence >= 1.0)
-            rightCnt++;
-        else wrongCnt++;
-    }
-    qInfo() << "resort right number =" << rightCnt << "wrong cnt = " << wrongCnt;
 }

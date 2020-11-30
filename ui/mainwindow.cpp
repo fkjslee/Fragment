@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./mixed2/");
+    FragmentsController::getController()->createAllFragments("./fragment9/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();
@@ -132,10 +132,25 @@ void MainWindow::createMenu()
 void MainWindow::on_imageSizeController_valueChanged(int value)
 {
     std::vector<AreaFragment *> unsortedFragments = fragCtrl->getUnsortedFragments();
-    for (AreaFragment *fragment : unsortedFragments)
+    AreaFragment *baseFragment = unsortedFragments[0];
+    for (int i = 0; i < unsortedFragments.size(); ++i)
     {
+        AreaFragment *fragment = unsortedFragments[i];
         fragment->scaledToWidth(1.0 * value / 100);
+        double scaller;
+        if (preImgSize == -1)
+        {
+            scaller = 1.0 * value / 100;
+        }
+        else
+        {
+            scaller = (1.0 * value / 100) / (1.0 * preImgSize / 100);
+        }
+        float newX = baseFragment->x() + (fragment->x() - baseFragment->x()) * scaller;
+        float newY = baseFragment->y() + (fragment->y() - baseFragment->y()) * scaller;
+        fragment->setPos(QPointF(newX, newY));
     }
+    preImgSize = value;
 }
 
 void MainWindow::changeLanguageToCN()

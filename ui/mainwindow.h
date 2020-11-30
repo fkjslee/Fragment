@@ -68,6 +68,7 @@ private:
     QMenu *menuSetting;
 
     bool ctrlPress = false;
+    int preImgSize = -1;
 
 };
 #endif // MAINWINDOW_H
