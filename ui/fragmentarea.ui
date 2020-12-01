@@ -73,7 +73,7 @@
        <item>
         <widget class="QSlider" name="sldRotate">
          <property name="maximum">
-          <number>359</number>
+          <number>35999</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

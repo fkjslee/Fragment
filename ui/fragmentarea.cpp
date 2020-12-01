@@ -97,7 +97,7 @@ void FragmentArea::on_sldRotate_valueChanged(int value)
     {
         if (f->isSelected())
         {
-            f->rotate(value);
+            f->rotate(1.0 * value / 100);
         }
     }
     update();
@@ -219,11 +219,13 @@ void FragmentArea::resortPosition()
                 }
             }
         if (maxConfiTransMat.confidence <= -1.0) break;
+        stillPieces.push_back(maxConfiTransMat.otherFrag);
         AreaFragment *fragment1 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.thisFrag);
         AreaFragment *fragment2 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.otherFrag);
+        if (fragment1 == nullptr || fragment2 == nullptr) continue;
         const Piece *p1 = findPieceById(fragment1->getPieces(), maxConfiTransMat.thisFrag);
         const Piece *p2 = findPieceById(fragment2->getPieces(), maxConfiTransMat.otherFrag);
+        if (p1 == nullptr || p2 == nullptr) continue;
         HintFragment::moveRelatedPieceToPos(p1, p2, maxConfiTransMat.transMat);
-        stillPieces.push_back(maxConfiTransMat.otherFrag);
     }
 }

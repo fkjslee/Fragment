@@ -124,6 +124,6 @@ void AreaFragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
     setCursor(Qt::OpenHandCursor);
     QGraphicsPixmapItem::mouseReleaseEvent(event);
-    FragmentArea::getFragmentArea()->setRotateAng(rotateAng);
+    FragmentArea::getFragmentArea()->setRotateAng(rotateAng * 100);
 }
 
