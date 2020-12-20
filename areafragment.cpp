@@ -40,26 +40,11 @@ void AreaFragment::update(const QRectF &rect)
     cv::Mat img = Tool::QImageToMat(removeBgColorImg);
     cv::Mat rotateMat = Tool::getRotationMatrix(img.cols / 2.0, img.rows / 2.0, Tool::angToRad(this->rotateAng));
     rotateMat = Tool::getFirst3RowsMat(rotateMat);
-//    cv::warpAffine(img, img, rotateMat(cv::Rect(0, 0, 3, 2)), img.size());
     Tool::rotateAndOffset(img, rotateMat, this->offset);
 
     QImage showImage = Tool::Mat8UC4ToQImage(img);
     showImage = showImage.scaledToWidth(int(showImage.width() * scale));
     cv::Mat fusionImg = Tool::QImageToMat(showImage);
-//    if (calcing)
-//    {
-//        QImage thinkingImg(":/new/pre/resources/thinking.png");
-//        cv::Mat thinkMat = Tool::QImageToMat(thinkingImg);
-//        cv::Mat smallerMat = cv::getRotationMatrix2D(cv::Point(0, 0), 0, 0.5);
-//        cv::warpAffine(thinkMat, thinkMat, smallerMat, cv::Size(thinkMat.rows / 2, thinkMat.cols / 2));
-//        int moveX = showImage.width() / 2 - thinkMat.cols / 2;
-//        int moveY = showImage.height();
-//        cv::Mat trans = cv::Mat::eye(3, 3, CV_32FC1);
-//        trans.at<float>(0, 2) = moveX;
-//        trans.at<float>(1, 2) = moveY;
-//        cv::Mat offset = cv::Mat::eye(3, 3, CV_32FC1);
-//        fusionImg = Tool::fusionImage(Tool::QImageToMat(showImage), thinkMat, trans, offset);
-//    }
     showImage = Tool::Mat8UC4ToQImage(fusionImg);
     setPixmap(QPixmap::fromImage(showImage));
     QGraphicsPixmapItem::update(rect);
@@ -121,7 +106,11 @@ void AreaFragment::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void AreaFragment::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if ((pos() - pressPos).manhattanLength() > 1e-7)
+    {
         CommonHeader::undoStack->push(new MoveUndo(this, undoPos, pos().toPoint()));
+        moved = true;
+        qInfo() << "move fragment:" << this->getFragmentName() << "to" << pos();
+    }
     setCursor(Qt::OpenHandCursor);
     QGraphicsPixmapItem::mouseReleaseEvent(event);
     FragmentArea::getFragmentArea()->setRotateAng(rotateAng * 100);

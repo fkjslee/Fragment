@@ -14,6 +14,10 @@ HintWindow::HintWindow(QWidget *parent) :
     hintWindow = this;
     scene = new HintScene;
     ui->view->setScene(scene);
+    ui->btnAutoJoint->hide();
+    ui->btnClearAI->hide();
+    ui->refreshBtn->hide();
+//    ui->btnFixedPosition->hide();
     scene->setBackgroundBrush(QColor(128, 128, 128));
 }
 
@@ -156,6 +160,7 @@ void HintWindow::setNewFragments()
 
 void HintWindow::actSuggestTrigged()
 {
+    qInfo() << "click sugget";
     FragmentsController *fragCtrl = FragmentsController::getController();
     AreaFragment *refreshFragment = nullptr;
     for (AreaFragment *f : fragCtrl->getUnsortedFragments())
@@ -248,7 +253,7 @@ void HintWindow::on_btnFixedPosition_clicked()
         cv::Mat trans = pressedFragment.p2->transMat.inv(); // jointed fragent back to start position
 
         trans = pressedFragment.transMat * trans; // jointed fragment fusion with jointing fragment
-        trans = pressedFragment.p2->transMat * trans; // joing fragment back to start position
+        trans = pressedFragment.p1->transMat * trans; // jointing fragment back to start position
 
         cv::Mat areaImg = Tool::QImageToMat(pressedFragment.fragCorrToArea->getOriginalImage());
         cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(pressedFragment.fragCorrToArea->rotateAng));
@@ -262,8 +267,10 @@ void HintWindow::on_btnFixedPosition_clicked()
         pressedFragment.fragCorrToHint->rotate(ang);
         trans = pressedFragment.fragCorrToHint->getOffsetMat().inv() * trans;
 
-        pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2));
-        pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2));
+        pressedFragment.fragCorrToHint->setX(pressedFragment.fragCorrToArea->x() + trans.at<float>(0, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
+        pressedFragment.fragCorrToHint->setY(pressedFragment.fragCorrToArea->y() + trans.at<float>(1, 2) * (MainWindow::mainWindow->getZoomSize() / 100.0));
+        pressedFragment.fragCorrToArea->clearMovedSign();
+        pressedFragment.fragCorrToHint->clearMovedSign();
     }
 }
 

@@ -28,6 +28,18 @@ public:
     void update(const QRectF &rect = QRectF());
     void scaledToWidth(const double scale);
     double rotateAng = 0;
+    bool getMovedSign()
+    {
+        return moved;
+    }
+    void clearMovedSign()
+    {
+        moved = false;
+    }
+    void setMovedSign()
+    {
+        moved = true;
+    }
 
 public slots:
     void updateFragment()
@@ -50,6 +62,7 @@ private:
     double suggAng = -1.0;
     double suggX;
     double suggY;
+    bool moved = false;
 };
 
 #endif // AREAFRAGMENT_H

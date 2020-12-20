@@ -29,23 +29,22 @@ public:
         return fragmentArea;
     }
 
-    void updateFragmentsPos();
-    void setRotateAng(int value);
-    void resortPosition();
+    void setRotateAng(int value, bool man = true);
 
 public slots:
     void on_btnSplit_clicked();
 
     void on_btnJointForce_clicked();
+    void on_btnReSort_clicked();
 
 private slots:
     void on_sldRotate_valueChanged(int value);
 
 
-    void on_btnReSort_clicked();
 
 private:
     bool jointCheck();
+    void resortPosition();
 
 private:
     Ui::FragmentArea *ui;
@@ -55,6 +54,7 @@ private:
     QUndoStack *undoStack;
     static FragmentArea *fragmentArea;
     static QMutex lock;
+    bool manRotate = true;
 };
 
 #endif // FRAGMENTAREA_H

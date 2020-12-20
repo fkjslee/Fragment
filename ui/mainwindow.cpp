@@ -11,16 +11,20 @@
 #include <QWheelEvent>
 
 MainWindow *MainWindow::mainWindow = nullptr;
+int MainWindow::expMode = 2;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    FragmentsController::getController()->createAllFragments("./fragment9/");
+    FragmentsController::getController()->createAllFragments("./animal36/");
     fragCtrl = FragmentsController::getController();
 
     createMenu();
     mainWindow = this;
     ui->storeArea->hide();
+    if (expMode == 0)
+        ui->hintWindow->hide();
+    FragmentArea::getFragmentArea()->on_btnReSort_clicked();
     update();
 }
 

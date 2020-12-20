@@ -82,7 +82,6 @@ void FragmentsController::createAllFragments(const QString &fragmentsPath)
         unsortedFragments.emplace_back(new AreaFragment(vec, img, QString("id = %1").arg(i)));
         ++i;
     }
-    FragmentArea::getFragmentArea()->updateFragmentsPos();
     HintWindow::getHintWindow()->randomSuggestFragment();
     if (MainWindow::mainWindow) MainWindow::mainWindow->update();
 }
@@ -233,7 +232,7 @@ bool FragmentsController::jointFragment(AreaFragment *f1, const Piece *ptr_p1, A
     undoFragments.push_back(f2);
     JointUndo *temp = new JointUndo(undoFragments, newFragment);
     CommonHeader::undoStack->push(temp);
-    qInfo() << "joint fragments " << p1.pieceID << " and " << p2.pieceID;
+    qInfo() << "joint fragments " << p1.pieceID << " and " << p2.pieceID << " moved = " << f1->getMovedSign() << f2->getMovedSign();
     return true;
 }
 

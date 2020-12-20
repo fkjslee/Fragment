@@ -15,7 +15,7 @@ namespace
     }
 }
 
-int RefreshThread::confidence = int(100 * 0.6 + 0.5);
+int RefreshThread::confidence = 100 * 0.5;
 QMutex RefreshThread::setFragmentLocker;
 std::vector<TransMatAndConfi> RefreshThread::allConfiMats[MAX_FRAGMENT_NUM];
 std::map<int, bool> RefreshThread::suggestAllPieces;

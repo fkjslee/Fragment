@@ -28,6 +28,7 @@ public:
     void update();
     int getZoomSize();
     void setImageSize(double scall);
+    static int expMode;
 
 protected:
     void wheelEvent(QWheelEvent *event) override;

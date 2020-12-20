@@ -26,8 +26,8 @@ void HintFragment::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void HintFragment::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    Q_UNUSED(event)
     SuggestedFragment pressedFragment = HintWindow::getHintWindow()->getSuggestedFragmentByHintFragment(this);
+    if (pressedFragment.p1 == nullptr) return;
     hoverPrePos = pressedFragment.fragCorrToHint->pos();
     hoverPreAng = pressedFragment.fragCorrToHint->rotateAng;
     moveRelatedPieceToPos(pressedFragment.p1, pressedFragment.p2, pressedFragment.transMat);
@@ -49,7 +49,7 @@ void HintFragment::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
 void HintFragment::moveRelatedPieceToPos(const Piece *p1, const Piece *p2, cv::Mat transMat)
 {
-    if (p1 == nullptr) return;
+    if (p1 == nullptr || p2 == nullptr) return;
     cv::Mat trans = p2->transMat.inv(); // jointed fragent back to start position
 
     trans = transMat * trans; // jointed fragment fusion with jointing fragment
@@ -57,6 +57,7 @@ void HintFragment::moveRelatedPieceToPos(const Piece *p1, const Piece *p2, cv::M
 
     AreaFragment *fragCorrToArea = FragmentsController::getController()->getFragmentByPiece(p1);
     AreaFragment *fragCorrToHint = FragmentsController::getController()->getFragmentByPiece(p2);
+    if (fragCorrToArea == fragCorrToHint) return;
 
     cv::Mat areaImg = Tool::QImageToMat(fragCorrToArea->getOriginalImage());
     cv::Mat hadRotated = Tool::getRotationMatrix(areaImg.cols / 2.0, areaImg.rows / 2.0, Tool::angToRad(fragCorrToArea->rotateAng));

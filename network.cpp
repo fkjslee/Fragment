@@ -9,12 +9,9 @@
 #include <QDir>
 #pragma comment(lib, "ws2_32.lib")
 
-const QString helloMsg = "client: \"ping...\"";
-const QString endMsg = "bye";
-
 int Network::fragSuggesNum = 200;
 float Network::fragSuggesConfi = 0.8f;
-int Network::delay = 0 * 1000;
+int Network::delay = 5 * 1000;
 Network *Network::network = new Network;
 namespace
 {

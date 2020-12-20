@@ -36,6 +36,8 @@ FragmentArea::FragmentArea(QWidget *parent) :
     fragCtrl = FragmentsController::getController();
     update();
     ui->btnJoint->hide();
+    if (MainWindow::expMode != 2)
+        ui->btnReSort->hide();
 }
 
 FragmentArea::~FragmentArea()
@@ -63,25 +65,11 @@ void FragmentArea::update()
     QWidget::update();
 }
 
-void FragmentArea::updateFragmentsPos()
-{
-    QRect windowRect = this->rect();
-    int i = 0;
-    int N = (int)fragCtrl->getUnsortedFragments().size();
-    for (AreaFragment *fragment : fragCtrl->getUnsortedFragments())
-    {
-        fragmentItems.emplace_back(fragment);
-        fragment->setPos(::sin((i * 6.28) / N) * windowRect.width() / 5,
-                         ::cos((i * 6.28) / N) * windowRect.height() / 5);
-        scene->addItem(fragment);
-        i++;
-    }
-}
-
-void FragmentArea::setRotateAng(int value)
+void FragmentArea::setRotateAng(int value, bool man)
 {
     if (FragmentsController::getController()->getSelectedFragments().size() == 1)
         ui->sldRotate->setValue(value);
+    manRotate = man;
 }
 
 void FragmentArea::on_btnSplit_clicked()
@@ -98,8 +86,11 @@ void FragmentArea::on_sldRotate_valueChanged(int value)
         if (f->isSelected())
         {
             f->rotate(1.0 * value / 100);
+            if (manRotate)
+                f->setMovedSign();
         }
     }
+    manRotate = true;
     update();
 }
 
@@ -165,21 +156,23 @@ void FragmentArea::on_btnReSort_clicked()
 
 void FragmentArea::resortPosition()
 {
+    qInfo() << "click resort";
     std::vector<AreaFragment *> fragments = FragmentsController::getController()->getUnsortedFragments();
-    int maxWidth = 0;
-    int maxHeight = 0;
+    double maxWidth = 0;
+    double maxHeight = 0;
     for (AreaFragment *fragment : fragments)
     {
         cv::Mat mat = Tool::QImageToMat(fragment->getOriginalImage());
         cv::Mat offset;
         Tool::rotateAndOffset(mat, Tool::getRotationMatrix(mat.cols / 2.0, mat.rows / 2.0, Tool::angToRad(fragment->rotateAng)), offset);
-        maxWidth = std::max(maxWidth, mat.cols);
-        maxHeight = std::max(maxHeight, mat.rows);
+        maxWidth = std::max(maxWidth, 1.0 * mat.cols);
+        maxHeight = std::max(maxHeight, 1.0 * mat.rows);
     }
     maxWidth /= 1.5;
     maxHeight /= 1.5;
     int side = std::ceil(std::sqrt(fragments.size()));
-    double scall = (std::max)(ui->view->width() / (1.0 * maxWidth * (side + 1)), ui->view->height() / (1.0 * maxHeight * (side + 1)));
+    double scall = (std::max)(this->rect().width() / (1.0 * maxWidth * (side + 1)), this->rect().height() / (1.0 * maxHeight * (side + 1)));
+    MainWindow::mainWindow->setImageSize(scall);
     for (int i = 0; i < fragments.size(); ++i)
     {
         int x = maxWidth * 1.0 * (i % side) * scall;
@@ -188,7 +181,6 @@ void FragmentArea::resortPosition()
         fragment->rotateAng = 0;
         fragment->setPos(x, y);
     }
-    MainWindow::mainWindow->setImageSize(scall);
     update();
     std::vector<TransMatAndConfi> relatedPieces = RefreshThread::getRelatedPieces();
     vector<int> stillPieces;
@@ -223,9 +215,14 @@ void FragmentArea::resortPosition()
         AreaFragment *fragment1 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.thisFrag);
         AreaFragment *fragment2 = FragmentsController::getController()->findFragmentById(maxConfiTransMat.otherFrag);
         if (fragment1 == nullptr || fragment2 == nullptr) continue;
+        if (fragment1 == fragment2) continue;
         const Piece *p1 = findPieceById(fragment1->getPieces(), maxConfiTransMat.thisFrag);
         const Piece *p2 = findPieceById(fragment2->getPieces(), maxConfiTransMat.otherFrag);
         if (p1 == nullptr || p2 == nullptr) continue;
         HintFragment::moveRelatedPieceToPos(p1, p2, maxConfiTransMat.transMat);
+    }
+    for (AreaFragment *f : FragmentsController::getController()->getUnsortedFragments())
+    {
+        f->clearMovedSign();
     }
 }
