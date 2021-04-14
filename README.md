@@ -5,3 +5,7 @@ opencv
 
 ## 本地数据
 需要在mainwindow.cpp中修改本地碎片路径，可以使用项目中的fragmentsSet文件夹下的某个碎片集
+
+
+## UI
+![image](https://github.com/fkjslee/Fragment/blob/master/resources/fragment%20demo%20pic.png)
