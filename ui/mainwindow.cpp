@@ -10,8 +10,12 @@
 #include <QDir>
 #include <QWheelEvent>
 
+#define noRecommendation 0
+#define singleRecommendation 1
+#define parallelRecommendation 2
+
 MainWindow *MainWindow::mainWindow = nullptr;
-int MainWindow::expMode = 2;
+int MainWindow::expMode = parallelRecommendation;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
